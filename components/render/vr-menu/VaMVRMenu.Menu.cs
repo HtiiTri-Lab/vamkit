@@ -1,14 +1,14 @@
-// In-game menu of the VaM VR settings plugin: a "VR 画面" tab in VaM's main
+// In-game menu of the VaM VR settings plugin: a "VR Graphics" tab in VaM's main
 // menu, added the way the hair-budget component's VaMHairBudget.Menu.cs adds its
-// "头发预算" tab. UITabSelector shows the child of its own transform that
+// "Hair Budget" tab. UITabSelector shows the child of its own transform that
 // carries a UITab and has the name of the toggle that is on, so the tab is a
 // clone of the last tab toggle (fresh listeners, same ToggleGroup) plus an
 // empty UITab panel.
 // Layout (v30), made for a laser pointer: nothing scrolls and every target is
 // big. Across the top this run's status; on the left a side bar with one entry
-// per page and 恢复启动时设置; on the right the tabs of the page's sub-pages
+// per page and Back to launch settings; on the right the tabs of the page's sub-pages
 // (when it has more than one) and its settings, one row each at a fixed
-// height: the label, then 关 / 开 or the choices as one segmented row of
+// height: the label, then Off / On or the choices as one segmented row of
 // buttons, the chosen one lit, or a number as − bar + and its value (− and + a
 // fixed step, the bar for big moves). Rows under a switch that is off are left
 // out and the rest move up; a section longer than the room is cut into
@@ -37,7 +37,7 @@ using UnityEngine.UI;
 public sealed partial class VaMVRMenu
 {
     private const string MenuTabName = "VR Settings";      // GameObject name UITabSelector matches on
-    private static readonly string MenuTabLabel = Desktop ? "画面" : "VR 画面";
+    private static readonly string MenuTabLabel = Desktop ? Lang.T("Graphics") : Lang.T("VR Graphics");
     private const string NoTranslate = "᠎";           // XUnity AutoTranslator IgnoreTextStartingWith
     private const int MenuAttemptsMax = 5;
     // In the tab panel's units (1100 × 1380 in VaM 1.22; VaM's own tab buttons are 80 tall).
@@ -59,7 +59,7 @@ public sealed partial class VaMVRMenu
     private static readonly Color TrackColor = new Color(1f, 1f, 1f, 0.18f);
 
     // A button of the tab, by level: a page, a sub-page, a value, or anything
-    // else (− / +, 恢复启动时设置).
+    // else (− / +, Back to launch settings).
     private enum Look { Page, Tab, Option, Plain }
 
     private sealed class Btn
@@ -291,7 +291,7 @@ public sealed partial class VaMVRMenu
         Fill(statusText.rectTransform);
         float top = Pad + statusHeight + Gap, below = height - top - Pad;
 
-        // Pages, a side bar on the left; 恢复启动时设置 at its bottom.
+        // Pages, a side bar on the left; Back to launch settings at its bottom.
         RectTransform nav = Area(panel, "Pages", Pad, top, NavWidth, below);
         Paint(nav.gameObject, SideBar);
         VerticalLayoutGroup navLayout = Stack(nav, false, 8f);
@@ -306,7 +306,7 @@ public sealed partial class VaMVRMenu
         GameObject spacer = new GameObject("Spacer", typeof(RectTransform));
         spacer.transform.SetParent(nav, false);
         spacer.AddComponent<LayoutElement>().flexibleHeight = 1f;
-        Btn restore = MakeBtn(nav, "恢复启动时设置", Look.Plain, small);
+        Btn restore = MakeBtn(nav, Lang.T("Back to launch settings"), Look.Plain, small);
         Size(restore.button, -1f, 72f);
         restore.button.onClick.AddListener(delegate() { RestoreLaunchValues(); });
 
@@ -440,7 +440,7 @@ public sealed partial class VaMVRMenu
             ve.flexibleHeight = 1f;
             return;
         }
-        // 关 / 开 or the choices: one segmented row.
+        // Off / On or the choices: one segmented row.
         GameObject line2 = new GameObject("Choices", typeof(RectTransform));
         line2.transform.SetParent(row.transform, false);
         HorizontalLayoutGroup c = line2.AddComponent<HorizontalLayoutGroup>();
@@ -453,7 +453,7 @@ public sealed partial class VaMVRMenu
         for (int k = 0; k < it.values.Length; k++)
         {
             string value = it.values[k];
-            Btn b = MakeBtn(line2.transform, it.names[k], Look.Option, fontSize);   // the translator made K / L / M "嘴巴发音"
+            Btn b = MakeBtn(line2.transform, it.names[k], Look.Option, fontSize);   // an automatic translator must not touch K / L / M (NoTranslate)
             LayoutElement e = b.button.gameObject.AddComponent<LayoutElement>();
             e.minWidth = 0f; e.preferredWidth = 0f; e.flexibleWidth = 1f;
             b.button.onClick.AddListener(delegate() { SetValue(it, value); });
@@ -805,29 +805,36 @@ public sealed partial class VaMVRMenu
         bool sr = dlss && model != "Off";
         if (dlss)
         {
-            if (!sr) b.Append("不超分（原生）");
-            else b.Append("DLSS ").Append(model == "RR" ? "RR · F" : model).Append(percent >= 100 ? " DLAA" : " 超分").Append(" · 渲染 ").Append(percent).Append('%');
-            if (!Desktop) b.Append(" · 输出 ").Append(output).Append('%');
+            if (!sr) b.Append(Lang.T("No upscaling (native)"));
+            else
+            {
+                bool other = model == "XeSS" || model == "FSR";      // the upscalers that are not DLSS
+                b.Append(other ? model : "DLSS " + (model == "RR" ? "RR · F" : model))
+                    .Append(percent < 100 ? Lang.T(" upscaling") : other ? Lang.T(" native anti-aliasing") : " DLAA")
+                    .Append(Lang.F(" · render {0}%", percent));
+            }
+            if (!Desktop) b.Append(Lang.F(" · output {0}%", output));
         }
-        else b.Append("没有 DLSS 超分");
+        else b.Append(Lang.T("No DLSS upscaling"));
         b.Append('\n');
-        if (launchMultiplier == 1) b.Append("不插帧");
-        else if (layer.path == null) b.Append(Desktop ? "呈现器等待中" : "没有找到 OFXR 层");
-        else if (pauseName != null && !FrameGenOn) b.Append("插帧已关闭");
+        if (launchMultiplier == 1) b.Append(Lang.T("No frame generation"));
+        else if (layer.path == null) b.Append(Desktop ? Lang.T("Waiting for the presenter") : Lang.T("No OFXR layer found"));
+        else if (pauseName != null && !FrameGenOn) b.Append(Lang.T("Frame generation is off"));
         else
         {
-            // What the session runs, where the layer says; else what its file asks for.
-            Item multiplier;
-            int running = layerReports && framesNow >= 2 ? framesNow
+            // What the session runs, where the layer says; else what its file asks for. FSR's makes one frame per pair.
+            Item multiplier, generator;
+            bool fsr = fsrGeneratorOnly || (byId.TryGetValue(FgModelId, out generator) && generator.value == "FSR");
+            int running = fsr ? 2 : layerReports && framesNow >= 2 ? framesNow
                 : byId.TryGetValue(MultiplierId, out multiplier) ? int.Parse(multiplier.value) : 0;
-            b.Append(dlssg ? "DLSS 帧生成" : "光流插帧");
+            b.Append(fsr ? Lang.T("FSR frame generation") : dlssg ? Lang.T("DLSS Frame Generation") : Lang.T("Optical-flow frame generation"));
             if (running >= 2) b.Append(' ').Append(running).Append('×');
         }
         string sizes = EyeSizes(sr ? percent : 100);
         if (sizes != null) b.Append(" · ").Append(sizes);
         bool fg = pauseName != null && FrameGenOn;
         if (MenuNativeOn && (sr || fg) && MenusOpen())
-            b.Append("\n菜单打开中：").Append(sr && fg ? "不超分、不插帧" : sr ? "不超分" : "不插帧");
+            b.Append('\n').Append(Lang.T("Menus open: ")).Append(sr && fg ? Lang.T("no upscaling, no frame generation") : sr ? Lang.T("no upscaling") : Lang.T("no frame generation"));
         if (message.Length > 0) b.Append('\n').Append(message);
         return b.ToString();
     }
@@ -845,7 +852,7 @@ public sealed partial class VaMVRMenu
             Match m = Regex.Match(File.ReadAllText(path), "\"output\":\\[(\\d+),(\\d+)\\]");
             if (!m.Success) return null;
             int ow = int.Parse(m.Groups[1].Value), oh = int.Parse(m.Groups[2].Value);
-            return (Desktop ? "窗口 " : "每眼 ") + (ow * percent / 100) + "×" + (oh * percent / 100) + " → " + ow + "×" + oh;
+            return (Desktop ? Lang.T("Window ") : Lang.T("Per eye ")) + (ow * percent / 100) + "×" + (oh * percent / 100) + " → " + ow + "×" + oh;
         }
         catch (Exception) { return null; }
     }
@@ -900,10 +907,10 @@ public sealed partial class VaMVRMenu
                         foreach (Text t in row.GetComponentsInChildren<Text>(false))
                         {
                             Rect r = t.rectTransform.rect;
-                            bool label = t.name == "Label";            // wraps; the rest are one line
+                            bool wraps = t.name == "Label" || t.text.Trim().IndexOf(' ') > 0;   // a label, or words that can take a second line
                             if (t.preferredHeight > r.height + 1f)
                                 problems.Add(p.title + " " + (k + 1) + " " + row.name + " '" + t.text.Trim() + "' " + t.preferredHeight.ToString("F0") + " tall in " + r.height.ToString("F0"));
-                            else if (!label && t.preferredWidth > r.width + 1f)
+                            else if (!wraps && t.preferredWidth > r.width + 1f)
                                 problems.Add(p.title + " " + (k + 1) + " " + row.name + " '" + t.text.Trim() + "' " + t.preferredWidth.ToString("F0") + " wide in " + r.width.ToString("F0"));
                         }
                     }

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 418" width="800" height="418" font-family="'Segoe UI','Microsoft YaHei UI','PingFang SC','Noto Sans CJK SC',Helvetica,Arial,sans-serif" role="img" aria-label="VR 里开路径追踪：到达 144 Hz 头显的帧数">
+<title>VR 里开路径追踪：到达 144 Hz 头显的帧数</title>
+<rect width="800" height="418" rx="10" fill="#0d1218"/>
+<text x="24" y="36" font-size="17" fill="#e7ecf3" font-weight="bold" text-anchor="start">VR 里开路径追踪：到达 144 Hz 头显的帧数</text>
+<line x1="70" y1="300.0" x2="730" y2="300.0" stroke="#2a3545" stroke-width="1"/>
+<text x="60" y="304.0" font-size="11" fill="#8f9bb0" font-weight="normal" text-anchor="end">0</text>
+<line x1="70" y1="242.5" x2="730" y2="242.5" stroke="#2a3545" stroke-width="1"/>
+<text x="60" y="246.5" font-size="11" fill="#8f9bb0" font-weight="normal" text-anchor="end">40</text>
+<line x1="70" y1="185.0" x2="730" y2="185.0" stroke="#2a3545" stroke-width="1"/>
+<text x="60" y="189.0" font-size="11" fill="#8f9bb0" font-weight="normal" text-anchor="end">80</text>
+<line x1="70" y1="127.5" x2="730" y2="127.5" stroke="#2a3545" stroke-width="1"/>
+<text x="60" y="131.5" font-size="11" fill="#8f9bb0" font-weight="normal" text-anchor="end">120</text>
+<line x1="70" y1="70.0" x2="730" y2="70.0" stroke="#2a3545" stroke-width="1"/>
+<text x="60" y="74.0" font-size="11" fill="#8f9bb0" font-weight="normal" text-anchor="end">160</text>
+<line x1="70" y1="93.0" x2="730" y2="93.0" stroke="#3ecf8e" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="736" y="97.0" font-size="11" fill="#3ecf8e" font-weight="normal" text-anchor="start">144 Hz</text>
+<rect x="118.0" y="154.38125000000002" width="58" height="145.61874999999998" rx="4" fill="#5b6b82"/>
+<text x="147.0" y="147.38125000000002" font-size="13" fill="#e7ecf3" font-weight="bold" text-anchor="middle">101</text>
+<rect x="184.0" y="97.77825000000001" width="58" height="202.22175" rx="4" fill="#3ecf8e"/>
+<text x="213.0" y="90.77825000000001" font-size="13" fill="#e7ecf3" font-weight="bold" text-anchor="middle">141</text>
+<text x="180.0" y="322" font-size="12" fill="#e7ecf3" font-weight="normal" text-anchor="middle">单人近景</text>
+<rect x="338.0" y="163.63875" width="58" height="136.36125" rx="4" fill="#5b6b82"/>
+<text x="367.0" y="156.63875" font-size="13" fill="#e7ecf3" font-weight="bold" text-anchor="middle">95</text>
+<rect x="404.0" y="94.37568749999997" width="58" height="205.62431250000003" rx="4" fill="#3ecf8e"/>
+<text x="433.0" y="87.37568749999997" font-size="13" fill="#e7ecf3" font-weight="bold" text-anchor="middle">143</text>
+<text x="400.0" y="322" font-size="12" fill="#e7ecf3" font-weight="normal" text-anchor="middle">单人舞蹈</text>
+<rect x="558.0" y="200.079375" width="58" height="99.920625" rx="4" fill="#5b6b82"/>
+<text x="587.0" y="193.079375" font-size="13" fill="#e7ecf3" font-weight="bold" text-anchor="middle">70</text>
+<rect x="624.0" y="95.95693749999998" width="58" height="204.04306250000002" rx="4" fill="#3ecf8e"/>
+<text x="653.0" y="88.95693749999998" font-size="13" fill="#e7ecf3" font-weight="bold" text-anchor="middle">142</text>
+<text x="620.0" y="322" font-size="12" fill="#e7ecf3" font-weight="normal" text-anchor="middle">双人</text>
+<rect x="70" y="341" width="14" height="14" rx="3" fill="#5b6b82"/>
+<text x="92" y="352" font-size="12" fill="#8f9bb0" font-weight="normal" text-anchor="start">渲染出的帧，不开插帧</text>
+<rect x="370" y="341" width="14" height="14" rx="3" fill="#3ecf8e"/>
+<text x="392" y="352" font-size="12" fill="#8f9bb0" font-weight="normal" text-anchor="start">开 4× 插帧后显示的帧（渲染 36 帧）</text>
+<text x="24" y="386" font-size="10" fill="#8f9bb0" font-weight="normal" text-anchor="start">在一台电脑上测得：RTX 5090 D（32 GB）、Ryzen 9 9950X3D2、128 GB 内存 · 模拟头显，每眼 3072×3264 · 官方 VaM 1.22.0.13</text>
+<text x="24" y="402" font-size="10" fill="#8f9bb0" font-weight="normal" text-anchor="start">docs/benchmarks/results/2026-11-11-rtx5090-official-1.22.0.13</text>
+</svg>

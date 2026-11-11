@@ -40,7 +40,7 @@ public sealed partial class VaMHairBudget
     private static readonly List<string> HairRateIds = new List<string>(new string[] {
         "VaM", "Auto", "45", "60", "72", "80", "90", "120", "144", "240", "288" });
     private static readonly List<string> HairRateLabels = new List<string>(new string[] {
-        "跟随身体物理", "自动", "45 Hz", "60 Hz", "72 Hz", "80 Hz", "90 Hz", "120 Hz", "144 Hz", "240 Hz", "288 Hz" });
+        Lang.T("Follow the body's physics"), Lang.T("Auto"), "45 Hz", "60 Hz", "72 Hz", "80 Hz", "90 Hz", "120 Hz", "144 Hz", "240 Hz", "288 Hz" });
     private static readonly List<string> HairCapIds = new List<string>(new string[] { "1", "2", "3" });
 
     // Static: the Harmony patches are static methods.
@@ -338,21 +338,21 @@ public sealed partial class VaMHairBudget
 
     private string HairRateStatus()
     {
-        if (hairFailed) return "头发物理：出错，本次运行跟随 VaM 的物理速率（见日志）";
-        if (paused) return "头发物理：跟随 VaM 的物理速率设置";
+        if (hairFailed) return Lang.T("Hair physics: an error; this run follows VaM's physics rate (see the log)");
+        if (paused) return Lang.T("Hair physics: follows VaM's physics rate setting");
         if (followBody)
         {
-            string f = "头发物理：跟随身体物理（同样的步数和步长，头皮蒙皮后推进）";
+            string f = Lang.T("Hair physics: follows the body's physics (the same steps and step length, advanced after the scalp is skinned)");
             if (menuFrames > 0)
-                f += "；近 " + menuReal.ToString("0", CultureInfo.InvariantCulture) + " 秒每帧 " +
-                    ((float)menuSteps / menuFrames).ToString("0.0", CultureInfo.InvariantCulture) + " 步，头发速度 " + Percent(menuHair, menuReal);
+                f += Lang.F("; last {0} s: {1} steps per frame, hair speed {2}", menuReal.ToString("0", CultureInfo.InvariantCulture),
+                    ((float)menuSteps / menuFrames).ToString("0.0", CultureInfo.InvariantCulture), Percent(menuHair, menuReal));
             return f;
         }
-        if (hairStep <= 0f) return "头发物理：跟随 VaM 的物理速率设置";
-        string s = "头发物理：" + (1f / hairStep).ToString("0", CultureInfo.InvariantCulture) + " Hz，更新上限 " + hairCap;
+        if (hairStep <= 0f) return Lang.T("Hair physics: follows VaM's physics rate setting");
+        string s = Lang.F("Hair physics: {0} Hz, update cap {1}", (1f / hairStep).ToString("0", CultureInfo.InvariantCulture), hairCap);
         if (menuFrames > 0)
-            s += "；近 " + menuReal.ToString("0", CultureInfo.InvariantCulture) + " 秒每帧 " +
-                ((float)menuSteps / menuFrames).ToString("0.0", CultureInfo.InvariantCulture) + " 步，头发速度 " + Percent(menuHair, menuReal);
+            s += Lang.F("; last {0} s: {1} steps per frame, hair speed {2}", menuReal.ToString("0", CultureInfo.InvariantCulture),
+                ((float)menuSteps / menuFrames).ToString("0.0", CultureInfo.InvariantCulture), Percent(menuHair, menuReal));
         return s;
     }
 }

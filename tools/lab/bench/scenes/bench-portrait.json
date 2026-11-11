@@ -1,0 +1,207 @@
+{
+   "playerNavCollider": "PlayerNavigationPanel:Floor",
+   "worldScale": "1",
+   "useSceneLoadPosition": "false",
+   "atoms": [
+      {
+         "id": "CoreControl",
+         "on": "true",
+         "type": "CoreControl",
+         "storables": []
+      },
+      {
+         "id": "PlayerNavigationPanel",
+         "on": "true",
+         "type": "PlayerNavigationPanel",
+         "storables": [],
+         "position": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Person",
+         "on": "true",
+         "type": "Person",
+         "storables": [
+            {
+               "id": "geometry",
+               "character": "Female 3",
+               "clothing": [
+                  {
+                     "id": "Tank Top",
+                     "enabled": "true"
+                  },
+                  {
+                     "id": "Shorts",
+                     "enabled": "true"
+                  }
+               ],
+               "hair": [
+                  {
+                     "id": "SimV2 Hair",
+                     "enabled": "true"
+                  }
+               ]
+            },
+            {
+               "id": "PluginManager",
+               "plugins": {
+                  "plugin#0": "Saves/scene/vamkit-bench/BenchMotion.cs"
+               }
+            },
+            {
+               "id": "plugin#0_BenchMotion",
+               "Speed": "0.25",
+               "Size": "0.3",
+               "Phase": "0.0"
+            }
+         ],
+         "position": {
+            "x": "0",
+            "y": "0",
+            "z": "0.55"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0",
+            "y": "0",
+            "z": "0.55"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Key",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Spot",
+               "intensity": "1.6",
+               "range": "10",
+               "shadowsOn": "true",
+               "spotAngle": "70"
+            }
+         ],
+         "position": {
+            "x": "0.9",
+            "y": "1.9",
+            "z": "1.6"
+         },
+         "rotation": {
+            "x": "15",
+            "y": "205",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0.9",
+            "y": "1.9",
+            "z": "1.6"
+         },
+         "containerRotation": {
+            "x": "15",
+            "y": "205",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Fill",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Point",
+               "intensity": "0.5",
+               "range": "10",
+               "shadowsOn": "false"
+            }
+         ],
+         "position": {
+            "x": "-1.1",
+            "y": "1.5",
+            "z": "1.4"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-1.1",
+            "y": "1.5",
+            "z": "1.4"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Rim",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Spot",
+               "intensity": "1.4",
+               "range": "10",
+               "shadowsOn": "true",
+               "spotAngle": "70",
+               "color": {
+                  "h": "0.08",
+                  "s": "0.35",
+                  "v": "1"
+               }
+            }
+         ],
+         "position": {
+            "x": "-0.8",
+            "y": "2.1",
+            "z": "-0.9"
+         },
+         "rotation": {
+            "x": "25",
+            "y": "40",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-0.8",
+            "y": "2.1",
+            "z": "-0.9"
+         },
+         "containerRotation": {
+            "x": "25",
+            "y": "40",
+            "z": "0"
+         }
+      }
+   ]
+}

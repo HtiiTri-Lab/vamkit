@@ -1049,6 +1049,8 @@ struct SessionState {
     // after the file changed.
     xrfg::implicit_layer::FileStamp triple_ini_seen{};
     bool triple_ini_read{};
+    // The guided generator's limit (xrfg::guided_frames_most) as last applied.
+    std::uint32_t guided_most_seen{};
     // The flight log's vram_usage records. The adapter is found from the
     // first device the session has; what it reports is the process's use of
     // that adapter, whichever device made the allocation.
@@ -12469,7 +12471,15 @@ void apply_live_frame_multiplier(
         const auto directory = current_layer_directory();
         const auto stamp =
             xrfg::implicit_layer::file_stamp(directory / L"ofxr_bridge.ini");
-        if (state->triple_ini_read && stamp == state->triple_ini_seen) {
+        // FSR frame generation makes one frame per pair: while it is the
+        // generator ([Performance] FrameGenModel, or no DLSS Frame Generation
+        // on this card) the session runs 2X whatever the multiplier asks for,
+        // and goes back to what is asked when DLSS-G returns.
+        const std::uint32_t most = xrfg::dlssg_requested()
+            ? std::min(state->frames_most, xrfg::guided_frames_most())
+            : state->frames_most;
+        if (state->triple_ini_read && stamp == state->triple_ini_seen &&
+            most == state->guided_most_seen) {
             return;
         }
         // frame_multiplier names it, up to the most the session was made for;
@@ -12479,13 +12489,14 @@ void apply_live_frame_multiplier(
         const std::uint32_t asked =
             xrfg::implicit_layer::read_frame_multiplier(directory);
         const std::uint32_t target = asked != 0
-            ? std::min(asked, state->frames_most)
+            ? std::min(asked, most)
             : xrfg::implicit_layer::read_triple_frame_gen(directory)
-                ? state->frames_with_triple_switch
+                ? std::min(state->frames_with_triple_switch, most)
                 : 2U;
         if (target == state->frames_per_application_frame) {
             state->triple_ini_seen = stamp;
             state->triple_ini_read = true;
+            state->guided_most_seen = most;
             return;
         }
         // Not taken yet: tried again a quarter second later.
@@ -12495,6 +12506,7 @@ void apply_live_frame_multiplier(
         }
         state->triple_ini_seen = stamp;
         state->triple_ini_read = true;
+        state->guided_most_seen = most;
         bool deep = false;
         {
             std::scoped_lock content_lock(state->presenter_content_mutex);
@@ -12516,8 +12528,9 @@ void apply_live_frame_multiplier(
         }
         clear_generation_continuity(state);
         report_frame_multiplier(*state);
-        xrfg::dlssg_log("Frame multiplier switched live to %uX (%s)", target,
-            asked != 0 ? "[ofxr] frame_multiplier" : "the 3X switch");
+        xrfg::dlssg_log("Frame multiplier switched live to %uX (%s%s)", target,
+            asked != 0 ? "[ofxr] frame_multiplier" : "the 3X switch",
+            most < state->frames_most ? "; FSR frame generation makes one frame per pair" : "");
         xrfg::bridge_flight_logger().event(
             xrfg::BridgeFlightOperation::presenter_transition,
             700,

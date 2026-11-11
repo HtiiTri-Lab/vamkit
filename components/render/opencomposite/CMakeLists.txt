@@ -14,7 +14,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # by default <repo>/third_party (this directory is <repo>/components/render/opencomposite).
 get_filename_component(VAMKIT_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE)
 set(VAMKIT_THIRD_PARTY "${VAMKIT_REPO_ROOT}/third_party" CACHE PATH "Folder holding the third-party SDKs (ngx-sdk, detours, ...)")
-foreach(VAMKIT_DEP ngx-sdk detours nis-sdk fsr1-sdk nvapi glm openxr-sdk vulkan-headers)
+foreach(VAMKIT_DEP ngx-sdk detours nis-sdk fsr1-sdk nvapi glm openxr-sdk vulkan-headers xess-sdk fsr-sdk)
     if(NOT IS_DIRECTORY "${VAMKIT_THIRD_PARTY}/${VAMKIT_DEP}")
         message(FATAL_ERROR "Missing ${VAMKIT_THIRD_PARTY}/${VAMKIT_DEP}: set VAMKIT_THIRD_PARTY to the folder that holds it")
     endif()
@@ -466,6 +466,9 @@ if(WIN32)
         OpenOVR/Compositor/dx11_vam_dlss.cpp OpenOVR/Compositor/dx11_vam_mip_bias.cpp)
     target_include_directories(OCCore PRIVATE "${VAM_NIS_SDK}" "${VAM_NVAPI}" "${CMAKE_BINARY_DIR}/vam-shaders")
     target_include_directories(OCCore PRIVATE "${VAM_FSR_SDK}")
+    # vamkit: the headers of Intel XeSS and of AMD's FSR API (vam_sr_backends.h). Headers only: both libraries are
+    # loaded at run time from the folders the launcher names, and nothing of them is linked.
+    target_include_directories(OCCore PRIVATE "${VAMKIT_THIRD_PARTY}/xess-sdk/inc" "${VAMKIT_THIRD_PARTY}/fsr-sdk")
     target_link_libraries(OCCore PRIVATE "${VAM_NVAPI}/amd64/nvapi64.lib")
     foreach(VAM_MODE sdr linear)
         if(VAM_MODE STREQUAL "sdr")

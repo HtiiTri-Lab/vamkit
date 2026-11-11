@@ -37,7 +37,9 @@ default because the author's camera values assume a monitor field of view), `Pat
 ## Interfaces
 
 - Imports from `openvr_api.dll` (`[DllImport("openvr_api")]`): `VaMDLSS_GetApiVersion`, `GetRenderEventFunc`, `GetState`,
-  `GetJitterPhaseCount`, `GetRenderScalePercent`, `GetEyeTextureScale`, `GetDesktopSize`, `CaptureDesktop`, `GetPostEventFunc`, `GetPostSize`.
+  `GetJitterPhaseCount`, `GetRenderScalePercent`, `GetEyeTextureScale`, `GetDesktopSize`, `CaptureDesktop`, `CaptureGenerated`, `GetPostEventFunc`,
+  `GetPostSize`. `CaptureDesktop(path)` and `CaptureGenerated(path)` are public statics for tests (through the test agent): the compositor's desktop
+  output, and the presenter's next generated frame with the real frame it follows, as `.ppm` files.
   The state bits (`StateSelected`, `StateObjectMotion`, `StateHairMotion`, `StateSrOff`, `StateRigidMotion`, `StateSkinnedMotion`,
   `StatePathRendering`, ...) are the native side's; `ApiVersion = 3`.
 - Shared layouts that must match `components/render/opencomposite/OpenOVR/Compositor/dx11_vam_dlss.cpp`: `FrameSize` 1040 (`FrameInfoV2`),

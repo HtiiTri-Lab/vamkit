@@ -259,6 +259,15 @@ internal sealed class PathsTest : Worlds
             ", .delta at +" + CpuBoostAddr.MorphDelta);
         CpuBoostSoft.InitPow();
         PowCheck(2000000);
+        // Are this VaM's methods the code the native library follows? What the plugin will decide, said here first.
+        foreach (CpuBoostCode.Target t in CpuBoostCode.Targets())
+        {
+            ulong f = t.method == null ? 0UL : CpuBoostCode.Fingerprint(t.method);
+            bool same = t.method != null && f == t.expected;
+            Console.WriteLine((same ? "ok    " : "FAIL  ") + "code of " + t.name + ": " + (t.method == null ? "not found" : "0x" + f.ToString("x16")) +
+                (same ? "" : " (expected 0x" + t.expected.ToString("x16") + ": the plugin leaves this path to VaM)"));
+            if (!same) fails++;
+        }
         if (args.Length > 4 && args[4] == "bench") { Bench(); Console.WriteLine(fails == 0 ? "PASS" : "FAILED " + fails); return fails == 0 ? 0 : 1; }
 
         for (int c = 0; c < cases; c++)

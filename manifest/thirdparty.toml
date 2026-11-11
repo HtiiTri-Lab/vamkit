@@ -10,6 +10,12 @@
 # terms = "accept": the vendor's licence applies; fetch names it and needs --accept-licenses.
 # suggest: where people usually get a file that has no public download.
 # installs: where `vamkit install` puts a runtime inside the VaM folder.
+# Run-time files (items with `installs` and `signer`): sha256 is the version the project was developed with, not the
+#   only one taken. A file with a valid signature of `signer` and a version of at least `min_version` is taken too, and
+#   every report says which version is in use. `find` are places where the vendor's own software keeps such files;
+#   `without` is what the user does not get while the file is missing: fetch, doctor, install and verify say it, with
+#   the way to add the file. A missing file is never passed over in silence.
+# only = "lab": needed for the test tools under tools/lab alone; fetched with `vamkit fetch --lab` or by id.
 
 [[item]]
 id = "ngx-sdk"
@@ -98,11 +104,36 @@ sparse = ["headers/", "LICENSE"]
 layout = [["headers", "headers"], ["LICENSE", "LICENSE"]]
 license = "BSD-3-Clause"
 
+[[item]]
+id = "xess-sdk"
+what = "Intel XeSS SDK 3.0.2: the super resolution headers, from the commit after the 3.0.2 tag in which they became MIT (same API, same libxess.dll; the library is loaded at run time, nothing is linked)"
+kind = "git"
+url = "https://github.com/intel/xess.git"
+commit = "de0fb9c1c510661c571164e1418ceca8101dab69"
+sparse = ["inc/xess/", "LICENSE.txt"]
+layout = [["inc/xess", "inc/xess"], ["LICENSE.txt", "LICENSE.txt"]]
+terms = "accept"
+license = "MIT (the headers, SPDX identifier in each); Intel Simplified Software License, October 2022, for the SDK's binaries (LICENSE.txt)"
+
+[[item]]
+id = "fsr-sdk"
+what = "AMD FSR SDK 2.4.0: the FSR API headers for upscaling and frame generation (the signed DLLs are loaded at run time)"
+kind = "git"
+url = "https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK.git"
+commit = "7539ae8b6568ad29ed78a753404351daf3b5cca7"
+sparse = ["Kits/FidelityFX/api/include/", "Kits/FidelityFX/upscalers/include/", "Kits/FidelityFX/framegeneration/include/", "docs/license.md"]
+layout = [["Kits/FidelityFX/api/include", "api/include"], ["Kits/FidelityFX/upscalers/include", "upscalers/include"],
+          ["Kits/FidelityFX/framegeneration/include", "framegeneration/include"], ["docs/license.md", "license.md"]]
+license = "MIT (license.md in the SDK lists these paths)"
+
 # ---- model runtimes: needed to run, not to build ----
 
 [[item]]
 id = "dlss-sr"
 what = "nvngx_dlss.dll 310.9.16, the DLSS super resolution runtime (models K / L / M)"
+without = "DLSS super resolution (models K / L / M). XeSS or FSR upscale in its place when their files are installed; with none of them VaM renders at full size"
+min_version = "310.1.0"
+find = ["C:/ProgramData/NVIDIA/NGX/models/dlss/versions/*/files/*"]
 kind = "file"
 name = "nvngx_dlss.dll"
 url = "https://raw.githubusercontent.com/NVIDIA/DLSS/v310.9.16/lib/Windows_x86_64/rel/nvngx_dlss.dll"
@@ -115,6 +146,9 @@ installs = "vamkit/bin/dlss/sr/nvngx_dlss.dll"
 [[item]]
 id = "dlss-rr"
 what = "nvngx_dlssd.dll 310.9.16, the DLSS Ray Reconstruction runtime (preset F)"
+without = "path tracing: its picture is reconstructed by Ray Reconstruction, and without this file the path tracing switch does nothing"
+min_version = "310.1.0"
+find = ["C:/ProgramData/NVIDIA/NGX/models/dlssd/versions/*/files/*"]
 kind = "file"
 name = "nvngx_dlssd.dll"
 url = "https://raw.githubusercontent.com/NVIDIA/DLSS/v310.9.16/lib/Windows_x86_64/rel/nvngx_dlssd.dll"
@@ -127,22 +161,146 @@ installs = "vamkit/bin/dlss/sr/nvngx_dlssd.dll"
 [[item]]
 id = "dlss-nr"
 what = "nvngx_dlssnr.dll 310.9.16, the neural denoiser (optional: without it the denoiser stays off)"
+without = "the neural denoiser on the output: the denoiser setting has no effect"
+min_version = "310.1.0"
 kind = "user"
 name = "nvngx_dlssnr.dll"
 sha256 = "2bc19bc09a7b89dd44f73e2ac0108fcc586e2154bdd0830f242f4f040e28789f"
 signer = "NVIDIA Corporation"
 optional = true
-suggest = "NVIDIA publishes no SDK or download for it. It reached the public inside game updates: a copy of nvngx_dlssnr.dll 310.9.16 from a game that ships it, with this hash, is accepted."
+suggest = "NVIDIA publishes no SDK or download for it. It reached the public inside game updates: a copy of nvngx_dlssnr.dll from a game that ships it is accepted when it carries NVIDIA's signature and is version 310.1 or later (310.9.16 is the version the project was developed with)."
 installs = "vamkit/bin/dlss/nr/nvngx_dlssnr.dll"
 
 [[item]]
 id = "dlss-fg"
 what = "nvngx_dlssg.dll 310.9.16, DLSS Frame Generation (optional: without it frame generation uses optical flow)"
+without = "DLSS Frame Generation (2x on RTX 40, up to 4x on RTX 50). FSR frame generation (2x) stands in when its files are installed; with neither, the VR layer's optical flow or no generated frames"
+min_version = "310.1.0"
 kind = "user"
 name = "nvngx_dlssg.dll"
 sha256 = "cadee1aa6db3907babdc3285da2aebc4553d92b89c38ba3eae8abd8bba1bea72"
 signer = "NVIDIA Corporation"
 optional = true
 find = ["C:/ProgramData/NVIDIA/NGX/models/dlssg/versions/*/files/*"]
-suggest = "A current NVIDIA driver downloads it into its model store the first time a DLSS Frame Generation title runs (fetch looks there); a copy of nvngx_dlssg.dll 310.9.16 from a game that ships it is accepted too."
+suggest = "A current NVIDIA driver downloads it into its model store the first time a DLSS Frame Generation title runs (fetch looks there and takes the newest NVIDIA-signed one, 310.1 or later; 310.9.16 is the version the project was developed with); a copy of nvngx_dlssg.dll from a game that ships it is accepted too."
 installs = "vamkit/bin/dlss/fg/nvngx_dlssg.dll"
+
+# XeSS and FSR: upscalers and frame generation for cards without DLSS, and a second choice on cards with it
+# (docs/knowledge/upscalers-other-vendors.md). Optional: a backend whose runtime is absent is not offered.
+
+[[item]]
+id = "xess-sr"
+what = "libxess.dll (XeSS SDK 3.0.2), Intel XeSS super resolution for any GPU with shader model 6.4 (optional)"
+without = "XeSS as an upscaler: it is not offered. On a card without DLSS only FSR is left"
+kind = "file"
+name = "libxess.dll"
+url = "https://raw.githubusercontent.com/intel/xess/v3.0.2/bin/libxess.dll"
+sha256 = "251659dd84a3e84de67c886a4186e01f3eca49b00641906fe38bb6b807e5d5b7"
+signer = "Intel Corporation"
+terms = "accept"
+license = "Intel Simplified Software License, October 2022"
+optional = true
+installs = "vamkit/bin/xess/libxess.dll"
+
+[[item]]
+id = "fsr-loader"
+what = "amd_fidelityfx_loader_dx12.dll (AMD FSR SDK 2.4.0), the FSR API's loader (optional; FSR needs all three AMD DLLs)"
+without = "FSR altogether (upscaling and frame generation): all three AMD files are needed"
+kind = "file"
+name = "amd_fidelityfx_loader_dx12.dll"
+url = "https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/v2.4.0/Kits/FidelityFX/signedbin/amd_fidelityfx_loader_dx12.dll"
+sha256 = "e2191d3c0828be45eb8affd4e3ec0378f2293adc345b772a7170edcf3b021ecb"
+signer = "Advanced Micro Devices"
+license = "MIT (license.md in the SDK lists the signed binaries)"
+optional = true
+installs = "vamkit/bin/fsr/amd_fidelityfx_loader_dx12.dll"
+
+[[item]]
+id = "fsr-upscaler"
+what = "amd_fidelityfx_upscaler_dx12.dll (AMD FSR SDK 2.4.0): FSR 4.1.2 on the Radeons that have it, FSR 3.1.6 on every other card (optional)"
+without = "FSR as an upscaler: it is not offered"
+kind = "file"
+name = "amd_fidelityfx_upscaler_dx12.dll"
+url = "https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/v2.4.0/Kits/FidelityFX/signedbin/amd_fidelityfx_upscaler_dx12.dll"
+sha256 = "aad4fccccb29084a655f9a4f9f613bd22c8c03fb4a0f8840148cc6543b4ccace"
+signer = "Advanced Micro Devices"
+license = "MIT (license.md in the SDK lists the signed binaries)"
+optional = true
+installs = "vamkit/bin/fsr/amd_fidelityfx_upscaler_dx12.dll"
+
+[[item]]
+id = "fsr-framegen"
+what = "amd_fidelityfx_framegeneration_dx12.dll (AMD FSR SDK 2.4.0), FSR frame generation (optional)"
+without = "FSR frame generation: on a card or installation without DLSS Frame Generation there are then no generated frames on the desktop"
+kind = "file"
+name = "amd_fidelityfx_framegeneration_dx12.dll"
+url = "https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/v2.4.0/Kits/FidelityFX/signedbin/amd_fidelityfx_framegeneration_dx12.dll"
+sha256 = "e6843252f58b0341a0d80f6a20bc0d840643ee95bc48c22cac08745344577bb6"
+signer = "Advanced Micro Devices"
+license = "MIT (license.md in the SDK lists the signed binaries)"
+optional = true
+installs = "vamkit/bin/fsr/amd_fidelityfx_framegeneration_dx12.dll"
+
+# ---- the simulated headset (tools/lab/simxr-runtime): needed to build that lab tool only ----
+# Its sources are in the repository; these parts are not, because their licences do not allow it or because they are
+# binaries. The commits are the submodule commits of the upstream runtime it is built from.
+
+[[item]]
+id = "libovr"
+only = "lab"
+what = "Oculus PC SDK LibOVR 1.64.0 headers and shim sources, for the simulated headset"
+kind = "git"
+url = "https://github.com/mbucchia/LibOVR.git"
+commit = "3621783c2540db1ad0f68f85d9d30fafa3f7e8b7"
+sparse = ["Include/", "Shim/"]
+layout = [["Include", "Include"], ["Shim", "Shim"]]
+terms = "accept"
+license = "Meta Platforms Technologies SDK License Agreement (formerly Oculus SDK License)"
+
+[[item]]
+id = "vdxr-meta"
+only = "lab"
+what = "Four files of Meta's inside VirtualDesktop-OpenXR (the LibOVR loader shim, three body tracking headers)"
+kind = "git"
+url = "https://github.com/mbucchia/VirtualDesktop-OpenXR.git"
+commit = "925dc598c524cb48b37fa4b0a2bff471f75fc5c4"
+sparse = ["virtualdesktop-openxr/OVR_CAPIShim.c", "virtualdesktop-openxr/meta_body_tracking_calibration.h",
+          "virtualdesktop-openxr/meta_body_tracking_fidelity.h", "virtualdesktop-openxr/meta_body_tracking_full_body.h"]
+layout = [["virtualdesktop-openxr/OVR_CAPIShim.c", "virtualdesktop-openxr/OVR_CAPIShim.c"],
+          ["virtualdesktop-openxr/meta_body_tracking_calibration.h", "virtualdesktop-openxr/meta_body_tracking_calibration.h"],
+          ["virtualdesktop-openxr/meta_body_tracking_fidelity.h", "virtualdesktop-openxr/meta_body_tracking_fidelity.h"],
+          ["virtualdesktop-openxr/meta_body_tracking_full_body.h", "virtualdesktop-openxr/meta_body_tracking_full_body.h"]]
+terms = "accept"
+license = "Oculus Master SDK License 1.0 (OVR_CAPIShim.c); Meta, proprietary notice (the three headers)"
+
+[[item]]
+id = "vulkan-sdk"
+only = "lab"
+what = "Vulkan headers (version 261) and the vulkan-1.lib import library the upstream runtime links"
+kind = "git"
+url = "https://github.com/mbucchia/Vulkan-SDK.git"
+commit = "cb7df06d3f02fa043a441641856310b798522583"
+sparse = ["include/vulkan/", "include/vk_video/", "lib/vulkan-1.lib"]
+layout = [["include/vulkan", "include/vulkan"], ["include/vk_video", "include/vk_video"], ["lib/vulkan-1.lib", "lib/vulkan-1.lib"]]
+license = "Apache-2.0 OR MIT (headers); LunarG Vulkan SDK components (import library)"
+
+[[item]]
+id = "wil"
+only = "lab"
+what = "Windows Implementation Library"
+kind = "nuget"
+package = "Microsoft.Windows.ImplementationLibrary"
+version = "1.0.220201.1"
+layout = [["include", "include"], ["LICENSE", "LICENSE"]]
+license = "MIT"
+
+[[item]]
+id = "gameinput"
+only = "lab"
+what = "Microsoft GameInput header and import library"
+kind = "nuget"
+package = "Microsoft.GameInput"
+version = "2.2.26100.6114"
+layout = [["native/include/GameInput.h", "include/GameInput.h"], ["native/lib/x64/GameInput.lib", "lib/x64/GameInput.lib"], ["LICENSE.txt", "LICENSE.txt"]]
+terms = "accept"
+license = "Microsoft Software License Terms, Microsoft GameInput redistributable (LICENSE.txt in the package)"

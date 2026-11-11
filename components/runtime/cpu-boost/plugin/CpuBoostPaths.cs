@@ -7,6 +7,127 @@ using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
+// How the plugin and the offline test recognise the methods of VaM they replace: by what the code does, not by which
+// build it is from. A method body's bytes contain metadata tokens, numbers that change whenever VaM is compiled again,
+// also when no instruction changed (1.22.0.13 has the instructions of 1.22.0.3 in all four methods and other tokens
+// throughout). So the fingerprint is taken over the instructions with every token replaced by what it names: the
+// member's declaring type, name and signature, or the string. Same fingerprint = same instructions on the same
+// members. A method that really changed gets another fingerprint and is left to VaM.
+internal static class CpuBoostCode
+{
+    // FNV-1a 64 of the resolved code, of the methods the native library was written against (VaM 1.22.0.3) and checked
+    // bit for bit (harness/run-skin.ps1, run-paths.ps1, run-patch.ps1). NormalsCore is the static overload that
+    // recalculateNormals(int[], int[]) forwards to.
+    internal const ulong Skin = 0xec3d23f3bd18b799UL, Morph = 0x6e20284c4d78f74eUL, Normals = 0x4fd7e85e07238299UL,
+        NormalsCore = 0xb1d69dec0e65d91fUL, Soft = 0x7c491976c95ac37aUL;
+
+    internal sealed class Target { public string name; public MethodBase method; public ulong expected; }
+
+    private const BindingFlags Any = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+    private static OpCode[] oneByte, twoByte;
+
+    // The methods and what the plugin expects of them. The plugin finds them the same way (VaMCpuBoost.Install).
+    internal static Target[] Targets()
+    {
+        return new Target[]
+        {
+            Of("DAZSkinV2.SkinMeshPart", typeof(DAZSkinV2).GetMethod("SkinMeshPart", Any, null,
+                new Type[] { typeof(int), typeof(int), typeof(bool[]), typeof(bool[]) }, null), Skin),
+            Of("DAZMorphBank.ApplyMorphsThreadedFast", typeof(DAZMorphBank).GetMethod("ApplyMorphsThreadedFast", Any, null,
+                new Type[] { typeof(Vector3[]), typeof(Vector3[]), typeof(DAZBones) }, null), Morph),
+            Of("RecalculateNormals.recalculateNormals(int[], int[])", typeof(RecalculateNormals).GetMethod("recalculateNormals", Any, null,
+                new Type[] { typeof(int[]), typeof(int[]) }, null), Normals),
+            Of("RecalculateNormals.recalculateNormals (static, subset)", typeof(RecalculateNormals).GetMethod("recalculateNormals",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null,
+                new Type[] { typeof(int[]), typeof(Vector3[]), typeof(Vector3[]), typeof(Vector3[]), typeof(int[]), typeof(int[]), typeof(bool[]), typeof(bool) }, null), NormalsCore),
+            Of("DAZPhysicsMeshSoftVerticesGroup.MorphVerticesThreadedFast", typeof(DAZPhysicsMeshSoftVerticesGroup).GetMethod("MorphVerticesThreadedFast", Any, null,
+                new Type[] { typeof(Vector3[]) }, null), Soft),
+        };
+    }
+
+    private static Target Of(string name, MethodBase method, ulong expected)
+    {
+        Target t = new Target();
+        t.name = name; t.method = method; t.expected = expected;
+        return t;
+    }
+
+    internal static ulong Fingerprint(MethodBase m)
+    {
+        if (oneByte == null)
+        {
+            OpCode[] one = new OpCode[256], two = new OpCode[256];
+            foreach (FieldInfo f in typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static))
+            {
+                if (f.FieldType != typeof(OpCode)) continue;
+                OpCode c = (OpCode)f.GetValue(null);
+                if (c.Size == 1) one[(ushort)c.Value & 0xff] = c; else two[(ushort)c.Value & 0xff] = c;
+            }
+            twoByte = two; oneByte = one;
+        }
+        byte[] il = m.GetMethodBody().GetILAsByteArray();
+        Module module = m.Module;
+        Type[] ofType = m.DeclaringType != null && m.DeclaringType.IsGenericType ? m.DeclaringType.GetGenericArguments() : null;
+        Type[] ofMethod = m.IsGenericMethod ? m.GetGenericArguments() : null;
+        ulong h = 14695981039346656037UL;
+        int i = 0;
+        while (i < il.Length)
+        {
+            OpCode c;
+            if (il[i] == 0xFE && i + 1 < il.Length) { h = Add(h, il[i]); h = Add(h, il[i + 1]); c = twoByte[il[i + 1]]; i += 2; }
+            else { h = Add(h, il[i]); c = oneByte[il[i]]; i += 1; }
+            int size;
+            bool token = false, text = false;
+            switch (c.OperandType)
+            {
+                case OperandType.InlineNone: size = 0; break;
+                case OperandType.ShortInlineBrTarget: case OperandType.ShortInlineI: case OperandType.ShortInlineVar: size = 1; break;
+                case OperandType.InlineVar: size = 2; break;
+                case OperandType.InlineI8: case OperandType.InlineR: size = 8; break;
+                case OperandType.InlineSwitch: size = 4 + 4 * BitConverter.ToInt32(il, i); break;
+                case OperandType.InlineString: size = 4; text = true; break;
+                case OperandType.InlineField: case OperandType.InlineMethod: case OperandType.InlineType: case OperandType.InlineTok:
+                    size = 4; token = true; break;
+                default: size = 4; break;   // a branch target, a 32-bit constant, a float, a signature
+            }
+            if (i + size > il.Length) size = il.Length - i;
+            string named = null;
+            if (size == 4 && (text || token))
+            {
+                int value = BitConverter.ToInt32(il, i);
+                try { named = text ? "\"" + module.ResolveString(value) : Name(module.ResolveMember(value, ofType, ofMethod)); }
+                catch (Exception) { named = null; }   // not resolvable here: the token itself is hashed, and nothing will match
+            }
+            if (named != null) foreach (char ch in named) { h = Add(h, (byte)ch); h = Add(h, (byte)(ch >> 8)); }
+            else for (int k = 0; k < size; k++) h = Add(h, il[i + k]);
+            i += size;
+        }
+        return h;
+    }
+
+    private static ulong Add(ulong h, byte b) { return (h ^ b) * 1099511628211UL; }
+
+    private static string Name(Type t) { return t == null ? "?" : (t.FullName ?? t.Name); }
+
+    private static string Name(MemberInfo member)
+    {
+        Type type = member as Type;
+        if (type != null) return "T:" + Name(type);
+        FieldInfo field = member as FieldInfo;
+        if (field != null) return "F:" + Name(field.DeclaringType) + "::" + field.Name + ":" + Name(field.FieldType);
+        MethodBase method = member as MethodBase;
+        if (method == null) return "?:" + member.Name;
+        System.Text.StringBuilder s = new System.Text.StringBuilder("M:");
+        s.Append(Name(method.DeclaringType)).Append("::").Append(method.Name).Append('(');
+        foreach (ParameterInfo p in method.GetParameters()) s.Append(Name(p.ParameterType)).Append(',');
+        s.Append(')');
+        MethodInfo info = method as MethodInfo;
+        if (info != null) s.Append(Name(info.ReturnType));
+        if (method.IsGenericMethod) foreach (Type a in method.GetGenericArguments()) s.Append('<').Append(Name(a)).Append('>');
+        return s.ToString();
+    }
+}
+
 // Addresses of managed objects for the native code. VaM's Mono GC (Boehm) never moves an object, so an address stays
 // valid for as long as the object is referenced, and every object handed over is referenced by the caller throughout.
 internal static unsafe class CpuBoostAddr

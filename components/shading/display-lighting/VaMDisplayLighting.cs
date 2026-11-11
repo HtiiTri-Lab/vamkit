@@ -104,8 +104,8 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
         return new Vector3(r / m, g / m, b / m);
     }
 
-    // How established scene authors light people (research/光源研究.md 第 14
-    // 节, 677 library scenes): lamps carry the light (spots of 50-80 deg at
+    // How established scene authors light people (a study of
+    // 677 library scenes): lamps carry the light (spots of 50-80 deg at
     // 1-2.3 m, ambient ~0, Skyshop IBL off in 87%), front lamps sit at the
     // eyeline (median -3 deg, nine in ten below 20) where the VR viewer is,
     // the light on the face is neutral to cool (median R/B 1) with tinted
@@ -120,7 +120,7 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
     {
         // Clamshell beauty: soft key just over the eyeline, weaker fill from
         // below (twin catchlights, smooth skin), two hair lights for a halo.
-        new Style { Id = "Beauty", Label = "柔光美颜", Group = "传统", AmbientLinear = 0.005f, Sheen = 0.4f, Ambient = KelvinColor(6500f),
+        new Style { Id = "Beauty", Label = Lang.N("Soft beauty"), Group = Lang.N("Classic"), AmbientLinear = 0.005f, Sheen = 0.4f, Ambient = KelvinColor(6500f),
             Env = new[] { Env(0f, 25f, 0.20f, 6500f), Wide(Env(0f, -60f, 0.06f, 6000f)), Wide(Env(180f, 15f, 0.08f, 6500f)) }, Lamps = new[] {
             new LampSpec("Key", 0f, 20f, 0.32f, 6500f, Aim.Face, Motion.Follow, 80f, 0.015f, 4096, 0.75f),
             new LampSpec("Under", 0f, -15f, 0.10f, 6000f, Aim.Face, Motion.Follow, 90f, 0.02f, 2048, 0.75f),
@@ -128,35 +128,35 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
             new LampSpec("HairR", -135f, 30f, 0.30f, 7500f, Aim.Face, Motion.Follow, 70f, 0.008f, 2048, 1f) } },
         // Rembrandt: one key on the short side, high enough for the cheek
         // triangle, no fill, a cool kicker tracing the shadow-side edge.
-        new Style { Id = "Rembrandt", Label = "伦勃朗", Group = "传统", AmbientLinear = 0.003f, Sheen = 0.35f, Ambient = KelvinColor(5500f),
+        new Style { Id = "Rembrandt", Label = Lang.N("Rembrandt"), Group = Lang.N("Classic"), AmbientLinear = 0.003f, Sheen = 0.35f, Ambient = KelvinColor(5500f),
             Env = new[] { Env(50f, 35f, 0.08f, 5500f), Env(-125f, 20f, 0.06f, 7500f) }, Lamps = new[] {
             new LampSpec("Key", 50f, 35f, 0.62f, 5500f, Aim.Face, Motion.Follow, 80f, 0.008f, 4096, 0.75f),
             new LampSpec("Kicker", -125f, 20f, 0.42f, 7500f, Aim.Face, Motion.Follow, 70f, 0.008f, 2048, 1f) } },
         // Window: a very large, low side source of daylight fixed in the
         // room, a warm room bounce on the other side. Painterly gradient.
-        new Style { Id = "Window", Label = "窗边柔光", Group = "传统", AmbientLinear = 0.008f, Sheen = 0.35f, Ambient = KelvinColor(6500f),
+        new Style { Id = "Window", Label = Lang.N("Window light"), Group = Lang.N("Classic"), AmbientLinear = 0.008f, Sheen = 0.35f, Ambient = KelvinColor(6500f),
             Env = new[] { InWorld(Wide(Env(75f, 18f, 0.12f, 6500f))), InWorld(Env(-70f, 0f, 0.09f, 4300f)), Wide(Env(0f, -60f, 0.05f, 5000f)) }, Lamps = new[] {
             new LampSpec("Window", 75f, 18f, 0.64f, 6500f, Aim.Upper, Motion.Fixed, 120f, 0.02f, 4096, 1f) } },
         // Golden hour: low warm sun from behind for a glowing rim and hair,
         // cool sky on the face (warm / cool pair), warm ground bounce.
-        new Style { Id = "Golden", Label = "金色逆光", Group = "传统", AmbientLinear = 0.01f, Sheen = 0.35f, Ambient = KelvinColor(6500f),
+        new Style { Id = "Golden", Label = Lang.N("Golden backlight"), Group = Lang.N("Classic"), AmbientLinear = 0.01f, Sheen = 0.35f, Ambient = KelvinColor(6500f),
             Env = new[] { InWorld(Env(140f, 15f, 0.25f, 3200f)), Env(10f, 20f, 0.16f, 7500f), Wide(Env(0f, -60f, 0.08f, 4300f)) }, Lamps = new[] {
             new LampSpec("Sun", 140f, 15f, 0.9f, 3200f, Aim.Upper, Motion.Sun, 60f, 0.006f, 4096, 1f),
             new LampSpec("Sky", 10f, 15f, 0.18f, 7500f, Aim.Face, Motion.Follow, 90f, 0.02f, 2048, 0.75f) } },
         // Contour: two strip-like kickers from behind both sides draw the
         // body's outline; a soft frontal key keeps the face readable.
-        new Style { Id = "Contour", Label = "轮廓塑形", Group = "传统", AmbientLinear = 0.005f, Sheen = 0.35f, Ambient = KelvinColor(6500f),
+        new Style { Id = "Contour", Label = Lang.N("Contour"), Group = Lang.N("Classic"), AmbientLinear = 0.005f, Sheen = 0.35f, Ambient = KelvinColor(6500f),
             Env = new[] { Env(15f, 30f, 0.08f, 6500f), Wide(Env(180f, 10f, 0.10f, 7500f)) }, Lamps = new[] {
             new LampSpec("StripL", 125f, 15f, 0.50f, 7500f, Aim.Body, Motion.Follow, 80f, 0.01f, 2048, 1f),
             new LampSpec("StripR", -125f, 15f, 0.50f, 7500f, Aim.Body, Motion.Follow, 80f, 0.01f, 2048, 1f),
             new LampSpec("Key", 15f, 18f, 0.30f, 6500f, Aim.Face, Motion.Follow, 80f, 0.012f, 4096, 0.75f) } },
         // Cinematic warm / cool: warm key, cool blue rim from the other side.
-        new Style { Id = "Cinema", Label = "冷暖电影", Group = "传统", AmbientLinear = 0.004f, Sheen = 0.35f, Ambient = KelvinColor(9000f),
+        new Style { Id = "Cinema", Label = Lang.N("Cool-warm cinema"), Group = Lang.N("Classic"), AmbientLinear = 0.004f, Sheen = 0.35f, Ambient = KelvinColor(9000f),
             Env = new[] { Env(40f, 20f, 0.06f, 5200f), Env(-130f, 25f, 0.12f, 12000f) }, Lamps = new[] {
             new LampSpec("Key", 40f, 18f, 0.50f, 5200f, Aim.Face, Motion.Follow, 80f, 0.008f, 4096, 0.75f),
             new LampSpec("Rim", -135f, 22f, 0.50f, 12000f, Aim.Face, Motion.Follow, 70f, 0.008f, 2048, 1f) } },
 
-        // ---- 当代: looks from current beauty / idol / fashion media. Not
+        // ---- Contemporary: looks from current beauty / idol / fashion media. Not
         // bound to warm white; colour also goes on the backdrop behind the
         // subject. Kept inside VaM's LDR: gels are luminance-normalised and
         // the lit skin stays under clipping; shadows are lifted by a tinted
@@ -165,7 +165,7 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
         // Clear high-key (K-beauty / idol): cool-white environment from just
         // off the viewer line, bright floor bounce (neck and chin), blue
         // backdrop bounce on the edges; lamps for shape, cyan edges, the wash.
-        new Style { Id = "Clear", Label = "清透冷白", Group = "当代", AmbientLinear = 0.02f, Sheen = 0.5f, Ambient = Gel(0.62f, 0.78f, 1f),
+        new Style { Id = "Clear", Label = Lang.N("Clear cool white"), Group = Lang.N("Contemporary"), AmbientLinear = 0.02f, Sheen = 0.5f, Ambient = Gel(0.62f, 0.78f, 1f),
             Env = new[] { Env(15f, 20f, 0.30f, Gel(0.84f, 0.84f, 1f)), Wide(Env(0f, -60f, 0.20f, Gel(0.9f, 0.9f, 1f))), Wide(Env(180f, 0f, 0.25f, Gel(0.45f, 0.7f, 1f))) }, Lamps = new[] {
             new LampSpec("Key", 15f, 15f, 0.42f, Gel(0.84f, 0.84f, 1f), Aim.Face, Motion.Follow, 80f, 0.015f, 4096, 0.75f),
             new LampSpec("Under", 0f, -20f, 0.14f, Gel(0.9f, 0.9f, 1f), Aim.Face, Motion.Follow, 90f, 0.02f, 2048, 0.75f),
@@ -174,7 +174,7 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
             new LampSpec("Wash", 180f, 5f, 0.32f, Gel(0.30f, 0.62f, 1f), Aim.Backdrop, Motion.Follow, 110f, 0f, 0, 1f) } },
         // Pastel: pink environment and clamshell, lavender floor, pale blue
         // from behind and on the hair, pink-lavender backdrop. Airy.
-        new Style { Id = "Pastel", Label = "粉雾奶油", Group = "当代", AmbientLinear = 0.015f, Sheen = 0.45f, Ambient = Gel(0.9f, 0.8f, 1f),
+        new Style { Id = "Pastel", Label = Lang.N("Pastel cream"), Group = Lang.N("Contemporary"), AmbientLinear = 0.015f, Sheen = 0.45f, Ambient = Gel(0.9f, 0.8f, 1f),
             Env = new[] { Env(0f, 25f, 0.24f, Gel(1f, 0.80f, 0.88f)), Wide(Env(0f, -60f, 0.13f, Gel(0.88f, 0.82f, 1f))), Wide(Env(180f, 10f, 0.18f, Gel(0.75f, 0.85f, 1f))) }, Lamps = new[] {
             new LampSpec("Key", 0f, 20f, 0.32f, Gel(1f, 0.80f, 0.88f), Aim.Face, Motion.Follow, 80f, 0.015f, 4096, 0.75f),
             new LampSpec("Under", 0f, -15f, 0.10f, Gel(0.88f, 0.82f, 1f), Aim.Face, Motion.Follow, 90f, 0.02f, 2048, 0.75f),
@@ -184,7 +184,7 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
         // Neon duotone (music video / club): magenta from the key side, blue
         // from the other (cyan turns skin grey-green), both also as broad
         // environment; a weak neutral front keeps the middle of the face.
-        new Style { Id = "Neon", Label = "霓虹双色", Group = "当代", AmbientLinear = 0.005f, Sheen = 0.45f, Ambient = Gel(0.5f, 0.4f, 1f),
+        new Style { Id = "Neon", Label = Lang.N("Two-tone neon"), Group = Lang.N("Contemporary"), AmbientLinear = 0.005f, Sheen = 0.45f, Ambient = Gel(0.5f, 0.4f, 1f),
             Env = new[] { Env(95f, 10f, 0.09f, Gel(1f, 0.18f, 0.72f)), Env(-95f, 10f, 0.10f, Gel(0.15f, 0.55f, 1f)), Env(0f, 60f, 0.04f, Gel(0.5f, 0.4f, 1f)) }, Lamps = new[] {
             new LampSpec("Front", 0f, 12f, 0.10f, 6500f, Aim.Face, Motion.Follow, 80f, 0.015f, 2048, 0.75f),
             new LampSpec("Magenta", 95f, 15f, 0.29f, Gel(1f, 0.18f, 0.72f), Aim.Face, Motion.Follow, 70f, 0.01f, 2048, 1f),
@@ -193,14 +193,14 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
         // Sunset lamp (social-media projector): a round red-orange pool on
         // the face and one beside the head on the backdrop; blue-violet
         // environment for the shadows, a violet rim.
-        new Style { Id = "Sunset", Label = "日落灯", Group = "当代", AmbientLinear = 0.012f, Sheen = 0.45f, Ambient = Gel(0.6f, 0.45f, 1f),
+        new Style { Id = "Sunset", Label = Lang.N("Sunset lamp"), Group = Lang.N("Contemporary"), AmbientLinear = 0.012f, Sheen = 0.45f, Ambient = Gel(0.6f, 0.45f, 1f),
             Env = new[] { Env(55f, 15f, 0.09f, Gel(1f, 0.36f, 0.12f)), Env(-60f, 10f, 0.10f, Gel(0.55f, 0.42f, 1f)), Wide(Env(180f, 10f, 0.08f, Gel(0.55f, 0.42f, 1f))) }, Lamps = new[] {
             new LampSpec("Sun", 55f, 15f, 0.45f, Gel(1f, 0.36f, 0.12f), Aim.Face, Motion.Follow, 45f, 0.006f, 4096, 1f),
             new LampSpec("Rim", -135f, 20f, 0.34f, Gel(0.5f, 0.45f, 1f), Aim.Face, Motion.Follow, 70f, 0.01f, 2048, 1f),
             new LampSpec("Circle", 165f, 8f, 0.32f, Gel(1f, 0.32f, 0.08f), Aim.Backdrop, Motion.Follow, 40f, 0f, 0, 1f) } },
         // Direct flash (editorial / Gen-Z snapshot): one hard light almost on
         // the viewer line, crisp shadow on the backdrop, a dim room. Bold.
-        new Style { Id = "Flash", Label = "直闪时装", Group = "当代", AmbientLinear = 0.005f, Sheen = 0.3f, Ambient = Gel(0.7f, 0.8f, 1f),
+        new Style { Id = "Flash", Label = Lang.N("Direct flash"), Group = Lang.N("Contemporary"), AmbientLinear = 0.005f, Sheen = 0.3f, Ambient = Gel(0.7f, 0.8f, 1f),
             Env = new[] { Env(0f, 10f, 0.06f, 6200f) }, Lamps = new[] {
             new LampSpec("Flash", 0f, 6f, 0.60f, 6200f, Aim.Face, Motion.Follow, 100f, 0.004f, 4096, 0.8f) } },
     };
@@ -243,7 +243,7 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
     private readonly Color[] envOut = new Color[1];
     private bool running, suspended, subscribed;
     private int sourceCount;
-    private string message = "已停止；原场景照明。";
+    private string message = Lang.T("Stopped; the scene's own lighting.");
     private Vector3 front, right, faceAim, upperAim, bodyAim;
     private float side = 1f, baseDistance = 2.4f, frontYaw, targetYaw;
     private Transform eyeL, eyeR, headPoint, chestPoint, hipPoint;
@@ -300,14 +300,14 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
     {
         if (running) return State();
         if (controller == null || controller.isLoading)
-        { message = "场景加载完成后再启动。"; SyncMenu(); return State(); }
+        { message = Lang.T("Start it once the scene has finished loading."); SyncMenu(); return State(); }
         try
         {
             Camera camera = controller.lookCamera != null ? controller.lookCamera : Camera.main;
-            if (camera == null) throw new InvalidOperationException("找不到观察相机。");
+            if (camera == null) throw new InvalidOperationException(Lang.T("No viewing camera found."));
             viewer = camera;
             subject = ChooseSubject(camera);
-            if (subject == null) throw new InvalidOperationException("场景中没有已开启的 Person。");
+            if (subject == null) throw new InvalidOperationException(Lang.T("The scene has no Person switched on."));
             Frame(camera);
             CaptureSceneLamps();
             sourceCount = lamps.Count;
@@ -324,7 +324,7 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
                 specularParam = sky.GetFloatJSONParam("specularIntensity");
                 skyboxParam = sky.GetFloatJSONParam("skyboxIntensity");
                 if (masterParam == null || ambientParam == null || exposureParam == null || diffuseParam == null || specularParam == null || skyboxParam == null)
-                    throw new InvalidOperationException("环境照明尚未初始化。");
+                    throw new InvalidOperationException(Lang.T("The ambient lighting is not initialised yet."));
                 oldMaster = masterParam.val;
                 oldAmbient = ambientParam.val;
                 oldExposure = exposureParam.val;
@@ -339,7 +339,7 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
         catch (Exception e)
         {
             StopLighting();
-            message = "启动失败：" + e.Message;
+            message = Lang.F("Could not start: {0}", e.Message);
             Logger.LogError("Display lighting start: " + e);
         }
         SyncMenu();
@@ -360,7 +360,7 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
         eyeL = eyeR = headPoint = chestPoint = hipPoint = null;
         sky = null;
         masterParam = ambientParam = exposureParam = diffuseParam = specularParam = skyboxParam = null;
-        message = "已停止；原场景照明已恢复。";
+        message = Lang.T("Stopped; the scene's own lighting is back.");
         if (wasRunning) Logger.LogInfo("Display lighting stopped; original lights and environment restored.");
         SyncMenu();
         return State();
@@ -431,7 +431,7 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
     {
         DAZBones bones = subject.GetComponentInChildren<DAZBones>();
         headPoint = BodyPoint(bones, "head", "headControl");
-        if (headPoint == null) throw new InvalidOperationException("人物没有头部骨骼。");
+        if (headPoint == null) throw new InvalidOperationException(Lang.T("The person has no head bone."));
         chestPoint = BodyPoint(bones, "chest", "chestControl");
         hipPoint = BodyPoint(bones, "hip", "hipControl");
         DAZBone lEye = bones != null ? bones.GetDAZBone("lEye") : null, rEye = bones != null ? bones.GetDAZBone("rEye") : null;
@@ -543,7 +543,7 @@ public sealed partial class VaMDisplayLighting : BaseUnityPlugin
         BuildCube();
         if (suspended) rig.SetActive(false);
         else HoldOverride();
-        message = "转换中 · " + style.Label + " · " + subject.uid + " · 已读取 " + sourceCount + " 盏场景灯";
+        message = Lang.F("Relighting · {0} · {1} · {2} scene lamps read", Lang.T(style.Label), subject.uid, sourceCount);
     }
 
     private Vector3 EnvDirection(EnvSpec e)

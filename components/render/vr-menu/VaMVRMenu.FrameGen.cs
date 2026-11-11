@@ -9,7 +9,7 @@
 // overlay shows its pause sign. Stock OFXR (optical flow) and OFXR-DLSSG both
 // have it, so nothing in the layer changes for this.
 //
-// This plugin sets the event while the tab's 插帧 switch is off
+// This plugin sets the event while the tab's Frame generation switch is off
 // ([Performance] FrameGeneration), and while VaM's menus are open with
 // DLSSMenuNative on (the start screen and scene browser, worldUIActivated, or
 // the main menu, MainHUDVisible; the same test as the DLSS bridge, which
@@ -60,7 +60,7 @@ public sealed partial class VaMVRMenu
     private static extern bool CloseHandle(IntPtr handle);
 
     // The pause event's name from the layer's ofxr_bridge.ini, once the layer
-    // is found; the 插帧 switch is offered only where the event exists.
+    // is found; the Frame generation switch is offered only where the event exists.
     private void FindPause(string layerIni)
     {
         try
@@ -72,7 +72,7 @@ public sealed partial class VaMVRMenu
             foreach (char c in number) digits = digits && c >= '0' && c <= '9';
             if (!digits)
             {
-                Logger.LogInfo("VaM VR menu: the OFXR layer has no tray control (control_event '" + arm + "'): no 插帧 switch");
+                Logger.LogInfo("VaM VR menu: the OFXR layer has no tray control (control_event '" + arm + "'): no frame generation switch");
                 return;
             }
             string name = PausePrefix + number;
@@ -80,7 +80,7 @@ public sealed partial class VaMVRMenu
             if (handle == IntPtr.Zero)
             {
                 Logger.LogInfo("VaM VR menu: the OFXR tray's pause control " + name + " cannot be opened (error " +
-                    Marshal.GetLastWin32Error() + "): no 插帧 switch");
+                    Marshal.GetLastWin32Error() + "): no frame generation switch");
                 return;
             }
             CloseHandle(handle);
@@ -149,8 +149,8 @@ public sealed partial class VaMVRMenu
                     }
                 }
                 else frameGenStart = set ? 0 : 1;
-                Logger.LogInfo("VaM VR menu: frame generation " + (set ? "paused" : "resumed") + " from the OFXR tray; the 插帧 switch follows");
-                message = "OFXR 托盘" + (set ? "关闭" : "打开") + "了插帧，已同步到这里。";
+                Logger.LogInfo("VaM VR menu: frame generation " + (set ? "paused" : "resumed") + " from the OFXR tray; the frame generation switch follows");
+                message = set ? Lang.T("The OFXR tray switched frame generation off; taken over here.") : Lang.T("The OFXR tray switched frame generation on; taken over here.");
                 nextStatus = 0f;
                 want = set;
             }
@@ -164,7 +164,7 @@ public sealed partial class VaMVRMenu
             if (!pauseKnown || want != pauseSet)
             {
                 Logger.LogInfo("VaM VR menu: frame generation " + (want ? "off" : "on") +
-                    (want ? (FrameGenOn ? " while VaM's menus are open" : " (插帧 switch)") : ""));
+                    (want ? (FrameGenOn ? " while VaM's menus are open" : " (the frame generation switch)") : ""));
                 nextStatus = 0f;
             }
             pauseSet = want;

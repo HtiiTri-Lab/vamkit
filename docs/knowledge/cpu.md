@@ -12,11 +12,15 @@ native code was not built for goes back to VaM's C#.
 
 Data-flow order, from the game's call into the result:
 
-1. **Patch decision (`VaMCpuBoost.Install`).** For each of the four methods the plugin computes an IL fingerprint (FNV-1a 64
-   over the method body bytes, `VaMCpuBoost.Fingerprint`) and compares it with the constant checked offline against
-   VaM 1.22.0.3 (`SkinIL`, `MorphIL`, `NormalsIL`, `NormalsCoreIL`, `SoftIL`). Equal: Harmony patches go in. Different:
-   that path is left alone and one warning line names the method and the fingerprint it found. A different VaM build
-   therefore turns paths off instead of corrupting meshes. See [adapt-vam-version](../agent/adapt-vam-version.md) for
+1. **Patch decision (`VaMCpuBoost.Install`).** For each of the four methods the plugin computes a fingerprint of its code
+   (`CpuBoostCode.Fingerprint` in `plugin/CpuBoostPaths.cs`: FNV-1a 64 over the instructions with every metadata token
+   replaced by what it names, the member's declaring type, name and signature, or the string) and compares it with the
+   constant of the code the native library was written against (`CpuBoostCode.Skin`, `Morph`, `Normals`, `NormalsCore`,
+   `Soft`). Equal: Harmony patches go in. Different: that path is left alone and one warning line names the method and
+   the fingerprint it found. A VaM build whose method really changed therefore turns that path off instead of
+   corrupting meshes, and a build that was only compiled again (other tokens, same instructions) is recognised: the
+   constants were taken on 1.22.0.3 and are the same on the official 1.22.0.13. The first version hashed the raw body
+   bytes, tokens included, and so rejected every rebuild. See [adapt-vam-version](../agent/adapt-vam-version.md) for
    re-checking a new build.
 
    | VaM method | Patch | Native entry |
@@ -207,8 +211,15 @@ All on the development machine, native pool of 8 workers, VaM 1.22.0.3.
 
 ## Open
 
-- Only 1.22.0.3's IL is fingerprinted. Newer VaM builds (the Hub ships 1.22.0.12 and later) change method bodies; each
-  path needs its IL re-read and the harness re-run before its fingerprint is updated.
+- Builds checked: 1.22.0.3 and the official 1.22.0.13 (2026-11-11; same instructions in all four methods and in the
+  static normals overload, `run-skin.ps1` and `run-paths.ps1` pass on both). A build with a method that really changed
+  needs that path's code re-read and the native code brought into line before its constant is updated.
+- `run-patch.ps1` (the plugin's own Harmony patches against the stock methods) runs only where BepInEx has Harmony 2.0
+  (BepInEx 5.0-5.3). With HarmonyX (BepInEx 5.4) the stand-alone Mono host cannot load Harmony's dependencies; the
+  script says so and passes. On such an installation the check of the patches is in the game: the plugin's log line and
+  `[Diagnostics] VerifyEvery`. To run it all the same, give it a folder of directory junctions as `VAMKIT_VAM`:
+  `VaM_Data/Managed` and `Mono` of that VaM, `BepInEx/core` of a BepInEx 5.0-5.3. Done for 1.22.0.13: 83 checks pass,
+  as on 1.22.0.3. (Remove junctions with `rmdir`, never with a recursive delete.)
 - The morph path's `appliedValue` behaviour after a throwing morph differs slightly from C# (above).
 
 ## Verify

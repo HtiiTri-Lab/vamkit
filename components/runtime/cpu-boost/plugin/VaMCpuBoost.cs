@@ -32,11 +32,6 @@ using UnityEngine;
 [BepInPlugin("local.vam.cpuboost", "VaM CPU Boost", "0.4.0")]
 public sealed class VaMCpuBoost : BaseUnityPlugin
 {
-    // IL fingerprints (FNV-1a 64 of the method body) of the VaM 1.22.0.3 methods. NormalsCoreIL is the static overload
-    // recalculateNormals(int[], int[]) forwards to.
-    internal const ulong SkinIL = 0x00d8f4fa6c8ba2d7UL, MorphIL = 0x1dac2efd506ad0b3UL, NormalsIL = 0x6a4c1ffb629083f5UL,
-        NormalsCoreIL = 0x532b4b0ab53d0605UL, SoftIL = 0x2ecbb4d86a957f40UL;
-
     private sealed class Stat { public long calls, ticks, verified, differing; public int counter, failed; }
     private static readonly Stat skinStat = new Stat(), morphStat = new Stat(), normalsStat = new Stat(), softStat = new Stat();
     private static volatile bool skinOn, morphOn, normalsOn, softOn;
@@ -104,7 +99,7 @@ public sealed class VaMCpuBoost : BaseUnityPlugin
             MethodInfo part = typeof(DAZSkinV2).GetMethod("SkinMeshPart", any, null,
                 new Type[] { typeof(int), typeof(int), typeof(bool[]), typeof(bool[]) }, null);
             MethodInfo destroy = typeof(DAZSkinV2).GetMethod("OnDestroy", any, null, Type.EmptyTypes, null);
-            if (part != null && destroy != null && Known(part, SkinIL, "DAZSkinV2.SkinMeshPart", warn))
+            if (part != null && destroy != null && Known(part, CpuBoostCode.Skin, "DAZSkinV2.SkinMeshPart", warn))
             {
                 h.Patch(part, Own("SkinPartPrefix"), Own("SkinPartPostfix"), null, null);
                 h.Patch(destroy, null, Own("SkinDestroyed"), null, null);
@@ -116,7 +111,7 @@ public sealed class VaMCpuBoost : BaseUnityPlugin
         {
             MethodInfo apply = typeof(DAZMorphBank).GetMethod("ApplyMorphsThreadedFast", any, null,
                 new Type[] { typeof(Vector3[]), typeof(Vector3[]), typeof(DAZBones) }, null);
-            if (apply != null && Known(apply, MorphIL, "DAZMorphBank.ApplyMorphsThreadedFast", warn))
+            if (apply != null && Known(apply, CpuBoostCode.Morph, "DAZMorphBank.ApplyMorphsThreadedFast", warn))
             {
                 h.Patch(apply, Own("MorphPrefix"), null, Own("MorphTranspiler"), Own("MorphFinalizer"));
                 CpuBoostMorph.active = morphOn = true;
@@ -129,8 +124,8 @@ public sealed class VaMCpuBoost : BaseUnityPlugin
                 new Type[] { typeof(int[]), typeof(int[]) }, null);
             MethodInfo core = typeof(RecalculateNormals).GetMethod("recalculateNormals", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null,
                 new Type[] { typeof(int[]), typeof(Vector3[]), typeof(Vector3[]), typeof(Vector3[]), typeof(int[]), typeof(int[]), typeof(bool[]), typeof(bool) }, null);
-            if (recalc != null && core != null && Known(recalc, NormalsIL, "RecalculateNormals.recalculateNormals(int[], int[])", warn) &&
-                Known(core, NormalsCoreIL, "RecalculateNormals.recalculateNormals (static, subset)", warn))
+            if (recalc != null && core != null && Known(recalc, CpuBoostCode.Normals, "RecalculateNormals.recalculateNormals(int[], int[])", warn) &&
+                Known(core, CpuBoostCode.NormalsCore, "RecalculateNormals.recalculateNormals (static, subset)", warn))
             {
                 h.Patch(recalc, Own("NormalsPrefix"), Own("NormalsPostfix"), null, null);
                 normalsOn = true;
@@ -141,7 +136,7 @@ public sealed class VaMCpuBoost : BaseUnityPlugin
         {
             MethodInfo morph = typeof(DAZPhysicsMeshSoftVerticesGroup).GetMethod("MorphVerticesThreadedFast", any, null,
                 new Type[] { typeof(Vector3[]) }, null);
-            if (morph != null && Known(morph, SoftIL, "DAZPhysicsMeshSoftVerticesGroup.MorphVerticesThreadedFast", warn))
+            if (morph != null && Known(morph, CpuBoostCode.Soft, "DAZPhysicsMeshSoftVerticesGroup.MorphVerticesThreadedFast", warn))
             {
                 h.Patch(morph, Own("SoftPrefix"), Own("SoftPostfix"), null, null);
                 softOn = true;
@@ -156,19 +151,15 @@ public sealed class VaMCpuBoost : BaseUnityPlugin
         return new HarmonyMethod(typeof(VaMCpuBoost).GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic));
     }
 
-    internal static ulong Fingerprint(MethodBase m)
-    {
-        byte[] il = m.GetMethodBody().GetILAsByteArray();
-        ulong h = 14695981039346656037UL;
-        foreach (byte b in il) { h ^= b; h *= 1099511628211UL; }
-        return h;
-    }
+    internal static ulong Fingerprint(MethodBase m) { return CpuBoostCode.Fingerprint(m); }
 
+    // Is this method the code the native library follows (CpuBoostCode)? A VaM compiled again with the same
+    // instructions passes; one whose method changed is left to VaM.
     private static bool Known(MethodBase m, ulong expected, string name, Action<string> warn)
     {
-        ulong f = Fingerprint(m);
+        ulong f = CpuBoostCode.Fingerprint(m);
         if (f == expected) return true;
-        warn(name + " left alone: its code is not the VaM 1.22.0.3 code checked offline (IL fingerprint " + f.ToString("x16") + ")");
+        warn(name + " left alone: its code is not the code checked offline (fingerprint " + f.ToString("x16") + "; harness/run-paths.ps1 lists all)");
         return false;
     }
 

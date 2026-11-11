@@ -161,8 +161,9 @@ the test API (`Params(...)`, `Film(...)`) and the defaults in `tonemap.cpp`.
 ## Tried and dropped
 
 - **AgX-like style** (a third style): kept the hue of bright coloured lamps, compressed everything above mid grey harder
-  (grey 0.5 to 0.42 against the neutral's 0.5, the film's 0.60); built, compared and not installed. Do not propose it
-  again unprompted; ask what look is wanted.
+  (grey 0.5 to 0.42 against the neutral's 0.5, the film's 0.60); built, compared and not kept: the one person who judged it preferred the other
+  two. It is a third curve beside the two in `components/shading/tone-mapping/shaders/tonemap.hlsl` and a `Mode` value;
+  add it back when someone wants that look.
 - **Film grain, vignette, chromatic aberration, depth of field in VR**: see above.
 - **VaM's built-in post-processing (PostProcessing v1) as the tone mapper**: its curve changes mid tones.
 - **Environment-as-key-light rig** (display lighting 1.4 to 1.5): replaced; see above.

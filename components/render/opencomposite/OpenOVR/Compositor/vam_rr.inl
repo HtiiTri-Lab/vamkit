@@ -570,8 +570,8 @@ void EnsureRr(UINT w,UINT h,UINT ow,UINT oh) {
         on12Commands.Drain();
         OOVR_LOGF("VAM RR resize synchronized: %ux%u -> %ux%u; PT scene retained",w,h,ow,oh);
     }
-    // RR owns the upscaler; release the previous K/L/M features and staging.
-    for(auto& eye:eyes) if(eye.feature) { ReleaseFeature(eye); eye.color.Reset(); eye.output.Reset();
+    // RR owns the upscaler; release the previous K/L/M (or XeSS / FSR) features and staging.
+    for(auto& eye:eyes) if(HasFeature(eye)) { ReleaseFeature(eye); eye.color.Reset(); eye.output.Reset();
         eye.composite.Reset(); eye.compositeUav.Reset(); eye.colorSrv.Reset(); eye.outputSrv.Reset(); }
     if(!rrPrep) {
         auto compile=[&](const char* entry,Ptr<ID3D11ComputeShader>& dst) {
@@ -900,6 +900,7 @@ bool Reconstruct(ID3D11Resource* color,ID3D11Resource* albedo,ID3D11Resource* no
             rrCompletedSerial=info.serial;rrSceneSerial=static_cast<uint64_t>(info.serial);rrFallbackSerial=0;rrToneSerial=0;
         }
         rrTimer.End();
+        if(!rrRan){rrRan=true;rrWhy.clear();WriteRunning();}
         if(++rrFrames==1 || rrFrames%600==0) {
             OOVR_LOGF("VAM RR frames=%llu left=%llu right=%llu input=%ux%u output=%ux%u model=F pathTracing=%d; SR evaluations=0",rrFrames,rrEyes[0].calls,rrEyes[1].calls,w,h,ow,oh,pathTracing?1:0);
         }
@@ -924,6 +925,7 @@ bool Reconstruct(ID3D11Resource* color,ID3D11Resource* albedo,ID3D11Resource* no
             rrFailed=true;rrRetryAt=GetTickCount64()+1000;
             OOVR_LOGF(VamDesktopDisplay()?"VAM RR device/resource failure; retry in 1s: %s":"VAM RR disabled, returning to the raster route: %s",e.what());
         }
+        rrRan=false;rrWhy=e.what();pathAsked=true;WriteRunning();
         return false;
     }
 }

@@ -84,6 +84,7 @@
 #include "dx11_gpu_stage_timer.h"
 #include "vam_fsr_ui_bypass.h"
 #include "vam_on12.h"
+#include "vam_sr_backends.h"
 #include "dx12_rr_stage_timer.h"
 #include "../../../../shading/rt-core/include/path_tracing.h"
 #include <d3d11_1.h>
@@ -745,6 +746,11 @@ void Check(HRESULT hr, const char* what) {
         throw std::runtime_error(message);
     }
 }
+// FSR's own messages (the API's debug callback): into the compositor's log.
+void FsrMessage(uint32_t type, const wchar_t* message) {
+    OOVR_LOGF("VAM FSR %s: %ls", type == FFX_API_MESSAGE_TYPE_ERROR ? "error" : "warning", message ? message : L"");
+}
+
 void CheckNgx(NVSDK_NGX_Result result, const char* what) {
     if (NVSDK_NGX_FAILED(result)) {
         char message[256];
@@ -1220,9 +1226,19 @@ struct VamDlss::Impl {
         bool oversize = false, excluded = false;
         ULONGLONG badUntil=0;
         UINT badW = 0, badH = 0, badOW = 0, badOH = 0;
-        int badPreset = -2;
-        // DLSS feature
+        int badPreset = -2, badBackend = -2;
+        // The upscaler's feature: DLSS SR's (feature), XeSS's (xess) or FSR's (fsr), as `backend` says (kVamSr*).
         NVSDK_NGX_Handle* feature = nullptr;
+        xess_context_handle_t xess = nullptr;
+        ffxContext fsr = nullptr;
+        // FSR keeps pointers into what its context was created from until it is destroyed.
+        struct FsrCreate {
+            ffxCreateContextDescUpscale upscale{};
+            ffxCreateContextDescUpscaleVersion version{};
+            ffxCreateBackendDX12Desc device{};
+        };
+        std::unique_ptr<FsrCreate> fsrCreate;
+        int backend = -1;
         UINT fw = 0, fh = 0, fow = 0, foh = 0;
         DXGI_FORMAT typed = DXGI_FORMAT_UNKNOWN, outputTyped = DXGI_FORMAT_UNKNOWN;
         int preset = -1;
@@ -1235,6 +1251,8 @@ struct VamDlss::Impl {
     } eyes[2];
 
     bool ngxReady = false;
+    // NGX itself came up (whatever it then says about DLSS SR): Ray Reconstruction, and with it path tracing, can be tried.
+    bool ngxUp = false;
     bool failed = false;
     ULONGLONG retryAt=0;
     bool selected = false;
@@ -1257,6 +1275,13 @@ struct VamDlss::Impl {
     // (0xbad00002), and DLSS SR is NGX D3D12 on the 11on12 queue, in order with the frame (no fence).
     VamOn12 on12;
     VamOn12Commands on12Commands;
+    // XeSS and FSR (vam_sr_backends.h), and which of the three upscalers this machine can run (bit kVamSr*): tried
+    // once, on the render thread, with the first frame. srActive is the one last used, logged when it changes.
+    VamXessApi xessApi;
+    VamFsrApi fsrApi;
+    unsigned srAvailable = 0;
+    bool srProbed = false;
+    int srActive = -2;
 #include "vam_rr.inl"
 
     explicit Impl(ID3D11Device* d) : device(d) {
@@ -2552,6 +2577,9 @@ struct VamDlss::Impl {
     // state; asked for here, it is up before either.
     void InitializeNgx() {
         if (ngxReady) return;
+        // A test of the path a card without RTX takes, on a card that has it: no NGX feature of the compositor comes up
+        // (DLSS SR, and RR with it), so XeSS or FSR upscale and path tracing switches itself off again.
+        if (Environment(L"VAMKIT_NO_DLSS") == L"1") throw std::runtime_error("DLSS is switched off for this run (VAMKIT_NO_DLSS=1)");
         // Under D3D11On12 this first sets NGX D3D12 up with DLSS SR's folder (PrepareNgx12Folders).
         VamDlss::PrepareFrameGenerationNgx();
         const auto runtime = Environment(L"VAM_DLSS_RUNTIME_PATH");
@@ -2559,6 +2587,7 @@ struct VamDlss::Impl {
         if (on12) {
             if (!PrepareNgx12Folders()) throw std::runtime_error("NGX D3D12 was not set up with the DLSS SR folder (D3D11On12)");
             CheckNgx(NVSDK_NGX_D3D12_GetCapabilityParameters(&parameters), "NVSDK_NGX_D3D12_GetCapabilityParameters");
+            ngxUp = true;
             on12Commands.Init(on12.device.Get(), on12.queue.Get());
         } else {
             const auto logs = logDirectory.empty() ? runtime : logDirectory;
@@ -2570,6 +2599,7 @@ struct VamDlss::Impl {
             CheckNgx(NVSDK_NGX_D3D11_Init_with_ProjectID(kNgxProject, NVSDK_NGX_ENGINE_TYPE_CUSTOM, kNgxEngineVersion,
                 logs.c_str(), device.Get(), &common), "NVSDK_NGX_D3D11_Init_with_ProjectID");
             CheckNgx(NVSDK_NGX_D3D11_GetCapabilityParameters(&parameters), "NVSDK_NGX_D3D11_GetCapabilityParameters");
+            ngxUp = true;
         }
         int available = 0, needsDriver = 0;
         parameters->Get(NVSDK_NGX_Parameter_SuperSampling_Available, &available);
@@ -2585,7 +2615,165 @@ struct VamDlss::Impl {
                       : "VAM DLSS: NGX D3D11 initialized; DLSS Super Resolution available");
     }
 
+    // Which upscalers can run here. DLSS SR: NGX comes up and reports it. XeSS: its library loads and makes a context
+    // on this device. FSR: AMD's loader loads and its upscaler lists a version for this device. Once. The menu asks
+    // through VaMDLSS_GetUpscalerSupport, the live render settings through VamSrAvailable.
+    // XeSS and FSR record on the 11on12 command ring. NGX's set-up brings it up for DLSS; on a card where NGX does not
+    // come up nothing else would, and the first evaluation would record on a ring without a device.
+    bool CommandRing() {
+        try {
+            on12Commands.Init(on12.device.Get(), on12.queue.Get());
+            return true;
+        } catch (const std::exception& e) {
+            OOVR_LOGF("VAM upscalers: 11on12 command ring: %s", e.what());
+            return false;
+        }
+    }
+
+    void ProbeUpscalers() {
+        if (srProbed) return;
+        srProbed = true;
+        unsigned available = 0;
+        try {
+            InitializeNgx();
+            available |= 1u << kVamSrDlss;
+        } catch (const std::exception& e) {
+            srWhy[kVamSrDlss] = e.what();
+            OOVR_LOGF("VAM upscalers: DLSS SR cannot run here: %s", e.what());
+        }
+        if (!on12) {
+            srWhy[kVamSrXess] = srWhy[kVamSrFsr] = "it needs Unity's device on D3D12 (the d3d11 proxy)";
+            OOVR_LOG("VAM upscalers: XeSS and FSR need Unity's device on D3D12 (the d3d11 proxy); not offered");
+        } else if (!CommandRing()) {
+            srWhy[kVamSrXess] = srWhy[kVamSrFsr] = "the 11on12 command ring did not come up";
+            OOVR_LOG("VAM upscalers: XeSS and FSR not offered: the 11on12 command ring did not come up");
+        } else {
+            std::string why;
+            if (!xessApi.Load(Environment(L"VAM_XESS_RUNTIME_PATH"), why)) {
+                srWhy[kVamSrXess] = why;
+                OOVR_LOGF("VAM upscalers: XeSS not offered: %s", why.c_str());
+            } else {
+                xess_context_handle_t probe = nullptr;
+                const xess_result_t r = xessApi.CreateContext(on12.device.Get(), &probe);
+                if ((r == XESS_RESULT_SUCCESS || r == XESS_RESULT_WARNING_OLD_DRIVER) && probe) {
+                    xess_version_t v{}, fx{};
+                    xessApi.GetVersion(&v);
+                    xessApi.GetIntelXeFXVersion(probe, &fx);
+                    const bool old = xessApi.IsOptimalDriver(probe) == XESS_RESULT_WARNING_OLD_DRIVER;
+                    xessApi.DestroyContext(probe);
+                    available |= 1u << kVamSrXess;
+                    OOVR_LOGF("VAM upscalers: XeSS %u.%u.%u can run here (%s%s)", v.major, v.minor, v.patch,
+                        fx.major || fx.minor || fx.patch ? "Intel's own kernel" : "the cross-vendor kernel",
+                        old ? "; the graphics driver is older than XeSS recommends" : "");
+                } else {
+                    srWhy[kVamSrXess] = std::string("XeSS could not make a context on this device: ") + VamXessResult(r);
+                    OOVR_LOGF("VAM upscalers: XeSS cannot run here: %s (%d)", VamXessResult(r), static_cast<int>(r));
+                }
+            }
+            why.clear();
+            if (!fsrApi.Load(Environment(L"VAM_FSR_RUNTIME_PATH"), why)) {
+                srWhy[kVamSrFsr] = why;
+                OOVR_LOGF("VAM upscalers: FSR not offered: %s", why.c_str());
+            } else {
+                const std::string versions = fsrApi.UpscalerVersions(on12.device.Get());
+                if (versions.empty()) {
+                    srWhy[kVamSrFsr] = "the FSR API lists no upscaler (is amd_fidelityfx_upscaler_dx12.dll beside the loader?)";
+                    OOVR_LOG("VAM upscalers: FSR cannot run here: the FSR API lists no upscaler (is amd_fidelityfx_upscaler_dx12.dll beside the loader?)");
+                } else {
+                    available |= 1u << kVamSrFsr;
+                    OOVR_LOGF("VAM upscalers: FSR can run here; versions the API offers on this device: %s", versions.c_str());
+                }
+            }
+        }
+        srAvailable = available;
+        // The card's maker decides only the order in which the others stand in for a model that cannot run.
+        unsigned vendor = 0;
+        Ptr<IDXGIDevice> dxgi;
+        Ptr<IDXGIAdapter> adapter;
+        DXGI_ADAPTER_DESC description{};
+        if (SUCCEEDED(device.As(&dxgi)) && SUCCEEDED(dxgi->GetAdapter(&adapter)) && SUCCEEDED(adapter->GetDesc(&description))) vendor = description.VendorId;
+        const auto as = Environment(L"VAMKIT_AS_VENDOR");   // a test: 1002 is AMD
+        if (!as.empty()) vendor = wcstoul(as.c_str(), nullptr, 16);
+        srFsrFirst = vendor == 0x1002;
+        OOVR_LOGF("VAM upscalers: graphics card vendor %04X; where the chosen model cannot run, %s stands in first", vendor, srFsrFirst ? "FSR" : "XeSS");
+        if (!ngxUp) OOVR_LOG("VAM upscalers: NVIDIA NGX did not come up: no Ray Reconstruction, so path tracing cannot be shown on this machine as it is");
+        VamSrAvailable().store(Reported());
+    }
+
+    bool srFsrFirst = false;
+    unsigned Reported() const { return srAvailable | kVamSrProbed | (ngxUp ? kVamNgxUp : 0u) | (srFsrFirst ? kVamSrFsrFirst : 0u); }
+
+    // What was asked for and what runs, for tools (the first-run check, the benchmark): <VAM_DLSS_LOG>\running.json,
+    // rewritten whenever its content changes. "wanted" is the setting as a person chose it; "running" what the frames
+    // go through; "reason" why the two differ. Read this rather than the log's wording.
+    std::string srWhy[3];      // why each upscaler cannot run here; empty where it can
+    std::string rrWhy;         // why Ray Reconstruction did not take the last path-traced frame
+    bool pathAsked = false;    // path tracing was asked for in this run
+    bool rrRan = false;        // path-traced frames go through Ray Reconstruction
+    std::string runningWritten;
+    void WriteRunning() noexcept {
+        try {
+            if (logDirectory.empty()) return;
+            static const char* const names[] = {"DLSS", "XeSS", "FSR"};
+            const auto quote = [](const std::string& text) {
+                std::string out = "\"";
+                for (char c : text) out += (c == '"' || c == '\\') ? '\'' : (static_cast<unsigned char>(c) < 0x20 ? ' ' : c);
+                return out + "\"";
+            };
+            const auto settings = ReadVamPerformanceSettings();
+            const bool path = settings.dlssPreset == 6;
+            const std::string wanted = path ? "RR" : settings.dlssOff ? "Off"
+                : settings.srBackend == kVamSrXess ? "XeSS" : settings.srBackend == kVamSrFsr ? "FSR"
+                : std::string(1, static_cast<char>('J' + settings.dlssPreset - 10));
+            const std::string running = path ? (rrRan ? "RR" : "none") : settings.dlssOff ? "Off"
+                : srActive >= 0 ? (srActive == kVamSrDlss ? wanted.size() == 1 ? wanted : "K" : names[srActive]) : srProbed ? "FSR1" : "unknown";
+            std::string reason;
+            if (path && !rrRan) reason = rrWhy.empty() ? "no path-traced frame has gone through Ray Reconstruction yet" : rrWhy;
+            else if (!path && !settings.dlssOff && running != wanted && srProbed) reason = srWhy[settings.srBackend];
+            std::string text = "{\n \"upscaler\": {\"wanted\": " + quote(wanted) + ", \"running\": " + quote(running) + ", \"reason\": " + quote(reason) + "},\n \"can_run\": {";
+            for (int backend = 0; backend < 3; ++backend) {
+                text += std::string(backend ? ", " : "") + "\"" + names[backend] + "\": " + (!srProbed ? "null" : (srAvailable & (1u << backend)) ? "true" : "false");
+            }
+            text += "},\n \"why_not\": {";
+            for (int backend = 0; backend < 3; ++backend) text += std::string(backend ? ", " : "") + "\"" + names[backend] + "\": " + quote(srWhy[backend]);
+            text += std::string("},\n \"stands_in_first\": ") + (srFsrFirst ? "\"FSR\"" : "\"XeSS\"");
+            const bool asked = pathAsked || path;
+            text += std::string(",\n \"path_tracing\": {\"wanted\": ") + (asked ? "true" : "false") + ", \"running\": " + (path && rrRan ? "true" : "false")
+                + ", \"can\": " + (!srProbed && !ngxUp ? "null" : ngxUp ? "true" : "false") + ", \"reason\": "
+                + quote(ngxUp || !srProbed ? rrWhy : "Ray Reconstruction needs NVIDIA NGX, which did not come up: " + srWhy[kVamSrDlss]) + "}\n}\n";
+            if (text == runningWritten) return;
+            const auto file = logDirectory + L"\\running.json";
+            HANDLE handle = CreateFileW(file.c_str(), GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+            if (handle == INVALID_HANDLE_VALUE) return;
+            DWORD written = 0;
+            WriteFile(handle, text.data(), static_cast<DWORD>(text.size()), &written, nullptr);
+            CloseHandle(handle);
+            runningWritten = text;
+        } catch (...) {}
+    }
+
+    // An upscaler that failed while it ran is not tried again in this run; the next frame takes the next one.
+    void DropUpscaler(int backend, const char* why) {
+        srAvailable &= ~(1u << backend);
+        srWhy[backend] = std::string("it failed while it ran: ") + why;
+        VamSrAvailable().store(Reported());
+        for (auto& e : eyes) { ReleaseFeature(e); e.evaluatedSerial = 0; }
+        OOVR_LOGF("VAM %s stopped for this run: %s", backend == kVamSrXess ? "XeSS" : backend == kVamSrFsr ? "FSR" : "DLSS SR", why);
+    }
+
+    static bool HasFeature(const Eye& eye) { return eye.feature || eye.xess || eye.fsr; }
+
     void ReleaseFeature(Eye& eye) {
+        eye.backend = -1;
+        if (eye.xess || eye.fsr) {
+            // The queue may still run evaluations of it.
+            on12Commands.Drain();
+            if (eye.xess) xessApi.DestroyContext(eye.xess);
+            if (eye.fsr) fsrApi.DestroyContext(&eye.fsr, nullptr);
+            eye.xess = nullptr;
+            eye.fsr = nullptr;
+            eye.fsrCreate.reset();
+        }
         if (!eye.feature) return;
         if (on12) {
             // The queue may still run evaluations of it.
@@ -2623,6 +2811,121 @@ struct VamDlss::Impl {
         CheckNgx(NGX_D3D12_EVALUATE_DLSS_EXT(list, eye.feature, parameters, &e), "NGX_D3D12_EVALUATE_DLSS_EXT");
         r.Restore(list, {read, read, read, read, D3D12_RESOURCE_STATE_UNORDERED_ACCESS});
         on12Commands.Submit();
+    }
+
+    // XeSS and FSR on the 11on12 queue, as EvaluateOn12: the same textures unwrapped, the library's commands recorded
+    // into the list after a Flush, in order with the frame. Both take what DLSS SR takes: the jittered render-size
+    // colour, reversed depth, render-size motion in pixels from this frame to the last without the jitter, and the
+    // jitter itself; the 8-bit eye image is gamma-encoded (XeSS: LDR; FSR: non-linear sRGB).
+    void EvaluateXess(Eye& eye, const VamFrameGuides& guides, ID3D11Texture2D* motion, bool reset) {
+        VamOn12Unwrapped r(on12, {eye.color.Get(), guides.depth, motion, eye.output.Get()});
+        context->Flush();
+        ID3D12GraphicsCommandList* list = on12Commands.Begin();
+        constexpr auto read = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        r.Transition(list, {read, read, read, D3D12_RESOURCE_STATE_UNORDERED_ACCESS});
+        xess_d3d12_execute_params_t e{};
+        e.pColorTexture = r[0];
+        e.pDepthTexture = r[1];
+        e.pVelocityTexture = r[2];
+        e.pOutputTexture = r[3];
+        e.jitterOffsetX = settings.dlssJitterSignX * guides.jitterX;
+        e.jitterOffsetY = settings.dlssJitterSignY * guides.jitterY;
+        e.exposureScale = 1.f;
+        e.resetHistory = reset ? 1 : 0;
+        e.inputWidth = eye.fw;
+        e.inputHeight = eye.fh;
+        const xess_result_t result = xessApi.Execute(eye.xess, list, &e);
+        r.Restore(list, {read, read, read, D3D12_RESOURCE_STATE_UNORDERED_ACCESS});
+        on12Commands.Submit();
+        VamCheckXess(result, "xessD3D12Execute");
+    }
+
+    void EvaluateFsr(Eye& eye, const VamFrameGuides& guides, ID3D11Texture2D* motion, bool reset) {
+        VamOn12Unwrapped r(on12, {eye.color.Get(), guides.depth, motion, eye.output.Get()});
+        context->Flush();
+        ID3D12GraphicsCommandList* list = on12Commands.Begin();
+        constexpr auto read = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        r.Transition(list, {read, read, read, D3D12_RESOURCE_STATE_UNORDERED_ACCESS});
+        ffxDispatchDescUpscale d{};
+        d.header.type = FFX_API_DISPATCH_DESC_TYPE_UPSCALE;
+        d.commandList = list;
+        d.color = ffxApiGetResourceDX12(r[0], FFX_API_RESOURCE_STATE_COMPUTE_READ);
+        d.depth = ffxApiGetResourceDX12(r[1], FFX_API_RESOURCE_STATE_COMPUTE_READ);
+        d.motionVectors = ffxApiGetResourceDX12(r[2], FFX_API_RESOURCE_STATE_COMPUTE_READ);
+        d.output = ffxApiGetResourceDX12(r[3], FFX_API_RESOURCE_STATE_UNORDERED_ACCESS);
+        d.jitterOffset.x = settings.dlssJitterSignX * guides.jitterX;
+        d.jitterOffset.y = settings.dlssJitterSignY * guides.jitterY;
+        d.motionVectorScale.x = d.motionVectorScale.y = 1.f;   // already pixels
+        d.renderSize.width = eye.fw;
+        d.renderSize.height = eye.fh;
+        d.upscaleSize.width = eye.fow;
+        d.upscaleSize.height = eye.foh;
+        d.enableSharpening = false;                           // NVSharpen follows, as after DLSS SR
+        d.frameTimeDelta = guides.frameDeltaMs;
+        d.preExposure = 1.f;
+        d.reset = reset;
+        // FSR orders the two planes itself by the inverted-depth flag.
+        d.cameraNear = guides.nearPlane;
+        d.cameraFar = guides.farPlane;
+        // The eye's vertical field of view from its projection (an off-axis one in a headset): both half angles.
+        const float* p = guides.viewToClip;
+        d.cameraFovAngleVertical = p[5] != 0.f ? std::atan((1.f + p[6]) / p[5]) + std::atan((1.f - p[6]) / p[5]) : 1.f;
+        d.viewSpaceToMetersFactor = 1.f;                      // Unity units are metres
+        d.flags = eye.typed == DXGI_FORMAT_R16G16B16A16_FLOAT ? 0 : FFX_UPSCALE_FLAG_NON_LINEAR_COLOR_SRGB;
+        const ffxReturnCode_t result = fsrApi.Dispatch(&eye.fsr, &d.header);
+        r.Restore(list, {read, read, read, D3D12_RESOURCE_STATE_UNORDERED_ACCESS});
+        on12Commands.Submit();
+        VamCheckFsr(result, "ffxDispatch (upscale)");
+    }
+
+    // XeSS for this eye. The quality setting only picks the library's tuning: the nearest to the ratio whose input
+    // range holds this render size (each setting accepts a range around its own size).
+    void CreateXess(Eye& eye, UINT w, UINT h, UINT ow, UINT oh, bool hdr) {
+        VamCheckXess(xessApi.CreateContext(on12.device.Get(), &eye.xess), "xessD3D12CreateContext");
+        static const xess_quality_settings_t order[] = {XESS_QUALITY_SETTING_AA, XESS_QUALITY_SETTING_ULTRA_QUALITY_PLUS,
+            XESS_QUALITY_SETTING_ULTRA_QUALITY, XESS_QUALITY_SETTING_QUALITY, XESS_QUALITY_SETTING_BALANCED,
+            XESS_QUALITY_SETTING_PERFORMANCE, XESS_QUALITY_SETTING_ULTRA_PERFORMANCE};
+        const xess_quality_settings_t nearest = VamXessQuality(w, ow);
+        const int at = static_cast<int>(std::find(std::begin(order), std::end(order), nearest) - std::begin(order));
+        xess_quality_settings_t quality = nearest;
+        const xess_2d_t output{ow, oh};
+        for (int step = 0; step < 2 * static_cast<int>(_countof(order)); ++step) {
+            const int index = at + ((step & 1) ? -(step + 1) / 2 : step / 2);
+            if (index < 0 || index >= static_cast<int>(_countof(order))) continue;
+            xess_2d_t best{}, low{}, high{};
+            if (xessApi.GetOptimalInputResolution(eye.xess, &output, order[index], &best, &low, &high) != XESS_RESULT_SUCCESS) break;
+            if (w >= low.x && w <= high.x && h >= low.y && h <= high.y) { quality = order[index]; break; }
+        }
+        xess_d3d12_init_params_t init{};
+        init.outputResolution = output;
+        init.qualitySetting = quality;
+        init.initFlags = XESS_INIT_FLAG_INVERTED_DEPTH | (hdr ? XESS_INIT_FLAG_ENABLE_AUTOEXPOSURE : XESS_INIT_FLAG_LDR_INPUT_COLOR);
+        VamCheckXess(xessApi.Init(eye.xess, &init), "xessD3D12Init");
+        OOVR_LOGF("VAM XeSS feature created: eye=%u input=%ux%u output=%ux%u setting=%s %s",
+            static_cast<unsigned>(&eye - eyes), w, h, ow, oh, VamXessQualityName(quality), hdr ? "HDR" : "LDR (gamma-encoded)");
+    }
+
+    // FSR for this eye. The API picks the version: FSR 4 where the card and driver have it, else FSR 3.1.
+    void CreateFsr(Eye& eye, UINT w, UINT h, UINT ow, UINT oh, bool hdr) {
+        eye.fsrCreate = std::make_unique<Eye::FsrCreate>();
+        auto& c = *eye.fsrCreate;
+        c.device.header.type = FFX_API_CREATE_CONTEXT_DESC_TYPE_BACKEND_DX12;
+        c.device.device = on12.device.Get();
+        c.version.header.type = FFX_API_CREATE_CONTEXT_DESC_TYPE_UPSCALE_VERSION;
+        c.version.header.pNext = &c.device.header;
+        c.version.version = FFX_UPSCALER_VERSION;
+        c.upscale.header.type = FFX_API_CREATE_CONTEXT_DESC_TYPE_UPSCALE;
+        c.upscale.header.pNext = &c.version.header;
+        c.upscale.flags = FFX_UPSCALE_ENABLE_DEPTH_INVERTED |
+            (hdr ? FFX_UPSCALE_ENABLE_HIGH_DYNAMIC_RANGE | FFX_UPSCALE_ENABLE_AUTO_EXPOSURE : FFX_UPSCALE_ENABLE_NON_LINEAR_COLORSPACE);
+        c.upscale.maxRenderSize.width = w;
+        c.upscale.maxRenderSize.height = h;
+        c.upscale.maxUpscaleSize.width = ow;
+        c.upscale.maxUpscaleSize.height = oh;
+        c.upscale.fpMessage = &FsrMessage;
+        VamCheckFsr(fsrApi.CreateContext(&eye.fsr, &c.upscale.header, nullptr), "ffxCreateContext (upscale)");
+        OOVR_LOGF("VAM FSR feature created: eye=%u input=%ux%u output=%ux%u version=%s %s",
+            static_cast<unsigned>(&eye - eyes), w, h, ow, oh, fsrApi.ContextVersion(eye.fsr).c_str(), hdr ? "HDR" : "LDR (gamma-encoded)");
     }
 
     static NVSDK_NGX_DLSS_Create_Params CreateParams(NVSDK_NGX_Parameter* p, UINT w, UINT h, UINT ow, UINT oh, bool hdr, int preset) {
@@ -2667,7 +2970,8 @@ struct VamDlss::Impl {
         }
         if (oversize || excluded) return false;
         if(VamDesktopDisplay() && GetTickCount64()>=eye.badUntil)eye.badW=0;
-        return !(w == eye.badW && h == eye.badH && ow == eye.badOW && oh == eye.badOH && settings.dlssPreset == eye.badPreset);
+        return !(w == eye.badW && h == eye.badH && ow == eye.badOW && oh == eye.badOH && settings.dlssPreset == eye.badPreset &&
+            srActive == eye.badBackend);
     }
 
     // UI bypass: EASU at this frame's jitter. Unity rendered what the
@@ -2832,10 +3136,10 @@ struct VamDlss::Impl {
         return true;
     }
 
-    void EnsureFeature(Eye& eye, UINT w, UINT h, UINT ow, UINT oh, DXGI_FORMAT typed, DXGI_FORMAT outputTyped) {
-        const int preset = settings.dlssPreset;
-        if (eye.feature && eye.fw == w && eye.fh == h && eye.fow == ow && eye.foh == oh && eye.typed == typed &&
-            eye.outputTyped == outputTyped && eye.preset == preset) return;
+    void EnsureFeature(Eye& eye, UINT w, UINT h, UINT ow, UINT oh, DXGI_FORMAT typed, DXGI_FORMAT outputTyped, int backend) {
+        const int preset = backend == kVamSrDlss ? settings.dlssPreset : 0;
+        if (HasFeature(eye) && eye.backend == backend && eye.fw == w && eye.fh == h && eye.fow == ow && eye.foh == oh &&
+            eye.typed == typed && eye.outputTyped == outputTyped && eye.preset == preset) return;
         ReleaseFeature(eye);
         eye.color.Reset(); eye.output.Reset();
         eye.composite.Reset(); eye.compositeUav.Reset(); eye.colorSrv.Reset(); eye.outputSrv.Reset();
@@ -2852,6 +3156,14 @@ struct VamDlss::Impl {
         td.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
         Check(device->CreateTexture2D(&td, nullptr, &eye.output), "DLSS output");
         const bool hdr = typed == DXGI_FORMAT_R16G16B16A16_FLOAT;
+        if (backend != kVamSrDlss) {
+            if (backend == kVamSrXess) CreateXess(eye, w, h, ow, oh, hdr);
+            else CreateFsr(eye, w, h, ow, oh, hdr);
+            eye.fw = w; eye.fh = h; eye.fow = ow; eye.foh = oh; eye.typed = typed; eye.outputTyped = outputTyped; eye.preset = preset;
+            eye.backend = backend;
+            eye.evaluatedSerial = 0;
+            return;
+        }
         auto create = CreateParams(parameters, w, h, ow, oh, hdr, preset);
         const auto quality = create.Feature.InPerfQualityValue;
         if (on12) {
@@ -2864,6 +3176,7 @@ struct VamDlss::Impl {
             CheckNgx(NGX_D3D11_CREATE_DLSS_EXT(immediate.Get(), &eye.feature, parameters, &create), "NGX_D3D11_CREATE_DLSS_EXT");
         }
         eye.fw = w; eye.fh = h; eye.fow = ow; eye.foh = oh; eye.typed = typed; eye.outputTyped = outputTyped; eye.preset = preset;
+        eye.backend = backend;
         eye.evaluatedSerial = 0;
         OOVR_LOGF("VAM DLSS SR feature created: eye=%u input=%ux%u output=%ux%u mode=%s preset=%d %s",
             static_cast<unsigned>(&eye - eyes), w, h, ow, oh, QualityName(quality), preset, hdr ? "HDR" : "LDR (gamma-encoded)");
@@ -2882,8 +3195,21 @@ struct VamDlss::Impl {
         const ULONGLONG now = GetTickCount64();
         RefreshSettings(now);
         try {
-            if (settings.dlssPreset == 6) return SubmitRr(eyeIndex, guides, outputTexture, ow, oh);
-            InitializeNgx();
+            if (settings.dlssPreset == 6) {
+                if (!pathAsked) { pathAsked = true; WriteRunning(); }
+                return SubmitRr(eyeIndex, guides, outputTexture, ow, oh);
+            }
+            ProbeUpscalers();
+            // The upscaler chosen, or the one that stands in where it cannot run (VamSrChoice); none: FSR 1.
+            const int backend = VamSrChoice(settings.srBackend, srAvailable | (srFsrFirst ? kVamSrFsrFirst : 0u));
+            if (backend != srActive) {
+                static const char* const names[] = {"DLSS SR", "XeSS", "FSR"};
+                if (backend < 0) OOVR_LOG("VAM upscaler: none of DLSS SR, XeSS and FSR can run here; FSR 1 stands in");
+                else OOVR_LOGF("VAM upscaler: %s%s", names[backend], backend == settings.srBackend ? "" : " (the one chosen cannot run here)");
+                srActive = backend;
+            }
+            WriteRunning();   // compares with what it wrote last: a model switched within DLSS (K, L, M) shows too
+            if (backend < 0) return false;
             D3D11_TEXTURE2D_DESC cd{};
             colorTexture->GetDesc(&cd);
             const DXGI_FORMAT typed = TypedColor(cd.Format);
@@ -2896,15 +3222,41 @@ struct VamDlss::Impl {
             auto& eye = eyes[eyeIndex];
             if (!Eligible(eyeIndex, cd.Width, cd.Height, ow, oh)) return false;
             try {
-                EnsureFeature(eye, cd.Width, cd.Height, ow, oh, typed, outputTyped);
+                EnsureFeature(eye, cd.Width, cd.Height, ow, oh, typed, outputTyped, backend);
             } catch (const std::exception& e) {
                 // This size or preset only: another one gets a new attempt.
+                ReleaseFeature(eye);
                 eye.badW = cd.Width; eye.badH = cd.Height; eye.badOW = ow; eye.badOH = oh; eye.badPreset = settings.dlssPreset;eye.badUntil=now+1000;
-                OOVR_LOGF("VAM DLSS SR eye=%u: feature for %ux%u -> %ux%u not created (%s); FSR1 until the size or preset changes",
+                eye.badBackend = backend;
+                OOVR_LOGF("VAM upscaler eye=%u: feature for %ux%u -> %ux%u not created (%s); FSR1 until the size or model changes",
                     eyeIndex, cd.Width, cd.Height, ow, oh, e.what());
                 return false;
             }
             immediate->CopyResource(eye.color.Get(), colorTexture);
+            if (backend != kVamSrDlss) {
+                // XeSS and FSR document 16-bit float motion; the guides carry that copy for the frame generation layer.
+                ID3D11Texture2D* motion = guides.motionHalf ? guides.motionHalf : guides.motion;
+                const bool reset = guides.reset || eye.evaluatedSerial == 0 || guides.serial != eye.evaluatedSerial + 1;
+                try {
+                    if (backend == kVamSrXess) EvaluateXess(eye, guides, motion, reset);
+                    else EvaluateFsr(eye, guides, motion, reset);
+                } catch (const std::exception& e) {
+                    DropUpscaler(backend, e.what());
+                    return false;
+                }
+                const bool bypassed = guides.uiMask && guides.uiMask == eye.uiMask.Get() && BypassUi(eye, guides);
+                immediate->CopySubresourceRegion(outputTexture, 0, 0, 0, 0, bypassed ? eye.composite.Get() : eye.output.Get(), 0, nullptr);
+                eye.evaluatedSerial = guides.serial;
+                lastEvaluation = now;
+                if (reset) ++eye.resets;
+                if (++eye.evaluations == 1 || eye.evaluations % 1800 == 0)
+                    OOVR_LOGF("VAM %s eye=%u: %llu evaluations, %llu resets, serial %llu, jitter=%.3f,%.3f", backend == kVamSrXess ? "XeSS" : "FSR",
+                        eyeIndex, static_cast<unsigned long long>(eye.evaluations), static_cast<unsigned long long>(eye.resets),
+                        static_cast<unsigned long long>(guides.serial), settings.dlssJitterSignX * guides.jitterX, settings.dlssJitterSignY * guides.jitterY);
+                if (eye.evaluations == 1) WriteStatus("evaluating", backend == kVamSrXess ? "XeSS running" : "FSR running");
+                UpdateState();
+                return true;
+            }
             NVSDK_NGX_D3D11_DLSS_Eval_Params eval{};
             eval.Feature.pInColor = eye.color.Get();
             eval.Feature.pInOutput = eye.output.Get();
@@ -3243,6 +3595,14 @@ __declspec(dllexport) int VaMDLSS_CaptureDesktop(const wchar_t* path) {
     if(!host.capturePath.empty()) return 0;
     host.capturePath=path;return 1;
 }
+// A test capture of frame generation on the desktop: the presenter's next generated frame as <path>, the real frame it
+// follows as <path>.real.ppm and what reached the swap chain as <path>.presented.ppm (the d3d11 proxy's VAM_DesktopCapture).
+__declspec(dllexport) int VaMDLSS_CaptureGenerated(const wchar_t* path) {
+    if(!VamDesktopDisplay() || !path || !*path) return 0;
+    HMODULE proxy=VamOn12Proxy();
+    auto capture=proxy?reinterpret_cast<int(__cdecl*)(const wchar_t*)>(GetProcAddress(proxy,"VAM_DesktopCapture")):nullptr;
+    return capture?capture(path):0;
+}
 __declspec(dllexport) void* VaMDLSS_WrapToneMapEvent(void* original) {
     rrToneMapEvent = reinterpret_cast<ToneMapEvent>(original); return reinterpret_cast<void*>(&OnRrToneMap);
 }
@@ -3265,6 +3625,10 @@ __declspec(dllexport) int VaMDLSS_Reconstruct(ID3D11Resource* color, ID3D11Resou
     return p && rrCallback.load() && p->Reconstruct(color,albedo,normal,spec,depth,reference,opaque,tolerance,detail) ? 1 : 0;
 }
 __declspec(dllexport) int VaMDLSS_GetApiVersion() { return kApiVersion; }
+// The temporal upscalers this machine can run, for the in-game menu: bit 0 DLSS SR, bit 1 XeSS, bit 2 FSR, bit 3 NGX
+// came up (Ray Reconstruction, so path tracing, can be tried), bit 4 FSR stands in before XeSS (an AMD card), and
+// bit 8 once the compositor has tried them (with the first frame; the four low bits are all set until then).
+__declspec(dllexport) int VaMDLSS_GetUpscalerSupport() { return static_cast<int>(VamSrAvailable().load()); }
 __declspec(dllexport) void* VaMDLSS_GetRenderEventFunc() { return reinterpret_cast<void*>(&OnRenderEvent); }
 // 0 until the compositor exists; see StateBits. kStateSrOff follows
 // DLSSPreset=Off as it is now (VamLiveRenderSettings).
@@ -3325,7 +3689,8 @@ __declspec(dllexport) int VaMDLSS_GetJitterPhaseCount() {
 VamDlss::VamDlss(ID3D11Device* device) : impl(std::make_unique<Impl>(device)) {}
 
 VamDlss* VamDlss::GetIfEnabled(ID3D11Device* device) {
-    if (!VamPerformanceStartup().enabled || Environment(L"VAM_DLSS_RUNTIME_PATH").empty()) return nullptr;
+    if (!VamPerformanceStartup().enabled || (Environment(L"VAM_DLSS_RUNTIME_PATH").empty() &&
+        Environment(L"VAM_XESS_RUNTIME_PATH").empty() && Environment(L"VAM_FSR_RUNTIME_PATH").empty())) return nullptr;
     static std::mutex mutex;
     static VamDlss* created = nullptr;
     static bool attempted = false;

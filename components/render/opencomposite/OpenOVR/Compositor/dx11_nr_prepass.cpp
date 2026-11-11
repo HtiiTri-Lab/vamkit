@@ -288,6 +288,8 @@ struct VamNrPrepass::Impl {
     // then loads its own DLL directly, as its compatibility path does.
     bool sharedNgx = false;
     bool failed = false;
+    // NGX did not come up: a property of the machine (a card without RTX), not a resource failure. No retry.
+    bool unavailable = false;
     ULONGLONG retryAt=0;
     bool initialized = false;
     bool deviceReady = false;
@@ -442,6 +444,9 @@ struct VamNrPrepass::Impl {
         const auto directory = Environment(L"VAM_NR_PREPASS_PATH");
         const auto logDirectory = Environment(L"VAM_NR_PREPASS_LOG");
         if (directory.empty() || logDirectory.empty()) throw std::runtime_error("Use the NR prepass launcher to set NGX paths");
+        unavailable = true;
+        // A test of the path a card without RTX takes, on a card that has it (the same switch as DLSS SR's).
+        if (Environment(L"VAMKIT_NO_DLSS") == L"1") throw std::runtime_error("DLSS is switched off for this run (VAMKIT_NO_DLSS=1)");
         // DLSS Frame Generation first: NGX keeps the first D3D12 setup of the
         // process, and this one's path has no nvngx_dlssg.dll.
         sharedNgx = VamDlss::PrepareFrameGenerationNgx();
@@ -453,6 +458,7 @@ struct VamNrPrepass::Impl {
         common.LoggingInfo.MinimumLoggingLevel = NVSDK_NGX_LOGGING_LEVEL_ON;
         NR_NGX(NVSDK_NGX_D3D12_Init(123456, logDirectory.c_str(), device12.Get(), &common));
         NR_NGX(NVSDK_NGX_D3D12_GetCapabilityParameters(&parameters));
+        unavailable = false;
         deviceReady = true;
     }
 
@@ -832,7 +838,7 @@ struct VamNrPrepass::Impl {
 
     void Process(ID3D11Texture2D* image, ID3D11RenderTargetView* target, DXGI_FORMAT format, unsigned eyeIndex, const VamFrameGuides* guides) {
         std::lock_guard lock(mutex);
-        if(failed && VamDesktopDisplay() && GetTickCount64()>=retryAt){
+        if(failed && !unavailable && VamDesktopDisplay() && GetTickCount64()>=retryAt){
             Drain();DrainQueue();
             for(auto& e:eyes){if(e.feature)releaseFeature(e.feature);e.feature=nullptr;e.reset=true;}
             for(auto& e:spare){if(e.feature)releaseFeature(e.feature);e.feature=nullptr;e.reset=true;}
@@ -1046,7 +1052,8 @@ void VamNrPrepass::Process(ID3D11Texture2D* image, ID3D11RenderTargetView* targe
         impl->failed = true;impl->retryAt=GetTickCount64()+1000;
         // An NR startup failure must not abort VaM's first eye submission.
         // Keep all resources alive and let the normal image release continue.
-        OOVR_LOGF(VamDesktopDisplay()?"VAM desktop NR resource failure; retry in 1s: %s":"NR prepass disabled after failure; OFXR continues with original real frames: %s", error.what());
+        if (impl->unavailable) OOVR_LOGF("NR prepass cannot run on this machine (NVIDIA NGX did not come up); frames go on without it: %s", error.what());
+        else OOVR_LOGF(VamDesktopDisplay()?"VAM desktop NR resource failure; retry in 1s: %s":"NR prepass disabled after failure; OFXR continues with original real frames: %s", error.what());
         WriteFailure(error.what());
     }
 }

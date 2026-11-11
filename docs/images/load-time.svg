@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 298" width="800" height="298" font-family="'Segoe UI','Microsoft YaHei UI','PingFang SC','Noto Sans CJK SC',Helvetica,Arial,sans-serif" role="img" aria-label="Loading a large scene, start to ready (seconds)">
+<title>Loading a large scene, start to ready (seconds)</title>
+<rect width="800" height="298" rx="10" fill="#0d1218"/>
+<text x="24" y="36" font-size="17" fill="#e7ecf3" font-weight="bold" text-anchor="start">Loading a large scene, start to ready (seconds)</text>
+<text x="24" y="76" font-size="12" fill="#e7ecf3" font-weight="normal" text-anchor="start">821 atoms, 197 asset bundles</text>
+<text x="100" y="104" font-size="11" fill="#8f9bb0" font-weight="normal" text-anchor="end">VaM alone</text>
+<rect x="110" y="88" width="567.12" height="22" rx="4" fill="#5b6b82"/>
+<text x="685.12" y="104" font-size="13" fill="#e7ecf3" font-weight="bold" text-anchor="start">166.8</text>
+<text x="100" y="134" font-size="11" fill="#8f9bb0" font-weight="normal" text-anchor="end">with vamkit</text>
+<rect x="110" y="118" width="180.54" height="22" rx="4" fill="#3ecf8e"/>
+<text x="298.53999999999996" y="134" font-size="13" fill="#e7ecf3" font-weight="bold" text-anchor="start">53.1</text>
+<text x="24" y="180" font-size="12" fill="#e7ecf3" font-weight="normal" text-anchor="start">two people, 289 plugin instances, 6 hours of voice clips</text>
+<text x="100" y="208" font-size="11" fill="#8f9bb0" font-weight="normal" text-anchor="end">VaM alone</text>
+<rect x="110" y="192" width="622.1999999999999" height="22" rx="4" fill="#5b6b82"/>
+<text x="740.1999999999999" y="208" font-size="13" fill="#e7ecf3" font-weight="bold" text-anchor="start">183</text>
+<text x="100" y="238" font-size="11" fill="#8f9bb0" font-weight="normal" text-anchor="end">with vamkit</text>
+<rect x="110" y="222" width="146.2" height="22" rx="4" fill="#3ecf8e"/>
+<text x="264.2" y="238" font-size="13" fill="#e7ecf3" font-weight="bold" text-anchor="start">43</text>
+<text x="24" y="280" font-size="10" fill="#8f9bb0" font-weight="normal" text-anchor="start">Measured on one PC: RTX 5090 D (32 GB), Ryzen 9 9950X3D2, 128 GB RAM · one run each, VaM freshly started; the second pair to the nearest second · docs/knowledge/loading.md</text>
+</svg>

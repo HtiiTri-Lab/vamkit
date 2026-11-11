@@ -38,7 +38,7 @@ public sealed class VaMWindowCameraVR : BaseUnityPlugin
         const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         try
         {
-            HarmonyLib.Harmony harmony = new HarmonyLib.Harmony("local.vam.windowcameravr");
+            Harmony harmony = new Harmony("local.vam.windowcameravr");
             HarmonyLib.HarmonyMethod after = new HarmonyLib.HarmonyMethod(typeof(VaMWindowCameraVR).GetMethod("AfterSync"));
             foreach (string name in new string[] { "SyncCameraOnAndUseAudioListener", "SyncUseAsMainCamera" })
             {

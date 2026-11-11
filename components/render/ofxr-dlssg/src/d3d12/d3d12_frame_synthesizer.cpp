@@ -851,9 +851,21 @@ struct D3D12FrameSynthesizer::Impl {
     std::uint32_t next_timing_slot{};
     D3D12OpticalFlowBackend backend{D3D12OpticalFlowBackend::fidelity_fx};
     D3D12NvidiaOpticalFlowOptions nvidia_options{};
-    // DLSS Frame Generation beside the NVIDIA backend (OFXR_DLSSG=1): used
-    // for each pair whose capture carries the producer's guides.
-    std::unique_ptr<D3D12DlssgFrameGenerator> dlssg;
+    // The guided frame generator beside the NVIDIA backend (OFXR_DLSSG=1):
+    // DLSS Frame Generation or FSR's ([Performance] FrameGenModel,
+    // make_guided_frame_generator), used for each pair whose capture carries
+    // the producer's guides. dlssg_asked is the choice it was made for,
+    // followed while the session runs (follow_generator_model).
+    std::unique_ptr<D3D12GuidedFrameGenerator> dlssg;
+    FrameGenModel dlssg_model{FrameGenModel::dlss};
+    FrameGenModel dlssg_asked{FrameGenModel::dlss};
+    bool dlssg_wanted{};
+    // NVIDIA optical flow could not be brought up (no nvofapi64.dll on an AMD
+    // or Intel card, an NVIDIA card without the hardware) while a guided
+    // generator was asked for: the session runs on the guided generator
+    // alone. A pair that comes without guides is synthesized from the game's
+    // motion where that is valid and otherwise holds the previous frame.
+    bool nvidia_flow_missing{};
     bool synthesis_enabled{};
     bool completion_unknown{};
     bool ffx_context_created{};
@@ -889,6 +901,14 @@ struct D3D12FrameSynthesizer::Impl {
                 nvidia_fence.Get(),
                 last_nvidia_fence_value));
         }
+        release_nvidia_flow();
+        if (fence_event != nullptr) {
+            CloseHandle(fence_event);
+        }
+    }
+
+    // Everything create_nvidia_resources made, as far as it got.
+    void release_nvidia_flow() noexcept {
         if (nvidia_api.nvOFUnregisterResourceD3D12 != nullptr) {
             for (WorkSlot& slot : work_slots) {
                 for (NvidiaEyeResources& eye : slot.nvidia_eyes) {
@@ -932,12 +952,10 @@ struct D3D12FrameSynthesizer::Impl {
                 context = nullptr;
             }
         }
+        nvidia_api = {};
         if (nvidia_module != nullptr) {
             FreeLibrary(nvidia_module);
             nvidia_module = nullptr;
-        }
-        if (fence_event != nullptr) {
-            CloseHandle(fence_event);
         }
     }
 
@@ -1362,6 +1380,12 @@ struct D3D12FrameSynthesizer::Impl {
     }
 
     [[nodiscard]] HRESULT create_nvidia_resources(UINT node_mask) noexcept {
+        // A test of what a card without NVIDIA optical flow gets, on a card
+        // that has it.
+        wchar_t no_flow[8]{};
+        if (GetEnvironmentVariableW(L"VAMKIT_NO_NVOF", no_flow, 8) == 1 && no_flow[0] == L'1') {
+            return E_NOTIMPL;
+        }
         nvidia_module = LoadLibraryExW(
             L"nvofapi64.dll",
             nullptr,
@@ -2179,6 +2203,21 @@ struct D3D12FrameSynthesizer::Impl {
         result = backend == D3D12OpticalFlowBackend::nvidia
                      ? create_nvidia_resources(node_mask)
                      : create_fidelityfx_resources(node_mask);
+        HRESULT flow_failure = S_OK;
+        if (FAILED(result) && backend == D3D12OpticalFlowBackend::nvidia &&
+            dlssg_requested() && description.DepthOrArraySize == 1) {
+            // No optical flow: the guided generator alone, if one can be made
+            // below. The slots keep their NVIDIA shape (two lists, per-eye
+            // descriptor blocks) with nothing behind the flow descriptors.
+            flow_failure = result;
+            release_nvidia_flow();
+            nvidia_fence.Reset();
+            last_nvidia_fence_value = 0;
+            flow_width = (packed_width + kNvidiaFlowBlockSize - 1U) / kNvidiaFlowBlockSize;
+            flow_height = (packed_height + kNvidiaFlowBlockSize - 1U) / kNvidiaFlowBlockSize;
+            nvidia_flow_missing = true;
+            result = S_OK;
+        }
         if (FAILED(result)) {
             return result;
         }
@@ -2199,14 +2238,20 @@ struct D3D12FrameSynthesizer::Impl {
         }
         if (backend == D3D12OpticalFlowBackend::nvidia && dlssg_requested()) {
             if (description.DepthOrArraySize == 1) {
-                auto generator = std::make_unique<D3D12DlssgFrameGenerator>();
-                const HRESULT dlssg_result =
-                    generator->initialize(device.Get(), queue.Get(), description);
-                if (SUCCEEDED(dlssg_result)) {
-                    dlssg = std::move(generator);
-                } else {
-                    dlssg_log("DLSS-G not used for this swapchain (0x%08lx); NVIDIA optical flow only",
-                        static_cast<unsigned long>(dlssg_result));
+                dlssg_wanted = true;
+                dlssg_asked = frame_gen_model_wanted();
+                dlssg = make_guided_frame_generator(device.Get(), queue.Get(), description, &dlssg_model);
+                if (!dlssg && nvidia_flow_missing) {
+                    dlssg_log("No frame generation for this swapchain: NVIDIA optical flow is not available here (0x%08X) "
+                        "and neither DLSS-G nor FSR could be made", static_cast<unsigned>(flow_failure));
+                    return flow_failure;
+                }
+                if (!dlssg) {
+                    dlssg_log("No guided frame generation for this swapchain (neither DLSS-G nor FSR could be made); "
+                        "NVIDIA optical flow only");
+                } else if (nvidia_flow_missing) {
+                    dlssg_log("NVIDIA optical flow is not available here (0x%08X): this swapchain runs on %s alone; "
+                        "a pair without guides holds the previous frame", static_cast<unsigned>(flow_failure), dlssg->name());
                 }
             } else {
                 dlssg_log("DLSS-G not used: array swapchain with %u slices", description.DepthOrArraySize);
@@ -3536,6 +3581,32 @@ struct D3D12FrameSynthesizer::Impl {
         return S_OK;
     }
 
+    // [Performance] FrameGenModel is followed while the session runs. On a
+    // change the other model's generator is made in place of this one, with
+    // the queue idle: everything recorded for the old one has run by then.
+    // Looked at with every pair; the choice itself is read from the profile
+    // at most every 250 ms. The pair being recorded goes to the new one.
+    void follow_generator_model() noexcept {
+        if (!dlssg_wanted) return;
+        const FrameGenModel wanted = frame_gen_model_wanted();
+        if (wanted == dlssg_asked) return;
+        dlssg_asked = wanted;
+        if (dlssg && wanted == dlssg_model) return;
+        ComPtr<ID3D12Fence> idle;
+        if (SUCCEEDED(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(idle.GetAddressOf()))) &&
+            SUCCEEDED(queue->Signal(idle.Get(), 1))) {
+            HANDLE event = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+            if (event != nullptr) {
+                if (idle->GetCompletedValue() < 1 && SUCCEEDED(idle->SetEventOnCompletion(1, event))) {
+                    WaitForSingleObject(event, 2000);
+                }
+                CloseHandle(event);
+            }
+        }
+        dlssg.reset();
+        dlssg = make_guided_frame_generator(device.Get(), queue.Get(), image_description, &dlssg_model);
+    }
+
     [[nodiscard]] bool dlssg_pair_ready(
         const RollingSource& current_source,
         std::span<const D3D12ReprojectionView> target_views) const noexcept {
@@ -3627,6 +3698,76 @@ struct D3D12FrameSynthesizer::Impl {
         return S_OK;
     }
 
+    // No optical flow and no guides for this pair: every in-between image is
+    // the previous real frame again, and the current one follows as always.
+    [[nodiscard]] HRESULT record_hold_pair(
+        WorkSlot& slot,
+        const RollingSource& previous_source,
+        const RollingSource& current_source,
+        std::uint32_t synthetic_destination_index,
+        std::uint32_t current_destination_index) noexcept {
+        ID3D12Resource* const previous_resource = previous_source.resource.Get();
+        ID3D12Resource* const current_resource = current_source.resource.Get();
+        ID3D12Resource* const current_destination =
+            current_destinations[current_destination_index].resource.Get();
+        dred_marker(slot.command_list.Get(), "OFXR hold pair begin");
+        D3D12_RESOURCE_BARRIER barrier = transition_barrier(previous_resource,
+            D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE);
+        slot.command_list->ResourceBarrier(1, &barrier);
+        for (UINT output = 0; output < synthetic_output_count(); ++output) {
+            ID3D12Resource* const destination = synthetic_destinations[
+                synthetic_output_destination(output, synthetic_destination_index)].resource.Get();
+            barrier = transition_barrier(destination, release_state, D3D12_RESOURCE_STATE_COPY_DEST);
+            slot.command_list->ResourceBarrier(1, &barrier);
+            slot.command_list->CopyResource(destination, previous_resource);
+            barrier = transition_barrier(destination, D3D12_RESOURCE_STATE_COPY_DEST, release_state);
+            slot.command_list->ResourceBarrier(1, &barrier);
+        }
+        barrier = transition_barrier(previous_resource,
+            D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON);
+        slot.command_list->ResourceBarrier(1, &barrier);
+        // As on the guided route: the slot's second list is closed unused.
+        HRESULT result = slot.synthesis_command_list->Close();
+        if (FAILED(result)) return result;
+        if (nvidia_gpu_timing_enabled && nvidia_timestamp_heap) {
+            slot.command_list->EndQuery(
+                nvidia_timestamp_heap.Get(),
+                D3D12_QUERY_TYPE_TIMESTAMP,
+                slot.timing_query_base + kSpanEnd);
+            slot.command_list->ResolveQueryData(
+                nvidia_timestamp_heap.Get(),
+                D3D12_QUERY_TYPE_TIMESTAMP,
+                slot.timing_query_base,
+                kTimestampCount,
+                nvidia_timestamp_readback.Get(),
+                static_cast<UINT64>(slot.timing_query_base) *
+                    sizeof(std::uint64_t));
+        }
+        const std::array<D3D12_RESOURCE_BARRIER, 2> before_copy{
+            transition_barrier(current_resource,
+                D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_SOURCE),
+            transition_barrier(current_destination,
+                release_state, D3D12_RESOURCE_STATE_COPY_DEST),
+        };
+        slot.current_copy_command_list->ResourceBarrier(
+            static_cast<UINT>(before_copy.size()), before_copy.data());
+        slot.current_copy_command_list->CopyResource(current_destination, current_resource);
+        const std::array<D3D12_RESOURCE_BARRIER, 2> after_copy{
+            transition_barrier(current_resource,
+                D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COMMON),
+            transition_barrier(current_destination,
+                D3D12_RESOURCE_STATE_COPY_DEST, release_state),
+        };
+        slot.current_copy_command_list->ResourceBarrier(
+            static_cast<UINT>(after_copy.size()), after_copy.data());
+        if (++held_pairs == 1 || held_pairs % 600 == 0) {
+            dlssg_log("No optical flow and no guides: %llu pair(s) so far held the previous frame",
+                static_cast<unsigned long long>(held_pairs));
+        }
+        return S_OK;
+    }
+    std::uint64_t held_pairs{};
+
     [[nodiscard]] HRESULT record_pair(
         WorkSlot& slot,
         const RollingSource& previous_source,
@@ -3643,6 +3784,7 @@ struct D3D12FrameSynthesizer::Impl {
         *used_game_motion = false;
         *used_dlssg = false;
         *dlssg_generated = 0;
+        follow_generator_model();
         if (dlssg_pair_ready(current_source, target_views)) {
             const HRESULT result = record_dlssg_pair(slot, current_source,
                 synthetic_destination_index, current_destination_index,
@@ -3664,6 +3806,10 @@ struct D3D12FrameSynthesizer::Impl {
             report_dlss_motion_vector_status(DlssMotionVectorStatus::invalid_input);
         } else if (current_source.motion_vectors) {
             report_dlss_motion_vector_status(DlssMotionVectorStatus::temporal_mismatch);
+        }
+        if (nvidia_flow_missing) {
+            return record_hold_pair(slot, previous_source, current_source,
+                synthetic_destination_index, current_destination_index);
         }
         if (backend == D3D12OpticalFlowBackend::nvidia) {
             return record_nvidia_pair(
@@ -4768,7 +4914,7 @@ struct D3D12FrameSynthesizer::Impl {
 
         std::uint64_t fence_value = 0;
         result = backend == D3D12OpticalFlowBackend::nvidia &&
-                         !used_game_motion && !used_dlssg
+                         !used_game_motion && !used_dlssg && !nvidia_flow_missing
                      ? execute_nvidia_and_signal(
                            slot, work_slot_index, &next, &fence_value,
                            defer_current_copy)

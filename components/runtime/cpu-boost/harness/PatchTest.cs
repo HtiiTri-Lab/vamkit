@@ -224,7 +224,10 @@ internal sealed class PatchTest : Worlds
 
         // ---- patch -------------------------------------------------------------------------------------------------
         var warnings = new List<string>();
-        var h = new Harmony("test.cpuboost");
+        // Install takes the Harmony class compiled into the plugin (components/shared/harmony-compat): an instance of
+        // that one, not of the library's.
+        Type own = plugin.GetType("Harmony");
+        object h = own != null ? Activator.CreateInstance(own, new object[] { "test.cpuboost" }) : new Harmony("test.cpuboost");
         string on = (string)main.GetMethod("Install", SF).Invoke(null, new object[] { h, true, true, true, true,
             (Action<string>)delegate(string m) { warnings.Add(m); Console.WriteLine("warn  " + m); } });
         Check(on == "skinning, morphs, normals, soft vertices" && warnings.Count == 0, "Install: on " + on);

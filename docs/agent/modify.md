@@ -83,6 +83,27 @@ designing and [../protocol/testing.md](../protocol/testing.md) before running an
   bound with `GetProcAddress` (Mono resolves `DllImport` only from `VaM_Data/Plugins`), and it is installed as `.bin`.
 - A knowledge document when it has a mechanism worth explaining, and a row in `docs/README.md`.
 
+## Building what is not here
+
+The project stops where its authors stopped. If the user wants something it does not have, the question is where it
+plugs in and what must stay true, not whether it is allowed. The places new things attach, with what each must keep:
+
+| You want | It plugs in at | What must stay true | How to check |
+|---|---|---|---|
+| Another temporal upscaler (path tracing off) | the compositor, beside the three that exist: `components/render/opencomposite/OpenOVR/Compositor/vam_sr_backends.h` (XeSS and FSR are the two small examples) and the hand-over in `dx11_vam_dlss.cpp`; a model name in `vam_performance_config.h`, the menu and the launcher | it gets the same colour, depth, motion vectors and jitter the others get ([../knowledge/motion-vectors.md](../knowledge/motion-vectors.md), [../knowledge/upscaling.md](../knowledge/upscaling.md)); it is probed, not assumed; menu, launcher and compositor name it alike | a desktop session: the feature is created, the picture is closest to the native frame with the jitter as passed; then VR per eye |
+| Another frame generator, or more frames per pair | `components/render/ofxr-dlssg/include/xrfg/d3d12_frame_generator.hpp` (DLSS-G and FSR implement it); used by the VR layer and by the desktop presenter in `components/render/d3d11-proxy` | every real frame fed once and in order; generated frames sit at their in-between poses; pacing stays even ([../knowledge/frame-generation.md](../knowledge/frame-generation.md)). The cap of three generated frames (`kGuidedMaxOutputs`, and 2 / 3 / 4 in the launcher and menu) is where the work stopped: the DLSS-G runtime reported room for more on the development machine | the simulated headset's head-turn test (content shift per displayed frame), the presenter's pacing log |
+| Path tracing on a card without RTX | where Ray Reconstruction is evaluated: `components/render/opencomposite/OpenOVR/Compositor/vam_rr.inl`; the tracer already writes the guides a denoiser needs ([../knowledge/path-tracing.md](../knowledge/path-tracing.md)) | the tracer's output is noisy low-resolution radiance: something must denoise and upscale it. An earlier NRD path was removed when RR became the only route; a denoiser plus XeSS or FSR is the obvious shape. Hair in the tracer needs the card's linear-swept-sphere support, everything else needs DXR 1.1 | the tracer's offline probes do not depend on the reconstruction; judge the picture in a session |
+| A shading change or a new material family | the recipes above; the generators in `components/shading/*/tools` | VaM-derived output stays in `out/gen/` | the component's tests, then a look |
+| A new runtime component | "Add a component" above | VaM's own results, a verify mode, workers from cpu-boost | its verify mode in the game |
+| Another VaM build, another BepInEx | [adapt-vam-version.md](adapt-vam-version.md) | recognise code by content | build, first-run check, the plugins' own lines in the log |
+| Numbers for the user's own scenes, another display, another multiplier | `tools/lab/bench/bench.py` takes any scene path, refresh rate and multiplier | compare inside one session | [../benchmarks/README.md](../benchmarks/README.md) |
+| Something not in this table | read [../knowledge/frame-path.md](../knowledge/frame-path.md) for who owns which step of a frame, then the component's README | | |
+
+What was tried before and why it was left is in each knowledge document ("Tried and dropped", "Open") and in
+[../knowledge/rejected-and-open.md](../knowledge/rejected-and-open.md). Read those as a head start: they say what
+failed, under which conditions, and what would have to be different. If your user's conditions are different, the
+answer may be too.
+
 ## Tools for finding out what happens
 
 | Question | Tool |

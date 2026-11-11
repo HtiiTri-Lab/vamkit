@@ -5,8 +5,32 @@
 #include <cmath>
 #include <cstdint>
 #include <cwctype>
+#include <initializer_list>
 #include <mutex>
 #include <string>
+
+// The temporal upscalers of the raster route ([Performance] DLSSPreset: K / L / M, XeSS, FSR).
+enum { kVamSrDlss = 0, kVamSrXess = 1, kVamSrFsr = 2 };
+// Which of them runs, given the one chosen and the ones this machine can run (bit kVamSr*): the chosen one is always
+// tried first; where it cannot run, the first of XeSS, FSR, DLSS that can, or FSR before XeSS on an AMD card
+// (kVamSrFsrFirst: there AMD's API runs FSR 4). -1 when none can (FSR 1 then stands in, as for any frame the upscaler
+// cannot take). The in-game menu applies the same rule to what it shows (VaMDLSS_GetUpscalerSupport).
+enum { kVamSrFsrFirst = 0x10 };
+inline int VamSrChoice(int chosen, unsigned available) {
+    if (available & (1u << chosen)) return chosen;
+    const bool fsrFirst = (available & kVamSrFsrFirst) != 0;
+    for (int backend : {fsrFirst ? kVamSrFsr : kVamSrXess, fsrFirst ? kVamSrXess : kVamSrFsr, kVamSrDlss})
+        if (available & (1u << backend)) return backend;
+    return -1;
+}
+// The ones VamDlss found it can run (bits kVamSr*), kVamNgxUp where NGX came up at all (Ray Reconstruction can be
+// tried: the menu offers path tracing only then), and kVamSrProbed once it has tried them, with the first frame; all
+// set but the last until then.
+enum { kVamNgxUp = 0x8, kVamSrProbed = 0x100 };
+inline std::atomic<unsigned>& VamSrAvailable() {
+    static std::atomic<unsigned> bits{7 | kVamNgxUp};
+    return bits;
+}
 
 // Only the PreFG launcher sets this environment variable. Projection, poses and
 // all legacy launchers are deliberately independent of these pixel settings.
@@ -29,6 +53,10 @@ struct VamPerformanceSettings {
     // the output size (v18: the only way to switch SR off; 100% with a model
     // is DLAA). Live, as the preset.
     bool dlssOff = false;
+    // DLSSPreset=XeSS / FSR: the raster route's temporal upscaler is Intel XeSS or AMD FSR (the FSR API: FSR 4 on the
+    // Radeons that have it, FSR 3.1 on every other card) instead of DLSS SR, fed with the same guides, at RenderScale.
+    // What is chosen; VamDlss falls back when the chosen one cannot run on this machine (VamSrChoice). Live, as the preset.
+    int srBackend = 0;           // kVamSrDlss, kVamSrXess, kVamSrFsr
     // [Performance] OutputScale, 75-150 (DLSS only): the output and the XR
     // swapchain are the runtime's recommendation times this; the render scale
     // is a share of it. Live (VamLiveRenderSettings); this is the launch's.
@@ -161,10 +189,13 @@ inline VamPerformanceSettings ParseVamPerformanceSettings(bool pathRequested) {
     if (preset[0] && !preset[1] && towupper(preset[0]) >= L'J' && towupper(preset[0]) <= L'M')
         s.dlssPreset = 10 + (towupper(preset[0]) - L'J');
     if (_wcsicmp(preset, L"RR") == 0) s.dlssPreset = 6; // RR F, distinct from SR presets
+    // XeSS / FSR: K is the DLSS model if DLSS has to stand in for them.
+    if (_wcsicmp(preset, L"XeSS") == 0) { s.srBackend = kVamSrXess; s.dlssPreset = 11; }
+    else if (_wcsicmp(preset, L"FSR") == 0) { s.srBackend = kVamSrFsr; s.dlssPreset = 11; }
     s.dlssOff = s.dlss && _wcsicmp(preset, L"Off") == 0;
     // PT on: RR F, with its own input scale, whatever the file holds for K/L/M (the menu keeps those for when PT goes off).
     if(pathRequested) {
-        s.dlss=s.fsr=s.upscale=true;s.dlssOff=false;s.dlssPreset=6;
+        s.dlss=s.fsr=s.upscale=true;s.dlssOff=false;s.dlssPreset=6;s.srBackend=kVamSrDlss;
         s.scale=read(L"RenderScaleRR",33,33,100)/100.f;
     }
     // PT off: no RR. A live INI edit selecting RR gets K at K's own input scale.
@@ -232,6 +263,9 @@ inline VamLiveRender ReadVamLiveRender() {
     if (s.dlss) {
         r.outputPercent = s.outputPercent;
         r.srOff = s.dlssOff;
+        // No temporal upscaler can run on this machine (no RTX, and neither XeSS's nor FSR's runtime): native frames,
+        // as with SR off, instead of a low-resolution render that nothing can reconstruct.
+        if (!r.srOff && s.dlssPreset != 6 && VamSrChoice(s.srBackend, VamSrAvailable().load() & (7 | kVamSrFsrFirst)) < 0) r.srOff = true;
         if (r.srOff) r.renderPercent = 100;
     }
     return r;

@@ -35,6 +35,9 @@ BIN = KIT + "/bin"
 USER_DATA = ((KIT + "/logs", "the runs' logs"), (KIT + "/launcher/profiles", "the launch presets"))
 # Logs the mod's binaries write beside VaM.exe while it runs; uninstall removes them.
 RUN_LOGS = ("d3d11_proxy.log", "openovr_log")
+# Folders the mod makes for itself while it runs and can make again (vamkit/cache/ngx: the vendors' run-time files it
+# found on this machine and copied for use); uninstall removes them.
+MADE = (KIT + "/cache",)
 # What the launcher swaps while the mod runs: name in vamkit/original and vamkit/bin, path under the VaM folder.
 LIVE = (("openvr_api.dll", "VaM_Data/Plugins/openvr_api.dll"), ("d3d11.dll", "d3d11.dll"),
         ("opencomposite.ini", "VaM_Data/Plugins/opencomposite.ini"))
@@ -44,8 +47,9 @@ OC_MARK = "; vamkit"   # the line launch.py adds to opencomposite.ini
 class Kit:
     """Where the files come from: a repository's manifests and what its build and fetch produced."""
 
-    def __init__(self, repo, components, items, fetched):
+    def __init__(self, repo, components, items, fetched, runtimes=None):
         self.repo, self.components, self.items, self.fetched = Path(repo), components, items, fetched
+        self.runtimes = runtimes or (lambda: [])   # the run-time files: present or not, what is lost, how to add
 
 
 def ini():
@@ -125,7 +129,7 @@ def entries(kit):
         if kit.fetched(i) and path.is_file():
             found.append((path, target, i["id"]))
         elif i.get("optional"):
-            notes.append(f"{i['id']}: not fetched, left out ({i.get('what', i['name'])})")
+            pass   # said by name, with what it costs, in the plan's own section (missing_runtimes)
         else:
             problems.append(f"{i['id']}: {i['name']} is not fetched (python tools/vamkit fetch {i['id']})")
     return found, problems, notes
@@ -189,7 +193,7 @@ def make_plan(kit, vam):
     pending = (not record or any(f["state"] != "same" or f["adopt"] for f in files) or any(c["state"] == "set" for c in config)
                or bool(stale) or any(not l["recorded"] for l in live))
     return dict(vam=str(vam), files=files, config=config, stale=stale, live=live, problems=problems, notes=notes,
-                pending=pending, running=vam_running(vam))
+                pending=pending, running=vam_running(vam), missing=[r for r in kit.runtimes() if not r["present"]])
 
 
 def show_plan(plan):
@@ -213,6 +217,12 @@ def show_plan(plan):
             print(f"  record   {what} vamkit/original/")
     for line in plan["notes"]:
         print(f"  note     {line}")
+    if plan.get("missing"):
+        print("  Not installed because the files are not in third_party/. The kit works without them, and the user gets less:")
+        for r in plan["missing"]:
+            print(f"  MISSING  {r['name']}  ({r['id']})")
+            print(f"           you do not get: {r['without']}")
+            print(f"           to add it: {r['how']}, then install again")
     for line in plan["problems"]:
         print(f"  FAIL     {line}")
 
@@ -460,6 +470,9 @@ def uninstall(vam, yes, purge=False):
     for name in RUN_LOGS:
         if (vam / name).is_file():
             print(f"  remove   {name}  (a log of the mod)")
+    for path in MADE:
+        if (vam / path).exists():
+            print(f"  remove   {path}  (made by the mod while it ran; it can make it again)")
     if not yes:
         print("nothing was changed. Run again with --yes.")
         return 0
@@ -504,6 +517,8 @@ def uninstall(vam, yes, purge=False):
             left.append(path)
     for name in RUN_LOGS:
         change.delete(name)
+    for path in MADE:
+        shutil.rmtree(vam / path, ignore_errors=True)
     for path, _ in USER_DATA:
         if (vam / path).exists():
             if purge:
@@ -545,6 +560,12 @@ def verify(kit, vam, as_json=False):
             if not same_value(now, c["value"]):
                 other.append(f"{c['file']} [{c['section']}] {c['key']} = {now} (the install wrote {c['value']})")
         check(not other, "settings the install wrote", "as written" if not other else "; ".join(other), need=False)
+        how = {r["id"]: r["how"] for r in kit.runtimes()}
+        for i in kit.items:   # a run-time file that is not installed: said by name, with what the user does not get
+            target = i.get("installs")
+            if target and not (vam / target).is_file():
+                check(False, f"run-time file {i['name']}", f"not installed. You do not get: {i.get('without', i.get('what', ''))}. "
+                      f"To add it: {how.get(i['id'], 'python tools/vamkit fetch ' + i['id'])}, then install again", need=False)
         running = vam_running(vam)
         for name, path in LIVE:
             recorded = (vam / ORIGINAL / name).is_file() or (vam / ORIGINAL / (name + ".absent")).is_file()
@@ -562,5 +583,6 @@ def verify(kit, vam, as_json=False):
         print(json.dumps(checks, indent=2))
     else:
         for c in checks:
-            print(f"{'ok  ' if c['ok'] else ('FAIL' if c['required'] else 'note')}  {c['name']}: {c['detail']}")
+            word = "ok  " if c["ok"] else ("FAIL" if c["required"] else ("LESS" if c["name"].startswith("run-time file") else "note"))
+            print(f"{word}  {c['name']}: {c['detail']}")
     return 0 if all(c["ok"] or not c["required"] for c in checks) else 1

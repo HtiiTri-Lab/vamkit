@@ -19,7 +19,9 @@ REPO = HERE.parents[2]
 sys.path.insert(0, str(HERE.parent))
 import install as kit_install  # noqa: E402
 
-LAUNCHER = ("launch.py", "LaunchPanel.py", "ModeProfiles.py", "profile-manifest.json")
+# The launcher's own files, as they are in the repository now (a module added there must not need a change here).
+LAUNCHER = tuple(sorted(p.name for p in (Path(__file__).resolve().parents[3] / "components" / "render" / "launcher").iterdir()
+                        if p.suffix in (".py", ".json")))
 VAMS_OPENVR = b"VaM's own openvr_api.dll"
 CFG_B = b"[General]\r\n\r\n## Runs the thing\r\nEnabled = false\r\nOther = 3\r\n"
 failures = []
@@ -95,9 +97,12 @@ def make_kit(root):
         dict(id="launcher", installs=[[f"launcher/{name}", f"vamkit/launcher/{name}"] for name in LAUNCHER]),
     ]
     items = [dict(id="rt", name="rt.dll", installs="vamkit/bin/dlss/sr/rt.dll"),
-             dict(id="opt", name="opt.dll", optional=True, installs="vamkit/bin/dlss/nr/opt.dll"),
+             dict(id="opt", name="opt.dll", optional=True, installs="vamkit/bin/dlss/nr/opt.dll", without="the optional thing"),
              dict(id="sdk", name="unused")]
-    return kit_install.Kit(root, components, items, lambda item: item["id"] == "rt")
+    # as tools/vamkit reports the run-time files: rt is fetched, opt is not
+    runtimes = lambda: [dict(id="rt", name="rt.dll", present=True, without="", how=""),
+                        dict(id="opt", name="opt.dll", present=False, without="the optional thing", how="fetch --file opt=<path>")]
+    return kit_install.Kit(root, components, items, lambda item: item["id"] == "rt", runtimes)
 
 
 def load_launcher(vam):
@@ -120,7 +125,9 @@ def main():
 
         code, text = quiet(kit_install.install, kit, vam, False)
         check(code == 0 and not difference(before, snapshot(vam)) and "nothing was changed" in text, "the plan alone changes nothing")
-        check("replace" in text and "PluginB.dll" in text and "opt: not fetched" in text, "the plan names the file it replaces and the optional runtime it leaves out")
+        check("replace" in text and "PluginB.dll" in text, "the plan names the file it replaces")
+        check("MISSING  opt.dll" in text and "you do not get: the optional thing" in text and "to add it: fetch --file opt=<path>" in text,
+              "the plan says which run-time file is missing, what the user does not get and how to add it")
 
         code, text = quiet(kit_install.install, kit, vam, True)
         check(code == 1 and "--replace" in text and not difference(before, snapshot(vam)), "files that are not vamkit's are not installed over without --replace")

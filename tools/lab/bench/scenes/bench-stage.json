@@ -1,0 +1,1395 @@
+{
+   "playerNavCollider": "PlayerNavigationPanel:Floor",
+   "worldScale": "1",
+   "useSceneLoadPosition": "false",
+   "atoms": [
+      {
+         "id": "CoreControl",
+         "on": "true",
+         "type": "CoreControl",
+         "storables": []
+      },
+      {
+         "id": "PlayerNavigationPanel",
+         "on": "true",
+         "type": "PlayerNavigationPanel",
+         "storables": [],
+         "position": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Dancer1",
+         "on": "true",
+         "type": "Person",
+         "storables": [
+            {
+               "id": "geometry",
+               "character": "Female 2",
+               "clothing": [
+                  {
+                     "id": "SummerGirl Shirt Sim",
+                     "enabled": "true"
+                  },
+                  {
+                     "id": "SummerGirl Shorts Sim",
+                     "enabled": "true"
+                  }
+               ],
+               "hair": [
+                  {
+                     "id": "SimV2 Hair",
+                     "enabled": "true"
+                  }
+               ]
+            },
+            {
+               "id": "PluginManager",
+               "plugins": {
+                  "plugin#0": "Saves/scene/vamkit-bench/BenchMotion.cs"
+               }
+            },
+            {
+               "id": "plugin#0_BenchMotion",
+               "Speed": "0.6",
+               "Size": "1.0",
+               "Phase": "0.0"
+            }
+         ],
+         "position": {
+            "x": "-0.95",
+            "y": "0",
+            "z": "-2.0"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-0.95",
+            "y": "0",
+            "z": "-2.0"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Dancer2",
+         "on": "true",
+         "type": "Person",
+         "storables": [
+            {
+               "id": "geometry",
+               "character": "Female 9",
+               "clothing": [
+                  {
+                     "id": "Heatwave Shirt Sim",
+                     "enabled": "true"
+                  },
+                  {
+                     "id": "Casual Denim Jeans",
+                     "enabled": "true"
+                  }
+               ],
+               "hair": [
+                  {
+                     "id": "SimV2 Hair",
+                     "enabled": "true"
+                  }
+               ]
+            },
+            {
+               "id": "PluginManager",
+               "plugins": {
+                  "plugin#0": "Saves/scene/vamkit-bench/BenchMotion.cs"
+               }
+            },
+            {
+               "id": "plugin#0_BenchMotion",
+               "Speed": "0.6",
+               "Size": "1.0",
+               "Phase": "0.3333333333333333"
+            }
+         ],
+         "position": {
+            "x": "0.0",
+            "y": "0",
+            "z": "-2.0"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0.0",
+            "y": "0",
+            "z": "-2.0"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Dancer3",
+         "on": "true",
+         "type": "Person",
+         "storables": [
+            {
+               "id": "geometry",
+               "character": "Female 14",
+               "clothing": [
+                  {
+                     "id": "Alphakini Bra Sim",
+                     "enabled": "true"
+                  },
+                  {
+                     "id": "Heat Up Skirt Sim",
+                     "enabled": "true"
+                  }
+               ],
+               "hair": [
+                  {
+                     "id": "SimV2 Hair",
+                     "enabled": "true"
+                  }
+               ]
+            },
+            {
+               "id": "PluginManager",
+               "plugins": {
+                  "plugin#0": "Saves/scene/vamkit-bench/BenchMotion.cs"
+               }
+            },
+            {
+               "id": "plugin#0_BenchMotion",
+               "Speed": "0.6",
+               "Size": "1.0",
+               "Phase": "0.6666666666666666"
+            }
+         ],
+         "position": {
+            "x": "0.95",
+            "y": "0",
+            "z": "-2.0"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0.95",
+            "y": "0",
+            "z": "-2.0"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Key",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Spot",
+               "intensity": "1.6",
+               "range": "14",
+               "shadowsOn": "true",
+               "spotAngle": "80"
+            }
+         ],
+         "position": {
+            "x": "0",
+            "y": "3.0",
+            "z": "2.0"
+         },
+         "rotation": {
+            "x": "25",
+            "y": "180",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0",
+            "y": "3.0",
+            "z": "2.0"
+         },
+         "containerRotation": {
+            "x": "25",
+            "y": "180",
+            "z": "0"
+         }
+      },
+      {
+         "id": "SideLeft",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Spot",
+               "intensity": "1.2",
+               "range": "12",
+               "shadowsOn": "true",
+               "spotAngle": "70",
+               "color": {
+                  "h": "0.0",
+                  "s": "0.7",
+                  "v": "1"
+               }
+            }
+         ],
+         "position": {
+            "x": "-3.0",
+            "y": "2.6",
+            "z": "0.5"
+         },
+         "rotation": {
+            "x": "20",
+            "y": "125",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-3.0",
+            "y": "2.6",
+            "z": "0.5"
+         },
+         "containerRotation": {
+            "x": "20",
+            "y": "125",
+            "z": "0"
+         }
+      },
+      {
+         "id": "SideRight",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Spot",
+               "intensity": "1.2",
+               "range": "12",
+               "shadowsOn": "true",
+               "spotAngle": "70",
+               "color": {
+                  "h": "0.6",
+                  "s": "0.7",
+                  "v": "1"
+               }
+            }
+         ],
+         "position": {
+            "x": "3.0",
+            "y": "2.6",
+            "z": "0.5"
+         },
+         "rotation": {
+            "x": "20",
+            "y": "235",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "3.0",
+            "y": "2.6",
+            "z": "0.5"
+         },
+         "containerRotation": {
+            "x": "20",
+            "y": "235",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Back",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Spot",
+               "intensity": "1.4",
+               "range": "12",
+               "shadowsOn": "true",
+               "spotAngle": "70",
+               "color": {
+                  "h": "0.8",
+                  "s": "0.5",
+                  "v": "1"
+               }
+            }
+         ],
+         "position": {
+            "x": "0",
+            "y": "3.2",
+            "z": "-5.0"
+         },
+         "rotation": {
+            "x": "30",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0",
+            "y": "3.2",
+            "z": "-5.0"
+         },
+         "containerRotation": {
+            "x": "30",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Wash1",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Point",
+               "intensity": "0.5",
+               "range": "10",
+               "shadowsOn": "false",
+               "color": {
+                  "h": "0.33",
+                  "s": "0.8",
+                  "v": "1"
+               }
+            }
+         ],
+         "position": {
+            "x": "-2.4",
+            "y": "2.2",
+            "z": "-3.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-2.4",
+            "y": "2.2",
+            "z": "-3.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Wash2",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Point",
+               "intensity": "0.5",
+               "range": "10",
+               "shadowsOn": "false",
+               "color": {
+                  "h": "0.5",
+                  "s": "0.8",
+                  "v": "1"
+               }
+            }
+         ],
+         "position": {
+            "x": "-0.8",
+            "y": "2.2",
+            "z": "-3.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-0.8",
+            "y": "2.2",
+            "z": "-3.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Wash3",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Point",
+               "intensity": "0.5",
+               "range": "10",
+               "shadowsOn": "false",
+               "color": {
+                  "h": "0.12",
+                  "s": "0.8",
+                  "v": "1"
+               }
+            }
+         ],
+         "position": {
+            "x": "0.8",
+            "y": "2.2",
+            "z": "-3.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0.8",
+            "y": "2.2",
+            "z": "-3.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Wash4",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Point",
+               "intensity": "0.5",
+               "range": "10",
+               "shadowsOn": "false",
+               "color": {
+                  "h": "0.9",
+                  "s": "0.8",
+                  "v": "1"
+               }
+            }
+         ],
+         "position": {
+            "x": "2.4",
+            "y": "2.2",
+            "z": "-3.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "2.4",
+            "y": "2.2",
+            "z": "-3.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Riser1",
+         "on": "true",
+         "type": "Cube",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.4"
+            }
+         ],
+         "position": {
+            "x": "-3.0",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-3.0",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Riser2",
+         "on": "true",
+         "type": "Cube",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.4"
+            }
+         ],
+         "position": {
+            "x": "-2.25",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-2.25",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Riser3",
+         "on": "true",
+         "type": "Cube",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.4"
+            }
+         ],
+         "position": {
+            "x": "-1.5",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-1.5",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Riser4",
+         "on": "true",
+         "type": "Cube",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.4"
+            }
+         ],
+         "position": {
+            "x": "-0.75",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-0.75",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Riser5",
+         "on": "true",
+         "type": "Cube",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.4"
+            }
+         ],
+         "position": {
+            "x": "0.0",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0.0",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Riser6",
+         "on": "true",
+         "type": "Cube",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.4"
+            }
+         ],
+         "position": {
+            "x": "0.75",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0.75",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Riser7",
+         "on": "true",
+         "type": "Cube",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.4"
+            }
+         ],
+         "position": {
+            "x": "1.5",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "1.5",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Riser8",
+         "on": "true",
+         "type": "Cube",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.4"
+            }
+         ],
+         "position": {
+            "x": "2.25",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "2.25",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Riser9",
+         "on": "true",
+         "type": "Cube",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.4"
+            }
+         ],
+         "position": {
+            "x": "3.0",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "3.0",
+            "y": "0.2",
+            "z": "-3.6"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Globe1",
+         "on": "true",
+         "type": "Sphere",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.35"
+            }
+         ],
+         "position": {
+            "x": "-3.2",
+            "y": "2.6",
+            "z": "-4.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-3.2",
+            "y": "2.6",
+            "z": "-4.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Globe2",
+         "on": "true",
+         "type": "Sphere",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.35"
+            }
+         ],
+         "position": {
+            "x": "-2.4000000000000004",
+            "y": "2.75",
+            "z": "-4.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-2.4000000000000004",
+            "y": "2.75",
+            "z": "-4.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Globe3",
+         "on": "true",
+         "type": "Sphere",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.35"
+            }
+         ],
+         "position": {
+            "x": "-1.6",
+            "y": "2.9",
+            "z": "-4.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-1.6",
+            "y": "2.9",
+            "z": "-4.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Globe4",
+         "on": "true",
+         "type": "Sphere",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.35"
+            }
+         ],
+         "position": {
+            "x": "-0.7999999999999998",
+            "y": "2.6",
+            "z": "-4.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-0.7999999999999998",
+            "y": "2.6",
+            "z": "-4.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Globe5",
+         "on": "true",
+         "type": "Sphere",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.35"
+            }
+         ],
+         "position": {
+            "x": "0.0",
+            "y": "2.75",
+            "z": "-4.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0.0",
+            "y": "2.75",
+            "z": "-4.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Globe6",
+         "on": "true",
+         "type": "Sphere",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.35"
+            }
+         ],
+         "position": {
+            "x": "0.7999999999999998",
+            "y": "2.9",
+            "z": "-4.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0.7999999999999998",
+            "y": "2.9",
+            "z": "-4.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Globe7",
+         "on": "true",
+         "type": "Sphere",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.35"
+            }
+         ],
+         "position": {
+            "x": "1.6000000000000005",
+            "y": "2.6",
+            "z": "-4.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "1.6000000000000005",
+            "y": "2.6",
+            "z": "-4.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Globe8",
+         "on": "true",
+         "type": "Sphere",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.35"
+            }
+         ],
+         "position": {
+            "x": "2.4000000000000004",
+            "y": "2.75",
+            "z": "-4.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "2.4000000000000004",
+            "y": "2.75",
+            "z": "-4.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Globe9",
+         "on": "true",
+         "type": "Sphere",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.35"
+            }
+         ],
+         "position": {
+            "x": "3.2",
+            "y": "2.9",
+            "z": "-4.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "3.2",
+            "y": "2.9",
+            "z": "-4.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Post1",
+         "on": "true",
+         "type": "Capsule",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.5"
+            }
+         ],
+         "position": {
+            "x": "-3.4",
+            "y": "1.0",
+            "z": "-1.0"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-3.4",
+            "y": "1.0",
+            "z": "-1.0"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Post2",
+         "on": "true",
+         "type": "Capsule",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.5"
+            }
+         ],
+         "position": {
+            "x": "-3.4",
+            "y": "1.0",
+            "z": "-2.6"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-3.4",
+            "y": "1.0",
+            "z": "-2.6"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Post3",
+         "on": "true",
+         "type": "Capsule",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.5"
+            }
+         ],
+         "position": {
+            "x": "3.4",
+            "y": "1.0",
+            "z": "-1.0"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "3.4",
+            "y": "1.0",
+            "z": "-1.0"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Post4",
+         "on": "true",
+         "type": "Capsule",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.5"
+            }
+         ],
+         "position": {
+            "x": "3.4",
+            "y": "1.0",
+            "z": "-2.6"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "3.4",
+            "y": "1.0",
+            "z": "-2.6"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Post5",
+         "on": "true",
+         "type": "Capsule",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.5"
+            }
+         ],
+         "position": {
+            "x": "-2.0",
+            "y": "1.0",
+            "z": "-4.6"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-2.0",
+            "y": "1.0",
+            "z": "-4.6"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Post6",
+         "on": "true",
+         "type": "Capsule",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.5"
+            }
+         ],
+         "position": {
+            "x": "2.0",
+            "y": "1.0",
+            "z": "-4.6"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "2.0",
+            "y": "1.0",
+            "z": "-4.6"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Block1",
+         "on": "true",
+         "type": "Cube",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.3"
+            }
+         ],
+         "position": {
+            "x": "-2.6",
+            "y": "0.15",
+            "z": "0.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-2.6",
+            "y": "0.15",
+            "z": "0.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Block5",
+         "on": "true",
+         "type": "Cube",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.3"
+            }
+         ],
+         "position": {
+            "x": "2.6",
+            "y": "0.15",
+            "z": "0.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "68",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "2.6",
+            "y": "0.15",
+            "z": "0.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "68",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Block6",
+         "on": "true",
+         "type": "Cube",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.3"
+            }
+         ],
+         "position": {
+            "x": "-2.6",
+            "y": "0.15",
+            "z": "-0.7"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "85",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-2.6",
+            "y": "0.15",
+            "z": "-0.7"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "85",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Block10",
+         "on": "true",
+         "type": "Cube",
+         "storables": [
+            {
+               "id": "scale",
+               "scale": "0.3"
+            }
+         ],
+         "position": {
+            "x": "2.6",
+            "y": "0.15",
+            "z": "-0.7"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "153",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "2.6",
+            "y": "0.15",
+            "z": "-0.7"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "153",
+            "z": "0"
+         }
+      }
+   ]
+}

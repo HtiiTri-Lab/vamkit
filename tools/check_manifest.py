@@ -61,6 +61,8 @@ def main():
         if managed:
             for source in managed["sources"]:
                 need((folder / source).is_file(), cid, f"no source {source}")
+            for source in managed.get("shared", []):
+                need((REPO / "components" / "shared" / source).is_file(), cid, f"no shared source {source}")
             for resource, _ in managed.get("resources", []):
                 need((folder / resource).is_file(), cid, f"no resource {resource}")
             if built:

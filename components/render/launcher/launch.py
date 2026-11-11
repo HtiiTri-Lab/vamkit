@@ -5,10 +5,11 @@ vanilla  VaM's own files, and BepInEx switched off for this process, so nothing 
 
 Layout, as `vamkit install` leaves it:
   <VaM>/vamkit/launcher    this file, the panel, the presets
-  <VaM>/vamkit/bin         openvr_api.dll, d3d11.dll, ofxr/, dlss/{sr,nr,fg}
+  <VaM>/vamkit/bin         openvr_api.dll, d3d11.dll, ofxr/, dlss/{sr,nr,fg}, xess/, fsr/ (the last two optional)
   <VaM>/vamkit/original    what the install found in VaM's place
 
   python launch.py --variant mod --display VR --run <folder with performance.ini, tray.ini, selection.json> [--test]
+                   [--xr-runtime <runtime json>]
   python launch.py --restore
 """
 from __future__ import annotations
@@ -18,6 +19,7 @@ import ctypes
 import datetime
 import json
 import os
+import shlex
 from pathlib import Path
 import shutil
 import subprocess
@@ -29,6 +31,7 @@ from ctypes import wintypes
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # ModeProfiles lies beside this file, also under `python -I`
 import ModeProfiles as profiles
+import runtimes
 
 ROOT = Path(__file__).resolve().parent
 KIT = ROOT.parent
@@ -48,7 +51,8 @@ SCREEN_FILE = KIT / "screen-before-test.json"   # the window settings a test run
 # Everything of ours a parent environment could leak into a vanilla VaM or an earlier mod run.
 OUR_VARIABLES = ("VAM_DISPLAY_MODE", "VAM_PERFORMANCE_CONFIG", "VAM_DESKTOP_CONFIG", "VAM_NR_PREPASS_PATH", "VAM_NR_PREPASS_LOG",
                  "VAM_DLSS_RUNTIME_PATH", "VAM_DLSS_LOG", "VAM_DLSS_BRIDGE", "D3DINTEROP_MODE", "D3DINTEROP_LOG", "OFXR_DLSSG",
-                 "OFXR_DLSSG_RUNTIME_PATH", "OFXR_DLSSG_LOG", "OFXR_DLSSG_LITE", "OFXR_DLSSG_CAPTURE", "OFXR_FRAME_MULTIPLIER")
+                 "OFXR_DLSSG_RUNTIME_PATH", "OFXR_DLSSG_LOG", "OFXR_DLSSG_LITE", "OFXR_DLSSG_CAPTURE", "OFXR_FRAME_MULTIPLIER", "SIMXR_LOG_DIR",
+                 "VAM_XESS_RUNTIME_PATH", "VAM_FSR_RUNTIME_PATH")
 OC_MARK = "; vamkit"   # tells the mod's opencomposite.ini from the one that was found
 OC_SETTINGS = "\r\n" + OC_MARK + "\r\ninitUsingVulkan=false\r\ninvertUsingShaders=true\r\nsupersampleRatio=1.0\r\n"
 
@@ -162,15 +166,32 @@ def disarm_ofxr(tray):
         print("An OFXR registration remains; close OFXR's tray icon.")
 
 
-def mod_environment(mode, run, multiplier, log):
+def mod_environment(mode, run, multiplier, log, runtime=None):
     env = {k: v for k, v in os.environ.items() if k not in OUR_VARIABLES}
     desktop = mode == "Desktop"
     if desktop:
         env.pop("XR_RUNTIME_JSON", None)
+    elif runtime:
+        # Tests: this VaM process alone uses another OpenXR runtime (the simulated headset); the machine's active
+        # runtime and its registry stay as they are. The simulated headset writes its files into the run's log folder.
+        env["XR_RUNTIME_JSON"] = str(runtime)
+        env["SIMXR_LOG_DIR"] = str(log / "simxr")
+        (log / "simxr").mkdir(parents=True, exist_ok=True)
+    # The NVIDIA libraries: the kit's own, and where the kit lacks one, the graphics driver's copy (runtimes.py). What
+    # is found nowhere is said here and in the run's log folder, with what is lost and how to get it.
+    notes = []
+    sr_folder, fg_folder, _ = runtimes.prepare(VAM, log=notes.append)
+    for note in notes:
+        print(note, flush=True)
+    if notes:
+        (log / "runtimes.txt").write_text("\n".join(notes) + "\n", encoding="utf-8")
     env.update(VAM_DISPLAY_MODE=mode, VAM_PERFORMANCE_CONFIG=str(Path(run) / "performance.ini"),
                VAM_NR_PREPASS_PATH=str(BIN / "dlss" / "nr"), VAM_NR_PREPASS_LOG=str(log / "ngx-prepass"),
-               VAM_DLSS_RUNTIME_PATH=str(BIN / "dlss" / "sr"), VAM_DLSS_LOG=str(log / "dlss"), VAM_DLSS_BRIDGE="1",
-               D3DINTEROP_MODE="on12", OFXR_DLSSG="1", OFXR_DLSSG_RUNTIME_PATH=str(BIN / "dlss" / "fg"), OFXR_DLSSG_LOG=str(log / "dlssg"))
+               VAM_DLSS_RUNTIME_PATH=str(sr_folder), VAM_DLSS_LOG=str(log / "dlss"), VAM_DLSS_BRIDGE="1",
+               D3DINTEROP_MODE="on12", OFXR_DLSSG="1", OFXR_DLSSG_RUNTIME_PATH=str(fg_folder), OFXR_DLSSG_LOG=str(log / "dlssg"),
+               # Intel XeSS and AMD FSR (upscaling; FSR also generates frames): the folders of their run-time libraries.
+               # An empty folder only means that backend is not offered.
+               VAM_XESS_RUNTIME_PATH=str(BIN / "xess"), VAM_FSR_RUNTIME_PATH=str(BIN / "fsr"))
     if multiplier == 4:
         env["OFXR_FRAME_MULTIPLIER"] = "4"
     if desktop:
@@ -306,7 +327,7 @@ def keep_in_background(game):
         time.sleep(0.25)
 
 
-def run_mod(mode, run, test):
+def run_mod(mode, run, test, runtime=None, extra=()):
     desktop = mode == "Desktop"
     if not desktop and ctypes.windll.shell32.IsUserAnAdmin():
         raise SystemExit("Start this normally, not as administrator: OpenXR ignores the per-user OFXR layer in elevated games.")
@@ -315,7 +336,7 @@ def run_mod(mode, run, test):
     log = LOGS / (datetime.datetime.now().strftime("%Y%m%d-%H%M%S-") + mode)
     log.mkdir(parents=True)
     transaction = log / "preset-transaction.json"
-    env = mod_environment(mode, run, multiplier, log)
+    env = mod_environment(mode, run, multiplier, log, runtime)
     tray = None
     launched = False
     try:
@@ -325,7 +346,7 @@ def run_mod(mode, run, test):
             profiles.apply_layer(mode, run)  # the tray rewrites the layer's file when it arms
         activate_mod()
         started = time.time()
-        arguments = ["-vrmode", "None" if desktop else "OpenVR"] + (test_window() if test and desktop else [])
+        arguments = ["-vrmode", "None" if desktop else "OpenVR"] + (test_window() if test and desktop else []) + list(extra)
         game = start_game(arguments, env, test)
         launched = True
         print(f"VaM started ({mode}, mod{', test: in the background' if test else ''}). Log folder: {log}", flush=True)
@@ -341,14 +362,15 @@ def run_mod(mode, run, test):
             profiles.finish(transaction, launched)
 
 
-def run_vanilla(mode, test):
+def run_vanilla(mode, test, keep_bepinex=False, extra=()):
     restore_files()
     env = {k: v for k, v in os.environ.items() if k not in OUR_VARIABLES}
-    env["DOORSTOP_DISABLE"] = "TRUE"  # read by every UnityDoorstop version; the arguments differ between them
     desktop = mode == "Desktop"
     try:
-        arguments = (["--doorstop-enable", "false", "--doorstop-enabled", "false", "-vrmode", "None" if desktop else "OpenVR"]
-                     + (test_window() if test and desktop else []))
+        arguments = ["-vrmode", "None" if desktop else "OpenVR"] + (test_window() if test and desktop else []) + list(extra)
+        if not keep_bepinex:
+            env["DOORSTOP_DISABLE"] = "TRUE"  # read by every UnityDoorstop version; the arguments differ between them
+            arguments = ["--doorstop-enable", "false", "--doorstop-enabled", "false"] + arguments
         game = start_game(arguments, env, test)
         print(f"VaM started ({mode}, vanilla: BepInEx off{', test: in the background' if test else ''}).", flush=True)
         code = game.wait()
@@ -366,6 +388,12 @@ def main():
     ap.add_argument("--test", action="store_true",
                     help="a test run: the saved presets stay as they were, VaM starts minimized and is kept from taking the focus, "
                          "on the desktop as a window (the window settings are put back afterwards)")
+    ap.add_argument("--xr-runtime", type=Path, metavar="JSON",
+                    help="VR tests: the OpenXR runtime json this VaM process uses instead of the machine's (the simulated headset)")
+    ap.add_argument("--keep-bepinex", action="store_true",
+                    help="tests, with --variant vanilla: VaM's own files, but BepInEx stays on (for a test agent in an otherwise empty plugins folder)")
+    ap.add_argument("--game-args", default="", metavar="ARGS",
+                    help="more arguments for VaM.exe, as one value: --game-args=\"-benchmark BenchmarkCrypt\" starts one of VaM's own benchmark scenes")
     ap.add_argument("--restore", action="store_true", help="only put VaM's own files back")
     args = ap.parse_args()
     if vam_running():
@@ -375,11 +403,14 @@ def main():
         restore_files()
         print("VaM's own files are back.")
         return 0
+    extra = shlex.split(args.game_args)
     if args.variant == "vanilla":
-        return run_vanilla(args.display, args.test)
+        return run_vanilla(args.display, args.test, args.keep_bepinex, extra)
     if args.run is None:
         raise SystemExit("--run is required with the mod.")
-    return run_mod(args.display, args.run, args.test)
+    if args.xr_runtime is not None and not args.xr_runtime.is_file():
+        raise SystemExit(f"no OpenXR runtime json at {args.xr_runtime}")
+    return run_mod(args.display, args.run, args.test, args.xr_runtime, extra)
 
 
 if __name__ == "__main__":

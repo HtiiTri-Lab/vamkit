@@ -2051,11 +2051,11 @@ public sealed class VaMSkinTransmission : BaseUnityPlugin
     }
     public static string PathMaterials() { return RtScene.PathMaterials(); }
     public static string RendererState() {
-        if(rtRenderer==null)return "当前：未加载";
-        if(rtRenderer.Value=="Legacy")return "当前：VaM 光照";
-        if(PathRenderingActive)return "当前：路径追踪";
-        if(stPathRequested!=null && stPathRequested()==0)return "当前：原光照回退（路径追踪不可用）";
-        return "当前：准备路径追踪";
+        if(rtRenderer==null)return Lang.T("Now: not loaded");
+        if(rtRenderer.Value=="Legacy")return Lang.T("Now: VaM's lighting");
+        if(PathRenderingActive)return Lang.T("Now: path tracing");
+        if(stPathRequested!=null && stPathRequested()==0)return Lang.T("Now: VaM's lighting again (path tracing cannot run)");
+        return Lang.T("Now: preparing path tracing");
     }
     public static string PathSkinFixture(bool enabled) { return RtScene.PathSkinFixture(enabled); }
     // test: the author rules (rtcore path_tracing.h kPathAuthor*), for this run

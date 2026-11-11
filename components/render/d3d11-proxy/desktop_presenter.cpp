@@ -1,5 +1,6 @@
 // Desktop DXGI owner. Unity sees D3D11 wrapped surfaces; the presenter owns the
-// flip-model D3D12 chain. The NGX generator is compiled from OFXR's source file.
+// flip-model D3D12 chain. The frame generators (DLSS Frame Generation and FSR's,
+// xrfg/d3d12_frame_generator.hpp) are compiled from OFXR's source files.
 //
 // v2 (2026-11-04, user: "帧率不理想，波动极大" / "总会闪出windows后台"):
 // - The presenter has a HIGH-priority D3D12 queue of its own, like OFXR's
@@ -25,6 +26,7 @@
 #include <dxgi1_6.h>
 #include <wrl/client.h>
 #include "xrfg/d3d12_dlssg.hpp"
+#include "xrfg/d3d12_frame_generator.hpp"
 #include "xrfg/provider_api.hpp"
 #include "../../shading/rt-core/include/startup_display.h"
 #include <algorithm>
@@ -53,6 +55,9 @@ std::mutex publicationMutex;
 OFXR_D3D11GuidePublicationV3 publication;
 Ptr<ID3D11Texture2D> publishedDepth,publishedMotion;
 std::atomic<UINT> multiplier{2};
+// The most frames per real frame the generator in use makes (FSR: 2; DLSS-G: what the card's does, up to 4); 4 until
+// one exists. The frames shown per real frame are the smaller of this and the multiplier.
+std::atomic<UINT> generatorMost{4};
 std::atomic<bool> active{false};
 std::wstring config,performance;
 std::mutex captureMutex;
@@ -123,7 +128,8 @@ class Swapchain final:public IDXGISwapChain4 {
     Ptr<ID3D12Resource> shown;          // the presenter's copy of the real frame
     Ptr<ID3D12Resource> generated[3];
     Ptr<ID3D12DescriptorHeap> rtvHeap;
-    std::unique_ptr<xrfg::D3D12DlssgFrameGenerator> generator;
+    std::unique_ptr<xrfg::D3D12GuidedFrameGenerator> generator;
+    xrfg::FrameGenModel asked=xrfg::FrameGenModel::dlss;   // [Performance] FrameGenModel the generator was made for
     struct Slot{Ptr<ID3D12CommandAllocator> allocator;Ptr<ID3D12GraphicsCommandList> list;UINT64 value=0;};
     Slot slots[8];
     UINT slotNext=0;
@@ -224,6 +230,9 @@ class Swapchain final:public IDXGISwapChain4 {
             int next=GetPrivateProfileIntW(L"Performance",L"DLSSGLite",0,performance.c_str());
             if(lite!=next){generator.reset();retryAt=0;lite=next;}
         }
+        // The generator follows [Performance] FrameGenModel (DLSS / FSR): another choice, another generator, made
+        // after the next frame is shown like the first one.
+        if(const auto want=xrfg::frame_gen_model_wanted();want!=asked){asked=want;if(generator){generator.reset();retryAt=0;generatorMost=4;}}
         Ptr<IDXGIOutput> output;
         if(SUCCEEDED(real->GetContainingOutput(&output))){DXGI_OUTPUT_DESC o{};if(SUCCEEDED(output->GetDesc(&o))){DEVMODEW dm{};dm.dmSize=sizeof(dm);if(EnumDisplaySettingsW(o.DeviceName,ENUM_CURRENT_SETTINGS,&dm)&&dm.dmDisplayFrequency>1)refresh=dm.dmDisplayFrequency;}}
     }
@@ -245,7 +254,7 @@ class Swapchain final:public IDXGISwapChain4 {
         // a stale digit for one frame is all that can come of it.
         static const char* glyphs[]={"111101101101111","010110010010111","111001111100111","111001111001111","101101111001001","111100111001111","111100111101111","111001001001001","111101111101111","111101111001111"};
         memset(overlayPixels,20,overlayPitch*overlayH);
-        char text[48];sprintf_s(text,"%03u/%03u x%u",unsigned(realFps+.5),unsigned(displayFps+.5),multiplier.load());
+        char text[48];sprintf_s(text,"%03u/%03u x%u",unsigned(realFps+.5),unsigned(displayFps+.5),std::min(multiplier.load(),generatorMost.load()));
         unsigned x=6;
         for(char* p=text;*p&&x+10<overlayW;p++,x+=12){
             for(unsigned y=0;y<5;y++)for(unsigned c=0;c<3;c++){
@@ -318,7 +327,8 @@ class Swapchain final:public IDXGISwapChain4 {
         if(paced&&guides.dlssg_camera){
             if(resetGenerator){generator.reset();resetGenerator=false;}
             if(generator){
-                xrfg::DlssgRecordInput input{};input.backbuffer=color.native.Get();input.guides=&guides;input.outputs=multiplier.load()-1;
+                // No more frames than this generator makes per pair: FSR one, DLSS-G what the card's can.
+                xrfg::GuidedRecordInput input{};input.backbuffer=color.native.Get();input.guides=&guides;input.outputs=std::min(multiplier.load()-1,generator->max_outputs());
                 for(UINT i=0;i<input.outputs;i++)input.destinations[i]=generated[i].Get();
                 Check(generator->record(list,input,&count));
             }else makeGenerator=GetTickCount64()>=retryAt;
@@ -340,10 +350,12 @@ class Swapchain final:public IDXGISwapChain4 {
         if(Display(shown.Get(),1,at,paced)==DXGI_STATUS_OCCLUDED)Sleep(16);
         baseCount++;
         double now=Ms();if(now-fpsAt>=1000){realFps=baseCount*1000./(now-fpsAt);displayFps=displayed*1000./(now-fpsAt);baseCount=displayed=0;fpsAt=now;}
-        // A new DLSS-G feature takes 0.15-0.4 s: made after this frame is shown.
+        // A new generator takes 0.15-0.4 s (DLSS-G's feature; FSR's context comes with its first pair): made after
+        // this frame is shown. The one chosen, or the other where it cannot run.
         if(makeGenerator){
-            auto next=std::make_unique<xrfg::D3D12DlssgFrameGenerator>();
-            if(SUCCEEDED(next->initialize(device.Get(),presentQueue.Get(),color.native->GetDesc())))generator=std::move(next);
+            xrfg::FrameGenModel made{};
+            auto next=xrfg::make_guided_frame_generator(device.Get(),presentQueue.Get(),color.native->GetDesc(),&made);
+            if(next){generator=std::move(next);generatorMost=generator->max_outputs()+1;}
             else{retryAt=GetTickCount64()+1000;Trace("ngx_retry");}
         }
     }
@@ -579,7 +591,7 @@ __declspec(dllexport) int VAM_DesktopIsWindowSurface(ID3D11Resource*r){return r=
 __declspec(dllexport) int VAM_DesktopCapture(const wchar_t*path){if(!path||!*path)return 0;std::lock_guard lock(captureMutex);if(!capturePath.empty())return 0;capturePath=path;return 1;}
 __declspec(dllexport) int OFXR_GetProviderApiVersionV4(){return 4;}
 __declspec(dllexport) int OFXR_PrepareFrameGenerationV3(){return xrfg::dlssg_prepare_session_device()?1:0;}
-__declspec(dllexport) int OFXR_GetFrameMultiplierV1(UINT*now,UINT*most,UINT*flags){if(!active||!now||!most||!flags)return 0;*now=multiplier;*most=4;*flags=1;return 1;}
+__declspec(dllexport) int OFXR_GetFrameMultiplierV1(UINT*now,UINT*most,UINT*flags){if(!active||!now||!most||!flags)return 0;*most=generatorMost;*now=std::min(multiplier.load(),generatorMost.load());*flags=1;return 1;}
 __declspec(dllexport) int OFXR_PublishD3D11GuidesV4(const OFXR_D3D11GuidePublicationV4*p){
     if(!p||p->base.struct_size!=sizeof(*p)||p->base.api_version!=4||p->stream_kind!=1||!p->base.depth||!p->base.motion_vectors)return 0;
     std::lock_guard lock(publicationMutex);publication=p->base;publishedDepth=p->base.depth;publishedMotion=p->base.motion_vectors;return 1;

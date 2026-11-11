@@ -17,9 +17,13 @@
 //   {"cmd":"wait_frames","n":10}      answers after n more frames
 //   {"cmd":"frame_log","on":true}     one CSV row per frame (vam-frames.csv): frame, QPC time, delta,
 //                                     loading, menus open, gc (Mono collections so far: a long frame
-//                                     where it steps was a garbage collection)
+//                                     where it steps was a garbage collection), physics_steps (fixed
+//                                     updates this frame: hair and cloth are simulated once per step)
 //   {"cmd":"get","type":"SuperController","member":"activeUI"}   reflection on a static or singleton
 //   {"cmd":"set","type":...,"member":...,"value":...}  {"cmd":"invoke","type":...,"method":...,"args":[...]}
+//   {"cmd":"atoms"}                   the scene's atoms (uid, type, on)
+//   {"cmd":"storable","atom":"Person","storable":"geometry"}   a storable's parameters by kind (without "storable":
+//                                     the atom's storables); "get":name / "set":name,"value":v / "action":name / "json":true
 //   {"cmd":"click","text":"Part1"}    presses a scene's own button (onClick of an active UI Button
 //                                     whose text or object name is that); {"list":true} names them
 //   {"cmd":"log","message":"..."}     a line in BepInEx's log
@@ -74,6 +78,7 @@ public sealed class VaMTestAgent : BaseUnityPlugin
     private string logDir;
     private StreamWriter frameLog;
     private int frameLogRows;
+    private int physicsSteps;   // FixedUpdate calls since the last Update
 
     private static double Qpc() { return Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency; }
 
@@ -179,6 +184,8 @@ public sealed class VaMTestAgent : BaseUnityPlugin
 
     // ------------------------------------------------------------- main thread
 
+    private void FixedUpdate() { physicsSteps++; }
+
     private void Update()
     {
         float dt = Time.unscaledDeltaTime * 1000f;
@@ -200,9 +207,12 @@ public sealed class VaMTestAgent : BaseUnityPlugin
             frameLog.Write(MenusOpen() ? '1' : '0');
             frameLog.Write(',');
             frameLog.Write(GC.CollectionCount(0).ToString(CultureInfo.InvariantCulture));
+            frameLog.Write(',');
+            frameLog.Write(physicsSteps.ToString(CultureInfo.InvariantCulture));
             frameLog.Write('\n');
             if (++frameLogRows % 120 == 0) frameLog.Flush();
         }
+        physicsSteps = 0;
 
         for (int i = deferred.Count - 1; i >= 0; i--)
         {
@@ -302,6 +312,15 @@ public sealed class VaMTestAgent : BaseUnityPlugin
                 }
             case "invoke":
                 return Ok(new JObj().Add("result", Describe(Invoke(r))));
+            case "atoms":
+                {
+                    List<object> atoms = new List<object>();
+                    foreach (Atom a in SuperController.singleton.GetAtoms())
+                        atoms.Add(new JObj().Add("uid", a.uid).Add("type", a.type).Add("on", a.on));
+                    return Ok(new JObj().Add("atoms", atoms));
+                }
+            case "storable":
+                return Storable(r);
             case "log":
                 Logger.LogInfo("[test] " + (r["message"] != null ? r["message"].Value : ""));
                 return Ok(null);
@@ -312,8 +331,60 @@ public sealed class VaMTestAgent : BaseUnityPlugin
                 Application.Quit();
                 return Ok(null);
             default:
-                return Fail("unknown cmd \"" + cmd + "\" (ping, status, load_scene, hud, freeze, wait_frames, frame_log, get, set, invoke, click, log, quit)");
+                return Fail("unknown cmd \"" + cmd + "\" (ping, status, load_scene, hud, freeze, wait_frames, frame_log, get, set, invoke, atoms, storable, click, log, quit)");
         }
+    }
+
+    // A scene's own parameters, as VaM's plugins see them. {"atom":uid} lists the atom's storables; with "storable" the
+    // storable's parameter names by kind; with "get":name the value; with "set":name and "value" it is set (bool,
+    // float, chooser or string, whichever the parameter is; "choices":true adds a chooser's choices); with
+    // "action":name the action is called; with "json":true the storable is returned as a scene file holds it.
+    private static string Storable(JSONNode r)
+    {
+        string uid = r["atom"] != null ? r["atom"].Value : "";
+        Atom atom = SuperController.singleton.GetAtomByUid(uid);
+        if (atom == null) return Fail("no atom " + uid);
+        // ("id" is the request's own number, so the storable is named by "storable")
+        if (r["storable"] == null) return Ok(new JObj().Add("storables", atom.GetStorableIDs()));
+        JSONStorable s = atom.GetStorableByID(r["storable"].Value);
+        if (s == null) return Fail("no storable " + r["storable"].Value + " in " + uid);
+        if (r["action"] != null)
+        {
+            string action = r["action"].Value;
+            if (!s.IsAction(action)) return Fail("no action " + action);
+            s.CallAction(action);
+            return Ok(null);
+        }
+        // the storable as a scene file holds it
+        if (r["json"] != null && r["json"].AsBool) return Ok(new JObj().Add("json", s.GetJSON(true, true, true).ToString()));
+        string param = r["set"] != null ? r["set"].Value : r["get"] != null ? r["get"].Value : null;
+        if (param == null)
+            return Ok(new JObj().Add("bools", s.GetBoolParamNames()).Add("floats", s.GetFloatParamNames())
+                .Add("strings", s.GetStringParamNames()).Add("choosers", s.GetStringChooserParamNames()).Add("actions", s.GetActionNames()));
+        bool set = r["set"] != null;
+        if (s.IsBoolJSONParam(param))
+        {
+            if (set) s.SetBoolParamValue(param, r["value"].AsBool);
+            return Ok(new JObj().Add("kind", "bool").Add("value", s.GetBoolParamValue(param)));
+        }
+        if (s.IsFloatJSONParam(param))
+        {
+            if (set) s.SetFloatParamValue(param, r["value"].AsFloat);
+            return Ok(new JObj().Add("kind", "float").Add("value", s.GetFloatParamValue(param)));
+        }
+        if (s.IsStringChooserJSONParam(param))
+        {
+            if (set) s.SetStringChooserParamValue(param, r["value"].Value);
+            JObj chooser = new JObj().Add("kind", "chooser").Add("value", s.GetStringChooserParamValue(param));
+            if (r["choices"] != null && r["choices"].AsBool) chooser.Add("choices", s.GetStringChooserJSONParamChoices(param));
+            return Ok(chooser);
+        }
+        if (s.IsStringJSONParam(param))
+        {
+            if (set) s.SetStringParamValue(param, r["value"].Value);
+            return Ok(new JObj().Add("kind", "string").Add("value", s.GetStringParamValue(param)));
+        }
+        return Fail("no parameter " + param + " in " + r["storable"].Value);
     }
 
     // A scene's own button (its menu, a UIButton atom), found by a label of its text or its
@@ -453,7 +524,7 @@ public sealed class VaMTestAgent : BaseUnityPlugin
         {
             bool exists = File.Exists(path);
             frameLog = new StreamWriter(path, true, new UTF8Encoding(false));
-            if (!exists) frameLog.Write("frame,qpc_s,dt_ms,loading,menus_open,gc\n");
+            if (!exists) frameLog.Write("frame,qpc_s,dt_ms,loading,menus_open,gc,physics_steps\n");
             frameLogRows = 0;
         }
         return Ok(new JObj().Add("on", on).Add("path", path));

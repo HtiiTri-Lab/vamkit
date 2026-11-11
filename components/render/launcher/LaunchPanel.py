@@ -8,6 +8,7 @@ import datetime as dt
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tkinter as tk
@@ -16,6 +17,9 @@ import uuid
 import winreg
 sys.path.insert(0, str(Path(__file__).resolve().parent))   # ModeProfiles lies beside this file, also under `python -I`
 import ModeProfiles as profiles
+import lang
+from lang import mark, tr
+import runtimes
 
 ROOT = Path(__file__).resolve().parent
 VAM = ROOT.parent.parent
@@ -27,9 +31,16 @@ VAM = ROOT.parent.parent
 # SR at all (native frames), K/L/M each with a render scale of its own
 # (RenderScaleK/L/M). Before v18 the panel chose Default, J, K, L or M.
 # RR is not among them: it comes with path tracing, which the game's menu switches.
-SR_MODELS = ("Off", "K", "L", "M")
-VARIANT_NAMES = {"mod": "增强画面 mod", "vanilla": "原版"}
-DISPLAY_NAMES = {"VR": "VR", "Desktop": "桌面"}
+# XeSS and FSR are the two upscalers that are not DLSS (Intel's, and AMD's through the FSR API: FSR 4 on the Radeons that
+# have it, FSR 3.1 on every other card). They need no RTX card; each has a render scale of its own too.
+SR_MODELS = ("Off", "K", "L", "M", "XeSS", "FSR")
+DLSS_MODELS = ("K", "L", "M")
+# Frame generation ([Performance] FrameGenModel): DLSS Frame Generation (RTX 40: 2x, RTX 50: up to 4x) or FSR's (any
+# card, 2x). Chosen in the in-game tab.
+FG_MODELS = ("DLSS", "FSR")
+# What the panel shows goes through lang.tr: English here, the other languages in vamkit/lang/<code>.json.
+VARIANT_NAMES = {"mod": mark("Enhanced visuals (mod)"), "vanilla": mark("Vanilla")}
+DISPLAY_NAMES = {"VR": "VR", "Desktop": mark("Desktop")}
 NR_KEYS = {
     "nr_enabled": "Enabled", "nr_style": "Style", "nr_intensity": "Intensity",
     "nr_tone": "LocalToneStrength", "nr_structure": "LocalStructureStrength",
@@ -47,6 +58,7 @@ LIMITS = {
     "dlss_sharpen_last": (0, 1),
     "rr_stereo": (0, 100),
     "render_scale_k": (33, 100), "render_scale_l": (33, 100), "render_scale_m": (33, 100), "render_scale_rr": (33, 100),
+    "render_scale_xess": (33, 100), "render_scale_fsr": (33, 100),
     "output_scale": (75, 150),
     "nr_enabled": (0, 1), "nr_style": (0, 2), "nr_intensity": (0, 100),
     "nr_tone": (0, 200), "nr_structure": (0, 200), "nr_skin": (0, 200),
@@ -58,7 +70,7 @@ LIMITS = {
     "nr_after": (0, 1), "nr_after_scale": (25, 100), "dlss_menu_native": (0, 1), "framegen": (0, 1),
 }
 # Settings the panel no longer shows (2026-10-15: DLSS SR + DLSS Frame Generation
-# only; 降噪＋超分并行 went with OpenComposite-DLSS-v19): always these values,
+# only; NR and the upscaler in parallel went with OpenComposite-DLSS-v19): always these values,
 # whatever an older panel saved.
 # The fallback FSR 1 sharpness, FFR's radii, the fallback optical flow, the
 # motion vectors and the single-eye / runtime / capture diagnostics.
@@ -69,22 +81,22 @@ FIXED = dict(upscaler="DLSS", fg_backend="DLSSG", fsr_sharpness=40, ffr_inner=60
              flow_preset="medium", flow_scale=50, flow_bidirectional=0, nr_guides=1,
              dlss_object_motion=1, dlss_hair_motion=1, dlss_hair_bias=0, dlss_flip_x=0, dlss_flip_y=0,
              dlss_sr_eyes=3, dlss_fg_eyes=3)
-# The in-game "VR 画面" tab's settings (VaMVRMenu): only the tab changes them and
+# The in-game "VR Graphics" tab's settings (VaMVRMenu): only the tab changes them and
 # the panel shows none of them. The panel carries them to the next launch: it
 # takes them from the newest run's files when it starts (last_run_game_values)
 # and from this run's while VaM runs (adopt_live, adopt_multiplier).
 # frame_multiplier is [ofxr] frame_multiplier in the OFXR layer's
 # ofxr_bridge.ini; the others sit in performance.ini (GAME_INI). framegen is the
-# tab's 插帧 switch: every launch goes through OFXR, and the tab pauses frame
+# tab's Frame generation switch: every launch goes through OFXR, and the tab pauses frame
 # generation through the OFXR tray's pause while it is off (from the start when
 # it was off at launch) and while VaM's menus are open (dlss_menu_native).
-# nr_model (模型, [NR] RenderPreset: 2 = NR 310.9.16's new model, 1 = 310.8.0's;
+# nr_model (Model, [NR] RenderPreset: 2 = NR 310.9.16's new model, 1 = 310.8.0's;
 # OpenComposite-DLSS-v22) is the tab's; the registry has no such value, so it starts at 2.
 # dlss_sharpness (NVSharpen after SR + NR, 0-100) is the tab's again since v34.
-# nr_after_scale (处理比例, [Performance] NRAfterScale 25-100: NR after the upscaler on the
-# output reduced to that percent, OpenComposite-DLSS-on12-nrscaled) and dlss_fg_lite (帧生成模式,
+# nr_after_scale (Work scale, [Performance] NRAfterScale 25-100: NR after the upscaler on the
+# output reduced to that percent, OpenComposite-DLSS-on12-nrscaled) and dlss_fg_lite (Mode,
 # [Performance] DLSSGLite, 1 = Preset C, followed live by OFXR-DLSSG-v12) are the tab's since v29.
-# nr_shift (区域上移, [NR] RegionShiftY -30..30: the NR region moved up by that percent of the eye
+# nr_shift (Region up, [NR] RegionShiftY -30..30: the NR region moved up by that percent of the eye
 # image's height, OpenComposite-DLSS-on12-nrshift) is the tab's since v32; the registry has none, so it starts at 0.
 GAME_INI = {**{key: ("NR", ini) for key, ini in NR_KEYS.items()},
             "nr_feather": ("Performance", "NRFeatherPercent"), "render_scale": ("Performance", "RenderScale"),
@@ -95,7 +107,11 @@ GAME_INI = {**{key: ("NR", ini) for key, ini in NR_KEYS.items()},
             "dlss_fg_lite": ("Performance", "DLSSGLite"), "dlss_menu_native": ("Performance", "DLSSMenuNative"),
             "framegen": ("Performance", "FrameGeneration"), "dlss_preset": ("Performance", "DLSSPreset"),
             "render_scale_k": ("Performance", "RenderScaleK"), "render_scale_l": ("Performance", "RenderScaleL"),
-            "render_scale_m": ("Performance", "RenderScaleM"), "render_scale_rr": ("Performance", "RenderScaleRR"), "output_scale": ("Performance", "OutputScale")}
+            "render_scale_m": ("Performance", "RenderScaleM"), "render_scale_rr": ("Performance", "RenderScaleRR"), "output_scale": ("Performance", "OutputScale"),
+            "render_scale_xess": ("Performance", "RenderScaleXeSS"), "render_scale_fsr": ("Performance", "RenderScaleFSR"),
+            "framegen_model": ("Performance", "FrameGenModel")}
+# The tab's settings that are a word, not a number, with the words each may hold.
+GAME_WORDS = {"dlss_preset": SR_MODELS, "framegen_model": FG_MODELS}
 GAME_KEYS = (*GAME_INI, "frame_multiplier")
 # OFXR's tray settings for a launch.
 TRAY = dict(backend="nvidia", nvidia_preset="medium", nvidia_input_scale="50", nvidia_bidirectional="0", deep_pipeline="1",
@@ -110,6 +126,7 @@ def initial_settings():
              ffr_enabled=1, ffr_inner=60, ffr_outer=85,
              flow_preset="medium", flow_scale=50, flow_bidirectional=0,
              dlss_preset="K", render_scale_k=75, render_scale_l=33, render_scale_m=50, render_scale_rr=33, output_scale=100,
+             render_scale_xess=67, render_scale_fsr=67, framegen_model="DLSS",
              nr_guides=1, dlss_flip_x=0, dlss_flip_y=0,
              dlss_object_motion=1, fg_backend="DLSSG", dlss_fg_eyes=3, dlss_sr_eyes=3,
              dlss_hair_motion=1, dlss_hair_bias=0, dlss_fg_lite=0,
@@ -133,24 +150,85 @@ def initial_settings():
     return s
 
 
+def display_adapters():
+    """(PCI vendor id, name) of the display adapters Windows lists: 0x10DE NVIDIA, 0x1002 AMD, 0x8086 Intel."""
+    class Device(ctypes.Structure):
+        _fields_ = [("cb", ctypes.c_ulong), ("DeviceName", ctypes.c_wchar * 32), ("DeviceString", ctypes.c_wchar * 128),
+                    ("StateFlags", ctypes.c_ulong), ("DeviceID", ctypes.c_wchar * 128), ("DeviceKey", ctypes.c_wchar * 128)]
+    found = []
+    try:
+        index = 0
+        while True:
+            device = Device()
+            device.cb = ctypes.sizeof(device)
+            if not ctypes.windll.user32.EnumDisplayDevicesW(None, index, ctypes.byref(device), 0):
+                break
+            index += 1
+            vendor = re.search(r"VEN_([0-9A-Fa-f]{4})", device.DeviceID)
+            entry = (int(vendor.group(1), 16), device.DeviceString) if vendor else None
+            if entry and entry not in found:
+                found.append(entry)
+    except (OSError, AttributeError):
+        pass
+    return found
+
+
+def launch_notes(s):
+    """What this launch will not get as chosen, why, and how to get it: lines for the summary. Nothing here changes a
+    setting. The compositor and the frame generation layer try what was chosen and only then put the next best in its
+    place (`VamSrChoice`, `make_guided_frame_generator`); the NVIDIA libraries the kit lacks are taken from the
+    graphics driver's own store at launch (runtimes.py). The launcher's part is to say what is missing."""
+    names = {"sr": mark("DLSS Super Resolution"), "rr": mark("Ray Reconstruction (path tracing's reconstruction)"),
+             "fg": mark("DLSS Frame Generation")}
+    lost = {"sr": mark("XeSS / FSR stands in this time"), "rr": mark("path tracing cannot start"),
+            "fg": mark("FSR frame generation (2×) is used this time")}
+    wanted = ["rr"]
+    if s["dlss_preset"] in DLSS_MODELS:
+        wanted.insert(0, "sr")
+    if s["framegen"] and s["framegen_model"] == "DLSS":
+        wanted.append("fg")
+    adapters = display_adapters()
+    if adapters and not any(vendor == 0x10DE for vendor, _ in adapters):
+        # Not a guess about what the card can do: NGX exists only in NVIDIA's driver.
+        if len(wanted) > 1:
+            return [tr("This machine has no NVIDIA card: the DLSS items chosen become XeSS / FSR upscaling and FSR frame generation (2×) once the game starts; the in-game menu lets you choose them directly.")]
+        return []
+    report = runtimes.locate(VAM)
+    lines = []
+    for what in wanted:
+        entry = report[what]
+        if entry["source"] == "driver":
+            lines.append(tr("The run-time library of {0} is not in the kit; this launch uses the graphics driver's own {1}.",
+                            tr(names[what]), entry["version"]))
+        elif entry["source"] == "missing":
+            lines.append(tr("The run-time library of {0}, {1}, is missing: {2}. To add it: update the NVIDIA driver and run a game with this feature once (the driver downloads it), or run python tools/vamkit fetch and then install in the vamkit repository.",
+                            tr(names[what]), runtimes.LIBRARIES[what][1], tr(lost[what])))
+    return lines
+
+
 def validate(s):
     s = dict(s)
     s.setdefault("rr_stereo", 0)
+    s.setdefault("render_scale_xess", 67)
+    s.setdefault("render_scale_fsr", 67)
+    s.setdefault("framegen_model", "DLSS")
     s.update(FIXED)
     for key, (low, high) in LIMITS.items():
         s[key] = int(s[key])
         if not low <= s[key] <= high:
-            raise ValueError(f"{key} 需要在 {low}～{high} 之间。")
+            raise ValueError(tr("{0} must be between {1} and {2}.", key, low, high))
     if s["dlss_preset"] == "RR":
         s["dlss_preset"] = "K"
     if s["dlss_preset"] not in SR_MODELS:
-        raise ValueError("超分模型无效。")
+        raise ValueError(tr("The upscaler model is not valid."))
+    if s["framegen_model"] not in FG_MODELS:
+        s["framegen_model"] = "DLSS"
     if s.get("variant") not in VARIANT_NAMES:
-        raise ValueError("请选择增强画面 mod 或原版。")
+        raise ValueError(tr("Choose the mod or vanilla."))
     if s.get("display_mode") not in DISPLAY_NAMES:
-        raise ValueError("请选择 VR 或桌面。")
+        raise ValueError(tr("Choose VR or desktop."))
     if s["frame_multiplier"] not in (2, 3, 4):
-        raise ValueError("插帧倍数只支持 2×、3× 或 4×。")
+        raise ValueError(tr("The frame multiplier can be 2×, 3× or 4×."))
     return s
 
 
@@ -171,10 +249,10 @@ def read_live(text):
         if values is None or name not in values:
             continue
         value = values[name].strip()
-        if key == "dlss_preset":
-            model = next((m for m in SR_MODELS if m.lower() == value.lower()), None)
-            if model is not None:
-                found[key] = model
+        if key in GAME_WORDS:
+            word = next((m for m in GAME_WORDS[key] if m.lower() == value.lower()), None)
+            if word is not None:
+                found[key] = word
             continue
         try:
             number = int(value)
@@ -331,6 +409,7 @@ def performance_ini(s):
     # tab's; the motion and diagnostic keys are FIXED.
     lines += ["DLSSPreset=" + s["dlss_preset"], f"RenderScaleK={s['render_scale_k']}",
               f"RenderScaleL={s['render_scale_l']}", f"RenderScaleM={s['render_scale_m']}", f"RenderScaleRR={s['render_scale_rr']}",
+              f"RenderScaleXeSS={s['render_scale_xess']}", f"RenderScaleFSR={s['render_scale_fsr']}",
               f"OutputScale={s['output_scale']}", f"DLSSJitterFlipX={s['dlss_flip_x']}",
               f"DLSSJitterFlipY={s['dlss_flip_y']}", f"NRUseDepth={s['nr_guides']}",
               f"NRUseMotion={s['nr_guides']}", f"DLSSObjectMotion={s['dlss_object_motion']}",
@@ -338,7 +417,7 @@ def performance_ini(s):
               f"DLSSHairMotion={s['dlss_hair_motion']}", f"DLSSHairBias={s['dlss_hair_bias']}",
               f"DLSSMenuNative={s['dlss_menu_native']}",
               f"NRAfterUpscale={s['nr_after']}", f"NRAfterScale={s['nr_after_scale']}",
-              f"FrameGeneration={s['framegen']}",
+              f"FrameGeneration={s['framegen']}", f"FrameGenModel={s['framegen_model']}",
               f"DLSSGLite={s['dlss_fg_lite']}"]
     lines.extend(["", "[NR]"])
     lines.extend(f"{ini}={s[key]}" for key, ini in NR_KEYS.items())
@@ -353,7 +432,7 @@ def flow_ini(s, multiplier):
 
 def launch_multiplier(s):
     """Frames per VaM frame a launch is made for: the in-game tab's multiplier. Every
-    launch goes through OFXR; with the tab's 插帧 switch off (framegen 0) it starts paused."""
+    launch goes through OFXR; with the tab's Frame generation switch off (framegen 0) it starts paused."""
     return s["frame_multiplier"]
 
 
@@ -433,7 +512,7 @@ def monitor_dimensions():
     ctypes.c_ushort.from_buffer(mode, 68).value = 220
     if ctypes.windll.user32.EnumDisplaySettingsW(None, -1, mode):
         return tuple(ctypes.c_uint32.from_buffer(mode, n).value for n in (172, 176, 184))
-    raise OSError("无法读取显示器分辨率和刷新率")
+    raise OSError(tr("Cannot read the monitor's resolution and refresh rate"))
 
 class T:
     BG = "#0d1218"
@@ -689,7 +768,7 @@ class Card(tk.Frame):
             self.switch = Switch(panel, head, switch_var)
             self.switch.grid(row=0, column=2, rowspan=2, sticky="e")
         if collapsible:
-            self.arrow = tk.Label(head, text="展开 ▾", bg=T.SURFACE, fg=T.MUTED, font=(T.FONT, 9), cursor="hand2")
+            self.arrow = tk.Label(head, text=tr("Show ▾"), bg=T.SURFACE, fg=T.MUTED, font=(T.FONT, 9), cursor="hand2")
             self.arrow.grid(row=0, column=2, rowspan=2, sticky="e")
             for widget in (head, self.title, self.purpose, self.arrow, dot):
                 widget.bind("<Button-1>", lambda _e: self.set_open(not self.open))
@@ -710,7 +789,7 @@ class Card(tk.Frame):
 
     def set_open(self, opened):
         self.open = opened
-        self.arrow.configure(text="收起 ▴" if opened else "展开 ▾")
+        self.arrow.configure(text=tr("Hide ▴") if opened else tr("Show ▾"))
         if opened:
             self.body.pack(fill="x", padx=self.body_pad[0], pady=(self.panel.S(4), self.body_pad[1]))
         else:
@@ -739,16 +818,54 @@ class LaunchPanel:
             s.update(framegen=1, frame_multiplier=preset)
         self.v = {key: tk.IntVar(root, value=value) if isinstance(value, int) else tk.StringVar(root, value=value)
                   for key, value in s.items()}
-        self.locks, self.wraps, self.rows = [], [], {}
+        self.language = tk.StringVar(root, value=lang.current())   # not a launch setting: kept by lang.choose
+        self.outer = None
         self.updating = False
         self.save_job = None
         self.live_text = None  # performance.ini as the panel last wrote or took it over
         self.launched_at = 0.0  # when the running launch started (a POSIX time)
         self.output_size = last_output_size()
         self.build()
+        self.watch()
+        self.refresh(initial=True)
+
+    def watch(self):
+        """The panel's own traces, after the controls' (build): a change is drawn, then acted on."""
         for key, variable in self.v.items():
             variable.trace_add("write", lambda *_, k=key: self.changed(k))
+        self.language.trace_add("write", lambda *_: self.set_language())
+
+    def set_language(self):
+        code = self.language.get()
+        if code == lang.current():
+            return
+        try:
+            lang.choose(code)
+        except OSError as error:
+            self.set_status(tr("Saving failed: {0}", error))
+            return
+        self.root.after_idle(self.rebuild)   # not from inside the click that changed it
+
+    def rebuild(self):
+        """Every text again in the language chosen: the controls are made anew on the same variables."""
+        for variable in (*self.v.values(), self.language):
+            for mode, name in variable.trace_info():
+                variable.trace_remove(mode, name)
+        self.outer.destroy()
+        self.build()
+        self.watch()
         self.refresh(initial=True)
+        self.paint_running()
+        if self.running():
+            self.set_status(tr("The in-game menus follow with the next start of VaM."))
+
+    def paint_running(self):
+        if self.running():
+            self.launch_button.configure(state="disabled", text=tr("VaM is running…"), bg=T.ACCENT_DIM, cursor="arrow")
+            self.state_label.configure(text=tr("● Running"), fg=T.ACCENT)
+        else:
+            self.launch_button.configure(state="normal", text=tr("Launch VaM"), bg=T.ACCENT, cursor="hand2")
+            self.state_label.configure(text=tr("● Not running"), fg=T.MUTED)
 
     # -- helpers
 
@@ -792,11 +909,14 @@ class LaunchPanel:
 
     def build(self):
         S, root = self.S, self.root
-        root.title("VaM 启动器")
-        width = min(S(1180), root.winfo_screenwidth() - S(60))
-        height = min(S(860), root.winfo_screenheight() - S(90))
-        root.geometry(f"{width}x{height}")
-        root.minsize(S(960), S(620))
+        self.locks, self.wraps, self.rows = [], [], {}
+        root.title(tr("VaM Launcher"))
+        if self.outer is None:              # the first time: the window's own size and the wheel
+            width = min(S(1180), root.winfo_screenwidth() - S(60))
+            height = min(S(860), root.winfo_screenheight() - S(90))
+            root.geometry(f"{width}x{height}")
+            root.minsize(S(960), S(620))
+            root.bind_all("<MouseWheel>", self.wheel, add="+")
         root.configure(bg=T.BG)
         style = ttk.Style(root)
         style.theme_use("clam")
@@ -806,7 +926,7 @@ class LaunchPanel:
                         lightcolor=T.RAISED, darkcolor=T.RAISED, gripcount=0, width=S(10))
         style.map("Dark.Vertical.TScrollbar", background=[("active", T.HOVER)])
 
-        outer = tk.Frame(root, bg=T.BG)
+        outer = self.outer = tk.Frame(root, bg=T.BG)
         outer.pack(fill="both", expand=True, padx=S(22), pady=(S(18), S(18)))
         outer.columnconfigure(0, weight=1)
         outer.rowconfigure(1, weight=1)
@@ -814,10 +934,10 @@ class LaunchPanel:
         header = tk.Frame(outer, bg=T.BG)
         header.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, S(14)))
         header.columnconfigure(0, weight=1)
-        tk.Label(header, text="VaM 启动器", bg=T.BG, fg=T.TEXT, font=(T.FONT, 19, "bold")).grid(row=0, column=0, sticky="w")
-        tk.Label(header, text="路径追踪、超分、降噪和插帧都在游戏内菜单里调节。",
+        tk.Label(header, text=tr("VaM Launcher"), bg=T.BG, fg=T.TEXT, font=(T.FONT, 19, "bold")).grid(row=0, column=0, sticky="w")
+        tk.Label(header, text=tr("Path tracing, upscaling, denoising and frame generation are set in the in-game menu."),
                  bg=T.BG, fg=T.MUTED, font=(T.FONT, 10)).grid(row=1, column=0, sticky="w", pady=(S(2), 0))
-        self.state_label = tk.Label(header, text="● 未运行", bg=T.BG, fg=T.MUTED, font=(T.FONT, 10, "bold"))
+        self.state_label = tk.Label(header, text=tr("● Not running"), bg=T.BG, fg=T.MUTED, font=(T.FONT, 10, "bold"))
         self.state_label.grid(row=0, column=1, rowspan=2, sticky="e")
 
         # Left: the pipeline stages, scrollable.
@@ -834,7 +954,6 @@ class LaunchPanel:
         item = self.canvas.create_window(0, 0, window=content, anchor="nw")
         content.bind("<Configure>", lambda _e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         self.canvas.bind("<Configure>", lambda e: (self.canvas.itemconfigure(item, width=e.width), self.rewrap(e.width)))
-        root.bind_all("<MouseWheel>", self.wheel, add="+")
         self.content = content
 
         self.build_start(content)
@@ -853,31 +972,38 @@ class LaunchPanel:
         return card
 
     def build_start(self, master):
-        card = self.card(master, "1", "启动方式",
-                         "增强画面 mod：皮肤和头发着色、DLSS 超分、降噪和插帧，路径追踪在游戏内菜单里开关。"
-                         "原版：不加载任何 mod 文件，只用来回退和对照。")
-        row = self.add(card, "variant", "方式")
-        self.segmented(row, "variant", [("增强画面 mod", "mod"), ("原版", "vanilla")])
-        row = self.add(card, "display_mode", "显示")
-        self.segmented(row, "display_mode", [("VR", "VR"), ("桌面", "Desktop")])
+        card = self.card(master, "1", tr("How to start"),
+                         tr("The mod: skin and hair shading, upscaling (DLSS, XeSS or FSR), denoising and frame generation; path tracing is switched in the in-game menu. Vanilla: loads none of the mod's files; for going back and for comparing."))
+        row = self.add(card, "variant", tr("Start as"))
+        self.segmented(row, "variant", [(tr(name), value) for value, name in VARIANT_NAMES.items()])
+        row = self.add(card, "display_mode", tr("Display"))
+        self.segmented(row, "display_mode", [(tr(name), value) for value, name in DISPLAY_NAMES.items()])
+        # Each language under its own name; the in-game menus read the same choice when VaM starts.
+        names = lang.languages()
+        if len(names) > 1:
+            row = self.add(card, "language", tr("Language"))
+            row.control(Segmented(self, row.frame, self.language, [(name, code) for code, name in names]))
 
     def build_side(self, side):
         S = self.S
         summary = tk.Frame(side, bg=T.SURFACE, highlightthickness=1, highlightbackground=T.BORDER)
         summary.grid(row=0, column=0, sticky="ew")
-        tk.Label(summary, text="本次启动", bg=T.SURFACE, fg=T.TEXT, font=(T.FONT, 13, "bold")).pack(anchor="w", padx=S(16), pady=(S(14), S(8)))
+        tk.Label(summary, text=tr("This launch"), bg=T.SURFACE, fg=T.TEXT, font=(T.FONT, 13, "bold")).pack(anchor="w", padx=S(16), pady=(S(14), S(8)))
         self.steps = {}
         self.step_titles = {}
-        for key, title in (("variant", "方式"), ("render", "渲染"), ("nr", "降噪"), ("upscale", "放大"),
-                           ("framegen", "插帧"), ("output", "→ 头显")):
+        titles = (("variant", tr("Start as")), ("render", tr("Render")), ("nr", tr("Denoise")), ("upscale", tr("Upscale")),
+                  ("framegen", tr("Frame gen")), ("output", tr("→ Headset")))
+        # As wide as the longest title of this language (7 holds the Chinese ones).
+        title_width = max(7, 1 + max(len(title) for title in (*(title for _, title in titles), tr("→ Monitor"))))
+        for key, title in titles:
             line = tk.Frame(summary, bg=T.SURFACE)
             line.pack(fill="x", padx=S(16), pady=S(3))
-            title_label = tk.Label(line, text=title, bg=T.SURFACE, fg=T.MUTED, font=(T.FONT, 9), width=7, anchor="w")
+            title_label = tk.Label(line, text=title, bg=T.SURFACE, fg=T.MUTED, font=(T.FONT, 9), width=title_width, anchor="w")
             title_label.pack(side="left")
             self.step_titles[key] = title_label
             value = tk.Label(line, text="", bg=T.SURFACE, fg=T.TEXT, font=(T.FONT, 10), anchor="w", justify="left")
             value.pack(side="left", fill="x", expand=True)
-            value.configure(wraplength=S(220))
+            value.configure(wraplength=S(220 if title_width == 7 else 200))
             self.steps[key] = value
         self.need = tk.Label(summary, text="", bg=T.SURFACE, fg=T.WARN, font=(T.FONT, 9), justify="left",
                              anchor="w", wraplength=S(300))
@@ -885,7 +1011,7 @@ class LaunchPanel:
 
         live = tk.Frame(side, bg=T.SURFACE, highlightthickness=1, highlightbackground=T.BORDER)
         live.grid(row=1, column=0, sticky="ew", pady=(S(12), 0))
-        self.sizes_title = tk.Label(live, text="实际分辨率（每眼）", bg=T.SURFACE, fg=T.TEXT, font=(T.FONT, 11, "bold"))
+        self.sizes_title = tk.Label(live, text=tr("Actual resolution (per eye)"), bg=T.SURFACE, fg=T.TEXT, font=(T.FONT, 11, "bold"))
         self.sizes_title.pack(anchor="w", padx=S(16), pady=(S(12), S(6)))
         self.sizes = tk.Label(live, text="", bg=T.SURFACE, fg=T.MUTED, font=(T.FONT, 9), justify="left",
                               anchor="w", wraplength=S(300))
@@ -898,16 +1024,16 @@ class LaunchPanel:
         buttons = tk.Frame(side, bg=T.BG)
         buttons.grid(row=4, column=0, sticky="ew")
         buttons.columnconfigure(0, weight=1)
-        self.launch_button = tk.Button(buttons, text="启动 VaM", command=self.launch, font=(T.FONT, 14, "bold"),
+        self.launch_button = tk.Button(buttons, text=tr("Launch VaM"), command=self.launch, font=(T.FONT, 14, "bold"),
                                        bg=T.ACCENT, fg=T.ACCENT_TEXT, activebackground=T.ACCENT_HOVER,
                                        activeforeground=T.ACCENT_TEXT, disabledforeground="#9fb3aa",
                                        relief="flat", bd=0, cursor="hand2", pady=S(10))
         self.launch_button.grid(row=0, column=0, sticky="ew")
-        self.logs_button = tk.Button(buttons, text="打开日志文件夹", command=self.open_logs, font=(T.FONT, 10),
+        self.logs_button = tk.Button(buttons, text=tr("Open the log folder"), command=self.open_logs, font=(T.FONT, 10),
                                      bg=T.RAISED, fg=T.TEXT, activebackground=T.HOVER, activeforeground=T.TEXT,
                                      relief="flat", bd=0, cursor="hand2", pady=S(6))
         self.logs_button.grid(row=1, column=0, sticky="ew", pady=(S(8), 0))
-        self.set_status("设置会自动保存。点击“启动 VaM”才会运行游戏。")
+        self.set_status(tr("Settings are saved as you change them. The game only runs when you click “Launch VaM”."))
 
     def rewrap(self, width):
         for label, margin in self.wraps:
@@ -966,13 +1092,13 @@ class LaunchPanel:
         try:
             s = self.collect()
         except (ValueError, tk.TclError):
-            steps["render"].configure(text="请输入有效数字", fg=T.WARN)
+            steps["render"].configure(text=tr("Enter a valid number"), fg=T.WARN)
             return
-        steps["variant"].configure(text=VARIANT_NAMES[s["variant"]], fg=T.TEXT)
+        steps["variant"].configure(text=tr(VARIANT_NAMES[s["variant"]]), fg=T.TEXT)
         if s["variant"] == "vanilla":
             for key in ("render", "nr", "upscale", "framegen", "output"):
                 steps[key].configure(text="—", fg=T.MUTED)
-            self.need.configure(text="不加载任何 mod 文件，和没装过一样。")
+            self.need.configure(text=tr("Loads none of the mod's files, as if it was never installed."))
             return
         base = self.output_size
         desktop = s["display_mode"] == "Desktop"
@@ -982,62 +1108,72 @@ class LaunchPanel:
         render = f"{scale}%"
         if out and scale != 100:
             # The eye texture is scaled from the output (the DLSS bridge).
-            render += f"（约 {out[0] * scale // 100} × {out[1] * scale // 100}）"
+            render += tr(" (about {0} × {1})", out[0] * scale // 100, out[1] * scale // 100)
         steps["render"].configure(text=render, fg=T.TEXT)
-        after = " · 放大后" if s["nr_after"] else ""
-        steps["nr"].configure(text=f"开 · 区域 {s['nr_region']}%{after}" if s["nr_enabled"] else "关闭",
+        after = tr(" · after upscaling") if s["nr_after"] else ""
+        steps["nr"].configure(text=tr("On · region {0}%{1}", s["nr_region"], after) if s["nr_enabled"] else tr("Off##choice"),
                               fg=T.TEXT if s["nr_enabled"] else T.MUTED)
         if s["dlss_preset"] == "Off":
-            upscale = "关闭超分（原生）"
+            upscale = tr("Upscaling off (native)")
+        elif s["dlss_preset"] in DLSS_MODELS:
+            upscale = tr("DLSS Super Resolution · model {0}", s["dlss_preset"]) + (" · DLAA" if scale == 100 else "")
         else:
-            upscale = "DLSS 超分 · 模型 " + s["dlss_preset"] + (" · DLAA" if scale == 100 else "")
-        upscale += "；开路径追踪时 RR · F"
+            upscale = tr("{0} upscaling", s["dlss_preset"]) + (tr(" · native anti-aliasing") if scale == 100 else "")
+        upscale += tr("; RR · F while path tracing is on")
         if not desktop and s["output_scale"] != 100:
-            upscale += f" · 输出 {s['output_scale']}%"
+            upscale += tr(" · output {0}%", s["output_scale"])
         steps["upscale"].configure(text=upscale, fg=T.TEXT)
         multiplier = launch_multiplier(s)
-        framegen = f"{multiplier}× · DLSS 帧生成（{'性能 · Preset C' if s['dlss_fg_lite'] else '质量'}）"
+        if s["framegen_model"] == "FSR":
+            multiplier = 2                      # one generated frame per pair, whatever the multiplier asks for
+            framegen = tr("2× · FSR frame generation")
+        else:
+            framegen = tr("{0}× · DLSS Frame Generation ({1})", multiplier,
+                          tr("performance · Preset C") if s["dlss_fg_lite"] else tr("quality"))
         if not s["framegen"]:
-            framegen = "关闭（游戏内可开）· " + framegen
+            framegen = tr("Off (can be switched on in game) · ") + framegen
         steps["framegen"].configure(text=framegen, fg=T.TEXT if s["framegen"] else T.MUTED)
-        steps["output"].configure(text=f"{out[0]} × {out[1]}" if out else "首次启动后显示", fg=T.TEXT if out else T.MUTED)
-        self.step_titles["output"].configure(text="→ 显示器" if desktop else "→ 头显")
+        steps["output"].configure(text=f"{out[0]} × {out[1]}" if out else tr("Shown after the first launch"), fg=T.TEXT if out else T.MUTED)
+        self.step_titles["output"].configure(text=tr("→ Monitor") if desktop else tr("→ Headset"))
         if desktop:
             steps["output"].configure(text=f"{monitor[0]} × {monitor[1]} @ {monitor[2]} Hz")
         if desktop and s["framegen"]:
-            self.need.configure(text=f"{monitor[2]} Hz 需要稳定 {monitor[2] / multiplier:g} 真实 fps。")
+            self.need.configure(text=tr("{0} Hz needs a steady {1} real fps.", monitor[2], f"{monitor[2] / multiplier:g}"))
         elif s["framegen"]:
-            self.need.configure(text=f"144 Hz 需要稳定 {144 / multiplier:g} 真实 fps；"
-                                     f"120 Hz 需要 {120 / multiplier:g} 真实 fps。VD 里关闭 SSW。")
+            self.need.configure(text=tr("144 Hz needs a steady {0} real fps; 120 Hz needs {1}. Switch SSW off in Virtual Desktop.",
+                                        f"{144 / multiplier:g}", f"{120 / multiplier:g}"))
         else:
             self.need.configure(text="")
+        notes = launch_notes(s)
+        if notes:
+            self.need.configure(text=chr(10).join(filter(None, [self.need.cget("text")] + notes)))
 
     def refresh_sizes(self):
         desktop = self.get("display_mode") == "Desktop"
-        self.sizes_title.configure(text="实际窗口分辨率" if desktop else "实际分辨率（每眼）")
+        self.sizes_title.configure(text=tr("Actual window resolution") if desktop else tr("Actual resolution (per eye)"))
         if self.get("variant") == "vanilla":
-            self.sizes.configure(text="原版不显示。", fg=T.MUTED)
+            self.sizes.configure(text=tr("Not shown for vanilla."), fg=T.MUTED)
             return
         if not self.running():
             if desktop:
-                self.sizes.configure(text="启动后显示本次窗口的渲染和输出尺寸。", fg=T.MUTED)
+                self.sizes.configure(text=tr("After launch: this run's render and output size of the window."), fg=T.MUTED)
                 return
             if self.output_size:
-                self.sizes.configure(text="启动后显示本次每只眼实际的渲染和输出尺寸。\n"
-                                          f"上次头显输出：{self.output_size[0]} × {self.output_size[1]}", fg=T.MUTED)
+                self.sizes.configure(text=tr("After launch: this run's actual render and output size per eye.") + "\n" +
+                                          tr("Last headset output: {0} × {1}", *self.output_size), fg=T.MUTED)
             else:
-                self.sizes.configure(text="启动后显示本次每只眼实际的渲染和输出尺寸。", fg=T.MUTED)
+                self.sizes.configure(text=tr("After launch: this run's actual render and output size per eye."), fg=T.MUTED)
             return
         lines = []
-        for eye, label in enumerate(("窗口",) if desktop else ("左眼", "右眼")):
+        for eye, label in enumerate((tr("Window"),) if desktop else (tr("Left eye"), tr("Right eye"))):
             sizes = submitted_dimensions(self.run, eye)
             if sizes is None:
-                lines.append(f"{label}：等待画面提交…")
+                lines.append(tr("{0}: waiting for the first frame…", label))
             elif sizes == "fallback":
-                lines.append(f"{label}：放大失败，已改用普通提交，请看日志")
+                lines.append(tr("{0}: upscaling failed and frames are submitted as they are; see the log", label))
             else:
                 w, h, ow, oh = sizes
-                lines.append(f"{label}：{w} × {h} → {ow} × {oh}")
+                lines.append(tr("{0}: {1} × {2} → {3} × {4}", label, w, h, ow, oh))
                 if eye == 0:
                     # The runtime's size: the output without this run's OutputScale.
                     scale = output_scale_of(self.run / "performance.ini")
@@ -1056,10 +1192,10 @@ class LaunchPanel:
         except (ValueError, tk.TclError):
             pass  # an unfinished number in a box; saved once it is valid
         except OSError as error:
-            self.set_status(f"保存失败：{error}")
+            self.set_status(tr("Saving failed: {0}", error))
 
     def adopt_live(self):
-        """Take over what the in-game "VR 画面" tab wrote into this run's performance.ini
+        """Take over what the in-game "VR Graphics" tab wrote into this run's performance.ini
         (its settings, GAME_INI) and keep it for the next launch."""
         if self.run is None or self.active is None or self.live_text is None:
             return
@@ -1079,7 +1215,7 @@ class LaunchPanel:
         try:
             validate(dict(self.active, **taken))
         except (ValueError, KeyError, TypeError):
-            self.set_status("游戏内菜单写入的设置无效，没有采用。")
+            self.set_status(tr("The in-game menu wrote a setting that is not valid; it was not taken."))
             return
         self.active.update(taken)
         self.updating = True
@@ -1089,7 +1225,7 @@ class LaunchPanel:
         finally:
             self.updating = False
         self.refresh()
-        self.set_status("游戏内“VR 画面”页修改了设置，下次启动沿用。")
+        self.set_status(tr("The in-game menu changed settings; the next launch keeps them."))
 
     def adopt_multiplier(self):
         """Take over the frame multiplier the in-game tab chose and keep it for the next
@@ -1112,7 +1248,7 @@ class LaunchPanel:
         finally:
             self.updating = False
         self.refresh()
-        self.set_status(f"游戏内“VR 画面”页把插帧倍数改成了 {found}×，下次启动沿用。")
+        self.set_status(tr("The in-game menu set the frame multiplier to {0}×; the next launch keeps it.", found))
 
     def launch(self):
         if self.running():
@@ -1121,13 +1257,13 @@ class LaunchPanel:
         try:
             self.child, self.run, self.active = begin_launch(self.collect())
         except (OSError, ValueError, tk.TclError) as error:
-            messagebox.showerror("无法启动", str(error), parent=self.root)
+            messagebox.showerror(tr("Cannot launch"), str(error), parent=self.root)
             return
         self.live_text = performance_ini(self.active)
-        self.launch_button.configure(state="disabled", text="VaM 运行中…", bg=T.ACCENT_DIM, cursor="arrow")
-        self.state_label.configure(text="● 运行中", fg=T.ACCENT)
-        self.set_status("启动中。路径追踪、超分模型、渲染比例、降噪、插帧在游戏主菜单的“VR 画面”页里改；"
-                        "退出 VaM 后自动恢复原文件，关闭本窗口不会中断游戏。")
+        self.paint_running()
+        # The tab's name as the in-game menu shows it (VaMVRMenu.Menu.cs MenuTabLabel).
+        self.set_status(tr("Starting. Path tracing, the upscaler model, the render scale, denoising and frame generation are changed in the “{0}” tab of the game's main menu; VaM's own files are put back when it exits, and closing this window does not stop the game.",
+                           tr("Graphics") if self.active["display_mode"] == "Desktop" else tr("VR Graphics")))
         self.refresh()
         self.root.after(800, self.poll)
 
@@ -1138,15 +1274,14 @@ class LaunchPanel:
             self.refresh_sizes()
             self.root.after(800, self.poll)
             return
-        self.launch_button.configure(state="normal", text="启动 VaM", bg=T.ACCENT, cursor="hand2")
-        self.state_label.configure(text="● 未运行", fg=T.MUTED)
+        self.paint_running()
         self.refresh()
         if code:
-            self.set_status("启动或恢复没有完成，请打开日志查看原因。")
+            self.set_status(tr("Starting or putting the files back did not finish; open the log for the reason."))
             text = (self.run / "launcher.log").read_text(encoding="utf-8-sig", errors="replace")
-            messagebox.showerror("启动器报告错误", text[-2600:] or f"退出码 {code}", parent=self.root)
+            messagebox.showerror(tr("The launcher reports an error"), text[-2600:] or tr("exit code {0}", code), parent=self.root)
         else:
-            self.set_status("VaM 已退出，原文件已恢复。可以修改设置后再次启动。")
+            self.set_status(tr("VaM has exited and its own files are back. Change settings and launch again when you like."))
 
     def open_logs(self):
         os.startfile(self.run if self.run else ROOT.parent / "logs")

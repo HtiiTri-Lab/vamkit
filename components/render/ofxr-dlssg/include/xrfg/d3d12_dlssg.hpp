@@ -1,8 +1,10 @@
 #pragma once
 
+#include "xrfg/d3d12_frame_generator.hpp"
 #include "xrfg/dlss_motion_vectors.hpp"
 
 #include <d3d12.h>
+#include <string>
 
 #include <cstdint>
 #include <memory>
@@ -36,25 +38,23 @@ void dlssg_log(const char* format, ...) noexcept;
 void dlssg_set_session_device(ID3D12Device* device) noexcept;
 [[nodiscard]] bool dlssg_prepare_session_device() noexcept;
 
+// NGX D3D12 for DLSS-G on this process's devices: 1 once it came up with frame generation available, 0 once it
+// failed (no RTX 40 or newer, no runtime, VAMKIT_NO_DLSS=1), -1 while nothing has tried. dlssg_available tries.
+[[nodiscard]] int dlssg_state() noexcept;
+// Why not, in words, once it has failed (empty before).
+[[nodiscard]] std::string dlssg_why_not() noexcept;
+[[nodiscard]] bool dlssg_available(ID3D12Device* device) noexcept;
+
 // Interpolated frames per pair the generator can make: 3, for 4X.
-inline constexpr std::uint32_t kDlssgMaxOutputs = 3;
+inline constexpr std::uint32_t kDlssgMaxOutputs = kGuidedMaxOutputs;
 
-struct DlssgRecordInput {
-    // B as captured: an RGBA8/BGRA8-family texture in COMMON.
-    ID3D12Resource* backbuffer{};
-    // B's guides; depth and motion_vectors in COMMON.
-    const DlssMotionVectorFrame* guides{};
-    // 1 for 2X, 2 for 3X, 3 for 4X.
-    std::uint32_t outputs{1};
-    ID3D12Resource* destinations[kDlssgMaxOutputs]{};
-    // State the destinations are in before and after the copies.
-    D3D12_RESOURCE_STATES destination_state{D3D12_RESOURCE_STATE_COMMON};
-};
+// The record input is the guided generators' common one (d3d12_frame_generator.hpp).
+using DlssgRecordInput = GuidedRecordInput;
 
-class D3D12DlssgFrameGenerator final {
+class D3D12DlssgFrameGenerator final : public D3D12GuidedFrameGenerator {
 public:
     D3D12DlssgFrameGenerator() noexcept;
-    ~D3D12DlssgFrameGenerator();
+    ~D3D12DlssgFrameGenerator() override;
 
     D3D12DlssgFrameGenerator(const D3D12DlssgFrameGenerator&) = delete;
     D3D12DlssgFrameGenerator& operator=(const D3D12DlssgFrameGenerator&) = delete;
@@ -67,11 +67,16 @@ public:
         ID3D12CommandQueue* queue,
         const D3D12_RESOURCE_DESC& image) noexcept;
 
+    [[nodiscard]] const char* name() const noexcept override { return "DLSS-G"; }
+    // What this card's DLSS-G makes (DLSSG.MultiFrameCountMax: 1 on RTX 40; 310.9.16 on an RTX 50 reports 5), cut to
+    // kGuidedMaxOutputs, which is where this code stops, not DLSS-G.
+    [[nodiscard]] std::uint32_t max_outputs() const noexcept override;
+
     // Whether this pair can be generated: complete guides and a supported
     // frame count. Cheap; records nothing.
     [[nodiscard]] bool can_generate(
         const DlssMotionVectorFrame& guides,
-        std::uint32_t outputs) const noexcept;
+        std::uint32_t outputs) const noexcept override;
 
     // Records B's copy, the DLSS-G evaluations and the copies into the
     // destinations. *generated is the number of interpolated frames written
@@ -81,13 +86,13 @@ public:
     [[nodiscard]] HRESULT record(
         ID3D12GraphicsCommandList* list,
         const DlssgRecordInput& input,
-        std::uint32_t* generated) noexcept;
+        std::uint32_t* generated) noexcept override;
 
     // The next record() resets DLSS-G's history: called when a real frame
     // went another way (prime, optical flow, repeat).
-    void invalidate_history() noexcept;
+    void invalidate_history() noexcept override;
 
-    [[nodiscard]] bool usable() const noexcept;
+    [[nodiscard]] bool usable() const noexcept override;
 
 private:
     struct Impl;

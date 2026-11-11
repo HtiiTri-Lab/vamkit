@@ -1,4 +1,4 @@
-# Frame generation (DLSS-G) in VR and on the desktop
+# Frame generation (DLSS-G, FSR) in VR and on the desktop
 
 The real frame rate of a path-traced or heavily shaded VaM scene is a fraction of what a headset or a monitor can
 show. DLSS Frame Generation (DLSS-G) makes the in-between pictures from the last two real frames, depth, motion vectors and
@@ -8,9 +8,14 @@ display shows an empty slot and the scene stutters although the displayed frame 
 
 In VR the generator runs inside an OpenXR API layer (OFXR, `components/render/ofxr-dlssg/`) that sits between OpenComposite
 and the runtime. On the desktop there is no OpenXR runtime, so our own presenter inside the 11on12 proxy
-(`components/render/d3d11-proxy/desktop_presenter.cpp`) owns the swap chain and compiles the same generator source
-(`ofxr-dlssg/src/d3d12/d3d12_dlssg.cpp`). Where the picture and its guides come from: [frame-path.md](frame-path.md),
-[motion-vectors.md](motion-vectors.md).
+(`components/render/d3d11-proxy/desktop_presenter.cpp`) owns the swap chain and compiles the same generator sources
+(`ofxr-dlssg/src/d3d12/d3d12_dlssg.cpp`, `d3d12_fsrfg.cpp`). Where the picture and its guides come from:
+[frame-path.md](frame-path.md), [motion-vectors.md](motion-vectors.md).
+
+DLSS-G needs an RTX 40 (2x) or RTX 50 (up to 4x). AMD's FSR frame generation is the second generator: it runs on any
+card, takes the same inputs, and makes one frame per pair (2x). It gives RTX 30 and older cards generated frames from
+the engine's depth and motion for the first time, and a second choice on RTX 40 / 50. Which cards run what, and why
+Intel's XeSS frame generation is not here: [upscalers-other-vendors.md](upscalers-other-vendors.md).
 
 ## How it works
 
@@ -46,6 +51,67 @@ HIGH-priority D3D12 queue (VR) or the presenter's HIGH queue (desktop). Rules th
   the copies for comparison. A generator log line says which mode it is in.
 - The layer interpolates the head pose between A and B for each generated frame.
 
+### Two generators behind one interface
+
+`D3D12GuidedFrameGenerator` (`ofxr-dlssg/include/xrfg/d3d12_frame_generator.hpp`) is the contract DLSS-G set, as an
+interface: `can_generate`, `record` (B, B's guides, the destinations), `invalidate_history`, `usable`, `max_outputs`.
+`D3D12DlssgFrameGenerator` implements it; so does `D3D12FsrFrameGenerator` (`d3d12_fsrfg.cpp`):
+
+- It talks to AMD's FSR API (`amd_fidelityfx_loader_dx12.dll` from `VAM_FSR_RUNTIME_PATH`, which loads the frame
+  generation DLL beside it); nothing of AMD's is linked. `fsrfg_available` asks the API which frame generation
+  versions it offers for the device (3.1.6 on an NVIDIA card).
+- **No FSR swap chain.** AMD's own integration wraps the game's swap chain and presents by itself. Here the context is
+  created alone and dispatched by hand, per frame in AMD's order: `ffxConfigure` with
+  `FFX_FRAMEGENERATION_FLAG_NO_SWAPCHAIN_CONTEXT_NOTIFY` and no callbacks, the prepare dispatch
+  (`ffxDispatchDescFrameGenerationPrepareV2`: depth, motion, jitter, camera planes, field of view, position and axes),
+  the generation dispatch (`ffxDispatchDescFrameGeneration`: B and one output texture). AMD calls this route possible
+  but discouraged; it is what a layer without a swap chain and a presenter with its own pacing need.
+- FSR keeps the frame before B itself, like DLSS-G. Its own frame counter rises by one per dispatch; a gap in our
+  serials is passed as `reset`, and a reset pair gets a copy of B (shown with B's pose), as DLSS-G's does.
+- It works on its own typed copies: B is copied into an 8-bit UNORM image and the generated frame is copied out of a
+  UAV image (two copies per pair, about 0.03 ms each for an eye image). The caller's images may be typeless, sRGB-typed
+  or not writable as a UAV; DLSS-G's in-place path is not used here.
+- The FSR context is made with the first pair (the guide size is known then), which takes about 0.6 s once.
+
+`make_guided_frame_generator` makes the generator `[Performance] FrameGenModel` names (`DLSS`, the default, or `FSR`)
+when it can run, else the other: a card without DLSS-G gets FSR without anyone choosing it. The choice is followed
+while the game runs:
+
+- VR: `follow_generator_model` in `d3d12_frame_synthesizer.cpp` looks at every pair, waits for the synthesis queue and
+  makes the other generator in place of the old one. While FSR is the generator the layer runs 2X whatever
+  `[ofxr] frame_multiplier` says (`guided_frames_most`, applied in `apply_live_frame_multiplier`), and returns to the
+  multiplier asked for when DLSS-G is chosen again.
+- Desktop: `Settings()` in the presenter drops the generator when the choice changes; the next one is made after a
+  frame is shown, like the first. The frames shown per real frame are the smaller of the multiplier and
+  `max_outputs() + 1` (FSR: 2; DLSS-G: what the card's does).
+- `OFXR_GetFrameGeneratorsV1` (layer and presenter) tells the menu what can run: bit 0 DLSS-G, bit 1 FSR, bit 4 while
+  FSR generates. The menu shows a model row only when both can, and replaces the multiplier row by a line "2x" while
+  FSR generates.
+
+**Without NVIDIA optical flow** (no `nvofapi64.dll` on a Radeon or Arc card, an NVIDIA card without the hardware) the
+layer used not to start synthesis at all. Now, when a guided generator is asked for (`OFXR_DLSSG=1`) and
+`create_nvidia_resources` fails, `initialize` in `d3d12_frame_synthesizer.cpp` sets `nvidia_flow_missing`, releases
+what the optical-flow set-up had made and goes on: the work slots keep their NVIDIA shape with nothing behind the flow
+descriptors, and the session runs on the guided generator alone (`NVIDIA optical flow is not available here ...: this
+swapchain runs on FSR alone` in dlssg.log). A pair the generator cannot take goes to the game-motion route where its
+guides allow, and otherwise `record_hold_pair` copies the previous real frame into every in-between image (counted in
+the log). If neither generator can be made either, `initialize` fails as before and the frames pass through.
+`VAMKIT_NO_NVOF=1` makes the optical-flow set-up fail on a card that has it; with `VAMKIT_NO_DLSS=1` it gives the path
+of a Radeon or Arc card in VR. The desktop presenter never used optical flow.
+
+**The launcher does not choose for the machine.** What was chosen goes into the run as it is; the layer and the
+presenter try it and only then put the other in its place. (A first version replaced DLSS by FSR before the launch,
+from the card's name and from whether `nvngx_dlssg.dll` lay in the kit, and saved the replacement: an RTX 50 with the
+file missing got FSR at 2x and no word about it. Removed.) What the launcher does instead, `runtimes.py`: an NVIDIA
+library the kit lacks (`nvngx_dlss.dll`, `nvngx_dlssd.dll`, `nvngx_dlssg.dll`) is taken from the graphics driver's
+model store (`%ProgramData%/NVIDIA/NGX/models/<dlss|dlssd|dlssg>/versions/<major<<16|minor<<8|patch>/files/*.bin`,
+the release the mod was run against first, else the newest), its signature checked, copied to
+`<VaM>/vamkit/cache/ngx/` under its DLL name and passed to the game; what is found nowhere is printed, written to
+`runtimes.txt` in the run's log folder and shown in the panel with what is lost and how to get it (`launch_notes`).
+
+**FSR's GPU time per pair** is measured like DLSS-G's (two timestamp queries around what `record` puts on the list,
+B's copy and the generated frame's copy included) and reported in the line every 1800 pairs.
+
 ### Multipliers and cadence
 
 `[ofxr] frame_multiplier` 2, 3 or 4 (menu, live). The layer tells the game, through `xrWaitFrame`, to run at the display rate divided by the
@@ -53,7 +119,7 @@ multiplier, so a 120 Hz headset gives the game 60, 40 or 30 real frames a second
 game sees one frame without synthetics and its period step by one display period. 3x and 4x run the "deep pipeline" (`[ofxr] deep_pipeline=1`,
 one display period of extra depth bought with about one frame of latency); the shallow pipeline could not receive a frame from VaM in time for 3x. A 4x
 session is created with staging for four frames whatever the launch multiplier (`OFXR_FRAME_MULTIPLIER=4` at launch; `frames_most`), so
-2x/3x/4x switch without remaking swap chains. The layer generates at most 3 frames per real frame; the NGX feature itself reports 5 but 5x is not built.
+2x/3x/4x switch without remaking swap chains. The layer generates at most 3 frames per real frame; the NGX feature itself reports 5 (6x): see "Not built here".
 
 Budget per real frame: display period x multiplier.
 
@@ -95,7 +161,7 @@ button closed them made the layer restart its presenter while the button was sti
 
 OFXR's original backend: NVIDIA optical flow (`[ofxr] backend=nvidia`, `nvidia_preset=medium`, `nvidia_input_scale=50` percent per axis, `nvidia_bidirectional=0`), used
 for any pair without DLSS-G guides (an eye left out, a render larger than the output, DLSS-G unavailable). The launcher writes these into `tray.ini` (`flow_ini` in
-`LaunchPanel.py`). The mod does not offer optical flow as a mode of its own; it is a safety net.
+`LaunchPanel.py`). The mod does not offer optical flow as a mode of its own; it is a safety net, and one the layer can now do without (above).
 
 ### The hidden-area mask and black bars on head translation
 
@@ -110,7 +176,7 @@ confirmation in a real headset. Any "only on the headset" artefact: first ask wh
 
 Cause: the hand-over copy and the next pair's DLSS-G wrote the same staging slot with no GPU synchronisation. Fix: `synchronize_producer_queue`
 (`d3d12_frame_synthesizer.cpp`) in the hand-over; confirmed in a real headset. Motion vectors had been suspected first and were proved right
-(per-frame MV comparison with `tests/mv_check.py`); do not suspect them again without new evidence. The stock layer's 3x mode used a shallow pipeline that could
+(per-frame MV comparison with `tests/mv_check.py`); reopening that needs new evidence. The stock layer's 3x mode used a shallow pipeline that could
 not wait for VaM's frames; 3x and 4x therefore take the deep pipeline.
 
 ### The desktop presenter
@@ -144,12 +210,15 @@ not wait for VaM's frames; 3x and 4x therefore take the deep pipeline.
 |---|---|---|
 | `ofxr_bridge.ini` (VR) or `desktop-presenter.ini` (desktop) `[ofxr] frame_multiplier` | 2, 3, 4 | frames per real frame, live |
 | `performance.ini` `[Performance] FrameGeneration` | 0/1 | on = generate; 0 pauses through the tray's pause event (VR) or presents unpaced (desktop) |
-| `[Performance] DLSSGLite` | 0/1 | NVIDIA lighter candidate blend; quality is lower |
+| `[Performance] FrameGenModel` | `DLSS`, `FSR` | which generator; live. The other one stands in where the chosen one cannot run. FSR is 2x whatever the multiplier |
+| `[Performance] DLSSGLite` | 0/1 | NVIDIA lighter candidate blend; quality is lower. DLSS-G only |
 | `[Performance] GpuPriority` | `default`/`high`/`realtime`/`cycle` | process GPU scheduling class (VR layer) |
 | `[Performance] DLSSFGEyes` | 0-3 | diagnostic: eyes that get DLSS-G (others optical flow) |
 | `ofxr_bridge.ini` `[ofxr] deep_pipeline` | 0/1 | one display period of extra depth; needed for 3x and 4x |
 | `[ofxr] backend`, `nvidia_preset`, `nvidia_input_scale`, `nvidia_bidirectional` | `nvidia`, `medium`, 50, 0 | optical-flow fallback |
-| environment `OFXR_DLSSG`, `OFXR_DLSSG_COPIES`, `OFXR_DLSSG_CAPTURE`, `OFXR_FRAME_MULTIPLIER` | 1 / 1 / dir / 4 | enable; copy mode; capture bursts of DLSS-G inputs for `tests/mv_check.py`; start size |
+| environment `OFXR_DLSSG`, `OFXR_DLSSG_COPIES`, `OFXR_DLSSG_CAPTURE`, `OFXR_FRAME_MULTIPLIER` | 1 / 1 / dir / 4 | enable guided generation (either generator); DLSS-G's copy mode; capture bursts of DLSS-G inputs for `tests/mv_check.py`; start size |
+| environment `VAM_FSR_RUNTIME_PATH` | `<kit>/bin/fsr` | where the FSR API's DLLs are; empty or absent: no FSR |
+| environment `VAMKIT_NO_DLSS` | 1 | a test: NGX refuses, so DLSS-G is unavailable and FSR generates (and the compositor has no DLSS SR and no RR). Run on the desktop: `FrameGenModel=DLSS` in the file, `Frame generation model: FSR (the one chosen ... cannot run here)` in dlssg.log, 3600 pairs with 3 resets, real frame rate 72-78 at a 160 Hz output |
 
 ## Measured
 
@@ -166,11 +235,21 @@ Simulated headset unless stated; costs per real frame added to the frame (frame 
 | Real frame time, 144 Hz, 4x, one scene | about 30 ms on the headset vs about 19.5 ms simulated; the streaming app itself takes 0.7-1 ms per displayed frame (3-4 ms per real frame at 4x), about 4.5 ms is unexplained |
 | Desktop presenter v2, 160 Hz, path tracing with RR, scene playing | 3x RR input 50%: 51.2 real fps; 3x RR 75% with lite: 52.3; 4x RR 50%: 39.4 (caps 53.3 and 40); present interval median 6.4 ms, p95 6.8-6.9 ms; repeated frames 0 |
 | Same scene, v1 presenter | real frame rate quantised to 160/k |
+| FSR frame generation 3.1.6 on the desktop, one session (RTX 5090 D, window 3840 x 2160, input 67%, one person standing, the model switched live) | real frame rate 37 with DLSS-G at 4x, 71-73 with FSR (2x whatever the multiplier says), 37 again with DLSS-G; 1800 FSR pairs with 1 reset; a generated frame differs from the real frame it follows by 65-71 dB PSNR in this near-still scene (DLSS-G: 61-65 dB): no artefact, and no test of motion |
+| FSR frame generation in VR, simulated headset (144 Hz, 3072 x 3264 per eye, input 50%, the same scene) | one generator per eye; VaM renders 36 fps with DLSS-G at 4x, 72-73 with FSR, 36 again with DLSS-G; 144 frames a second handed to the headset each time, no repeated refresh |
+| No NVIDIA optical flow and no DLSS (`VAMKIT_NO_NVOF=1`, `VAMKIT_NO_DLSS=1`), simulated headset, 144 Hz, 3072 x 3264 per eye, two sessions | `K` and `DLSS` stay in the run's file; XeSS stands in for K, FSR for DLSS-G, each eye's swapchain "runs on FSR alone"; VaM 73 fps, 144 frames a second handed over, no repeated refresh in 4609; one pair per eye held the previous frame (the first, without guides); head turn at 20 degrees a second: shift per frame within 0.35 px of the pose |
+| FSR 3.1.6 frame generation, GPU time per pair, copies included | 0.98-1.04 ms per eye at 3072 x 3264 (render 1528 x 1624); 0.88-0.90 ms at 3840 x 2160 on the desktop (render 2573 x 1447). DLSS-G's quality model takes several times that (frame-budget.md) |
+| `nvngx_dlssg.dll` removed from the kit, desktop | the launcher takes 310.9.16 from the graphics driver's store (`runtimes.txt`); DLSS-G 2x 72 fps, 4x 37 fps as with the kit's file |
+| FSR asked for two generated frames per pair (`VAMKIT_FSR_FRAMES=2`, FSR 3.1.6, NVIDIA card) | no error, the same 0.90 ms, and the second output comes back untouched: equal to the real frame pixel for pixel. This provider makes one frame per pair |
+| Head turn at 20 degrees a second in that session: content shift between consecutive frames handed to the headset (real and generated), half-size captures, the pose calls for 2.27 px | DLSS-G 4x: 2.53-2.62 px; FSR 2x: 2.52-2.60 px (with FSR upscaling too: 2.53-2.64). The same constant offset from the pose with both and the same evenness: FSR's frames sit at their in-between poses like DLSS-G's |
 
 ## Pitfalls
 
 | Symptom | Cause | What to do |
 |---|---|---|
+| 3x or 4x chosen, 2x shown | FSR is the generator (chosen, or DLSS-G cannot run on this card): one frame per pair | `dlssg.log`: `Frame generation model: FSR`, `Frame multiplier switched live to 2X (...; FSR frame generation makes one frame per pair)` |
+| `FSR frame generation not offered` or `cannot run here` | the loader or `amd_fidelityfx_framegeneration_dx12.dll` is not in `vamkit/bin/fsr` (optional items of `vamkit fetch`) | fetch and install them |
+| A short stall when the generator model is switched | the queue is drained and the new generator's feature or context is made (0.2-0.6 s) | expected; it is a menu action |
 | DLSS-G "feature creation failed" together with RR / NR failures | NGX could not get address space (CUDA module); see [frame-path.md](frame-path.md) | find the reserver of address space |
 | DLSS-G unavailable though the runtime is present | NGX D3D12 was initialised before the DLSS-G folder was known | `OFXR_PrepareFrameGenerationV3` first, then NR |
 | Stutter with a high displayed frame count | a real frame passed its n-period budget | give the real frame margin; count 4+ period gaps in the flight log |
@@ -188,11 +267,67 @@ Simulated headset unless stated; costs per real frame added to the frame (frame 
   asymmetric frusta have no correct matrix. **One queue per eye** was worse (the GPU is already full; the pair finished 0.1-0.3 ms later); one shared queue is right.
 - **Community-optimised DLSS-G kernels** (rewritten kernels with cross-kernel fusion): its author has not measured RTX 40 / 50 cards against the official kernels and it may be
   slower; they are built for an older architecture and the driver would JIT them. Not integrated, not measured here.
-- **5x**: the feature reports a maximum of 5, the layer's staging is built for 4.
+@@@ END
+
+- **FSR's own swap chain** (AMD's recommended integration): VR has no swap chain, and on the desktop it would replace
+  the presenter's pacing. The context is dispatched by hand instead (above).
+@@@ END
+
+- **The layer's FidelityFX optical-flow backend** as the way to frame generation without NVIDIA: it needs AMD's SDK
+  1.1.4 built from source and gives optical flow without the engine's depth and motion; FSR frame generation uses both.
 - **Optical flow as the default**: only DLSS-G has the engine's depth, motion and camera.
+
+## Not built here, and what it takes
+
+Nothing below is ruled out. Each entry says where to start and what a session must show.
+
+- **DLSS Frame Generation at 5x and 6x.** `nvngx_dlssg.dll` 310.9.16 on an RTX 50 reports `MultiFrameCountMax=5`
+  (dlssg.log); the code stops at three generated frames. To raise it: `kGuidedMaxOutputs`
+  (`d3d12_frame_generator.hpp`), `kMaxExtraSynthetics` and the per-output fractions (`d3d12_frame_synthesizer.hpp`),
+  the layer's `frames_most` and swapchain budget in `openxr_layer.cpp` ("four for 3X and six for 4X"), the presenter's
+  clamp to 2-4 and its flip buffers (`desktop_presenter.cpp`), `(2, 3, 4)` in `LaunchPanel.py`, the multiplier row of
+  `VaMVRMenu.cs`, `OFXR_FRAME_MULTIPLIER`. Show on the simulated headset: the cadence (144 Hz needs 28.8 real fps at
+  5x, 24 at 6x), no repeated refresh, DLSS-G's time per pair.
+- **XeSS frame generation on the desktop** (never VR: its only entry points wrap a DXGI swap chain).
+  `xefgSwapChainD3D12InitFromSwapChain` can take the presenter's swap chain; XeSS then presents and paces by itself, so
+  the presenter hands it real frames only, tags depth and motion (`xefgSwapChainD3D12TagFrameResource`) and the camera
+  (`xefgSwapChainTagFrameConstants`) and calls `xefgSwapChainSetPresentId` before `Present`. It needs XeLL on every
+  card (`xellD3D12CreateContext`, `xefgSwapChainSetLatencyReduction`, sleep and markers each frame), `libxess_fg.dll`
+  and `libxell.dll` from Intel's repository at the commit the manifest pins, and a generator kind of its own (it
+  returns no texture, so it does not fit `D3D12GuidedFrameGenerator`). One generated frame off Intel cards, up to
+  `maxSupportedInterpolations` on Arc. The owner of the development machine was asked on 2026-11-11 and did not want
+  it for that machine, where FSR already gives 2x; on an Arc card it is the way to more than 2x on a flat screen.
+- **FSR with more than one generated frame.** The dispatch has four outputs; the provider this ran on (3.1.6, an
+  NVIDIA card) fills one (Measured). `VAMKIT_FSR_FRAMES=2` repeats the probe on any card: the shown generated frame is
+  then the second output, and a capture equal to the real frame means it was not written. If a provider fills more
+  (AMD's ML generator on a Radeon was not run), extend `max_outputs()` and the single `output` texture of
+  `D3D12FsrFrameGenerator`; the layer and the presenter already follow `max_outputs()`.
+- **The graphics drivers' own frame generation on the desktop** (NVIDIA Smooth Motion, AMD Fluid Motion Frames). They
+  double what a swap chain presents, from colour alone: the presenter's output, never a headset. Nothing in the mod
+  stops them; stacked on the mod's own generation they would interpolate interpolated frames, so one of the two is switched off (`[Performance] FrameGeneration=0`). AMD's can be
+  switched by a program through ADLX (`GetAMDFluidMotionFrames`, `SetEnabled`); NVIDIA's is a per-program setting of
+  the NVIDIA app. Not tried: whether Smooth Motion engages on the presenter's swap chain (a D3D12 queue of its own
+  under a D3D11On12 game). One launch finds out.
+- **Lossless Scaling** captures a window and shows interpolated frames in its own; it has no interface for a game. It
+  can run over the desktop window with the mod's generation off.
+- **The headset runtimes' own synthesis** (Virtual Desktop's SSW, SteamVR motion smoothing, Meta's ASW) runs at half
+  rate in the runtime, and the launcher asks for SSW off while the mod generates. The compositor submits no depth
+  layer (`XR_KHR_composition_layer_depth`), which some runtimes use to reproject position: that would be added where
+  `components/render/opencomposite` builds the projection layer. Whether a PC runtime takes motion vectors from the
+  application (`XR_FB_space_warp`) was not established.
+- **Optical flow on cards without NVIDIA's.** Upstream's FidelityFX backend is compiled out (`external/ffx-stub`);
+  AMD's FidelityFX SDK 1.1.4 (MIT) built and given as `XRFG_FIDELITYFX_SDK_ROOT` brings it back. It would serve only
+  pairs without guides, which now hold the previous frame.
 
 ## Open
 
+- FSR frame generation was run on one NVIDIA card, with a near-still scene on the desktop and a scripted head turn on
+  the simulated headset. Nobody judged it in motion on a monitor or in a headset, and nothing was run on a Radeon or an
+  Arc card (where AMD's API may select its ML generator for the context; documented only with AMD's swap chain).
+- VR on Radeon and Arc: the layer's mode without NVIDIA optical flow was run only on an NVIDIA card with
+  `VAMKIT_NO_NVOF=1` (see Measured); what else of the layer or its tray assumes an NVIDIA card is unknown.
+- DLSS-G alone without optical flow (`VAMKIT_NO_NVOF=1`, 4x): 9 repeated refreshes in 4608 (32 s) where the same
+  build with optical flow had none in 1152 (8 s). Not attributed; no pair was held.
 - `GpuPriority` has not been run on a headset; whether it moves the quality model back from 4.4 ms toward 2.3 ms is unknown.
 - Heavy scenes in a real headset reached only 90-115 displayed frames a second at 3x and 4x; the simulated headset did not reproduce it. A controlled
   headset A/B (same position, menus closed, script alternating 3x and 4x) is needed.
@@ -207,5 +342,16 @@ Simulated headset unless stated; costs per real frame added to the frame (frame 
   `python -I tests/mv_check.py <burst dir> [<image dir>]`. It fits sampling of A at B's motion for a range of scales (1.0 is correct), per tile, and
   recomputes motion from depth and the camera matrix. Misfits are luminance differences over textured pixels only.
 - `dlssg.log` (`OFXR_DLSSG_LOG`) shows `DLSS-G[n] generator ready ... in place`, mode switches, `desktop ResizeBuffers ... kept` and foreground changes.
+  For FSR: `FSR frame generation can run here; versions ...`, `Frame generation model: FSR`, `FSR-FG[n] context created: ...
+  version 3.1.6, dispatched by hand (no FSR swap chain)`, `FSR-FG[n] first pair recorded`, and a count every 1800 pairs.
+- What was asked for and what generates, for a program: `running.json` in the run's `dlssg` log folder
+  (`write_running` in `d3d12_fsrfg.cpp`, written whenever a generator is made, by the layer and by the presenter):
+  `frame_generation` {`wanted`, `running`, `reason`, `frames_most`}, `can_run` and `why_not` for `DLSS` and `FSR`.
+  `running` is `none` where neither could be made. Read it rather than the log's wording.
+- Switches for the paths this machine does not take by itself, set in the environment of the script that starts the
+  session: `VAMKIT_NO_DLSS=1` (NGX refuses), `VAMKIT_NO_NVOF=1` (no NVIDIA optical flow), `VAMKIT_AS_VENDOR=1002`
+  (the compositor orders the stand-ins as on an AMD card), `VAMKIT_FSR_FRAMES=2` (the probe above).
+- On the desktop `VaMDLSSBridge.CaptureGenerated(path)` (through the test agent) writes the next generated frame, the
+  real frame it follows (`.real.ppm`) and what was presented (`.presented.ppm`).
 - Display cadence and hitches can be read from the flight log, but only if diagnostics were on for the run.
 - Only a person in a headset can confirm head-turn artefacts, the hidden-area bars, encoder blockiness and the feeling of latency.

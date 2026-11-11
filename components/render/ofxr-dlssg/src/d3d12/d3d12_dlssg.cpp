@@ -330,7 +330,19 @@ std::mutex& ngx_mutex() {
     return mutex;
 }
 
+// Why DLSS Frame Generation is not available, in words, for running.json (d3d12_fsrfg.cpp).
+std::mutex g_why_mutex;
+std::string g_why_not;
+void note_why_not(const std::string& why) noexcept {
+    try {
+        std::scoped_lock lock(g_why_mutex);
+        g_why_not = why;
+    } catch (...) {
+    }
+}
+
 void write_status(const char* status, const std::string& detail) noexcept {
+    if (std::strcmp(status, "failed") == 0) note_why_not(detail);
     try {
         const std::wstring directory = environment(L"OFXR_DLSSG_LOG");
         if (directory.empty()) return;
@@ -388,6 +400,9 @@ struct NgxDevice {
     unsigned multi_frame_count_max{1};
 };
 
+// dlssg_state(): the outcome of the last NGX bring-up for DLSS-G.
+std::atomic<int> g_ngx_state{-1};
+
 // One NGX initialization per D3D12 device for the life of the process: the
 // device is kept referenced so its address is never reused by another.
 NgxDevice* ngx_for(ID3D12Device* device) {
@@ -399,7 +414,16 @@ NgxDevice* ngx_for(ID3D12Device* device) {
     entry->device = device;
     NgxDevice* result = entry.get();
     devices.push_back(std::move(entry));
+    // Every early return below is a failure; the one success sets 1.
+    g_ngx_state = 0;
 
+    // A test of the path a card without DLSS Frame Generation takes, on a card that has it.
+    if (environment(L"VAMKIT_NO_DLSS") == L"1") {
+        dlssg_log("DLSS-G unavailable: switched off for this run (VAMKIT_NO_DLSS=1)");
+        note_why_not("DLSS is switched off for this run (VAMKIT_NO_DLSS=1)");
+        result->failed = true;
+        return result;
+    }
     const std::wstring runtime = environment(L"OFXR_DLSSG_RUNTIME_PATH");
     std::wstring data = environment(L"OFXR_DLSSG_LOG");
     if (data.empty()) {
@@ -457,11 +481,36 @@ NgxDevice* ngx_for(ID3D12Device* device) {
     }
     result->multi_frame_count_max = max_count;
     result->ready = true;
+    g_ngx_state = 1;
     dlssg_log("DLSS-G: NGX D3D12 initialized, frame generation available, MultiFrameCountMax=%u", max_count);
     return result;
 }
 
 }  // namespace
+
+int dlssg_state() noexcept {
+    return g_ngx_state.load();
+}
+
+std::string dlssg_why_not() noexcept {
+    try {
+        std::scoped_lock lock(g_why_mutex);
+        return g_why_not;
+    } catch (...) {
+        return {};
+    }
+}
+
+bool dlssg_available(ID3D12Device* device) noexcept {
+    if (device == nullptr) return false;
+    try {
+        std::scoped_lock lock(ngx_mutex());
+        const NgxDevice* ngx = ngx_for(device);
+        return ngx != nullptr && ngx->ready;
+    } catch (...) {
+        return false;
+    }
+}
 
 bool dlssg_requested() noexcept {
     // The launcher sets it before the game starts; read it once.
@@ -1671,6 +1720,11 @@ HRESULT D3D12DlssgFrameGenerator::initialize(ID3D12Device* device, ID3D12Command
     } catch (...) {
         return E_OUTOFMEMORY;
     }
+}
+
+std::uint32_t D3D12DlssgFrameGenerator::max_outputs() const noexcept {
+    return impl_ != nullptr && impl_->ngx != nullptr
+        ? std::min<std::uint32_t>(kMaxOutputs, impl_->ngx->multi_frame_count_max) : kMaxOutputs;
 }
 
 bool D3D12DlssgFrameGenerator::can_generate(const DlssMotionVectorFrame& guides, std::uint32_t outputs) const noexcept {

@@ -135,6 +135,16 @@ if(WIN32 AND XRFG_BUILD_LAYER)
         message(FATAL_ERROR "NVIDIA NGX SDK headers and nvsdk_ngx_d.lib are required for DLSS Frame Generation")
     endif()
 
+    # AMD FSR SDK 2.4.0 headers (the FSR API) for FSR frame generation, src/d3d12/d3d12_fsrfg.cpp. Headers only: the
+    # API's signed DLLs are not linked, they are loaded at run time from VAM_FSR_RUNTIME_PATH. This is not the
+    # FidelityFX SDK 1.1.4 above, which the optional optical-flow backend would be built from.
+    set(XRFG_FSR_SDK_ROOT "${XRFG_VAMKIT_ROOT}/third_party/fsr-sdk"
+        CACHE PATH "AMD FSR SDK headers: api/include, framegeneration/include")
+    if(NOT EXISTS "${XRFG_FSR_SDK_ROOT}/api/include/ffx_api.h" OR
+       NOT EXISTS "${XRFG_FSR_SDK_ROOT}/framegeneration/include/ffx_framegeneration.h")
+        message(FATAL_ERROR "AMD FSR SDK headers are required for FSR frame generation (python tools/vamkit fetch fsr-sdk)")
+    endif()
+
     set(XRFG_NVIDIA_OPTICAL_FLOW_INCLUDE_DIR
         "${XRFG_NVIDIA_OPTICAL_FLOW_SDK_ROOT}/NvOFInterface")
     if(NOT EXISTS "${XRFG_NVIDIA_OPTICAL_FLOW_INCLUDE_DIR}/nvOpticalFlowCommon.h" OR
@@ -219,6 +229,7 @@ if(WIN32 AND XRFG_BUILD_LAYER)
         src/d3d12/d3d12_history.cpp
         src/d3d12/d3d12_frame_synthesizer.cpp
         src/d3d12/d3d12_dlssg.cpp
+        src/d3d12/d3d12_fsrfg.cpp
         src/common/dlss_motion_vectors.cpp
         "${XRFG_PACK_INPUT_HEADER}"
         "${XRFG_GAME_MOTION_SYNTHESIZE_PIXEL_HEADER}"
@@ -236,7 +247,8 @@ if(WIN32 AND XRFG_BUILD_LAYER)
             "${XRFG_GENERATED_SHADER_DIR}"
             "${XRFG_FIDELITYFX_INCLUDE_DIR}"
             "${XRFG_NVIDIA_OPTICAL_FLOW_INCLUDE_DIR}"
-            "${XRFG_NGX_SDK_ROOT}/include")
+            "${XRFG_NGX_SDK_ROOT}/include"
+            "${XRFG_FSR_SDK_ROOT}")
     target_compile_features(xrfg_d3d12_history PUBLIC cxx_std_20)
     target_link_libraries(xrfg_d3d12_history PUBLIC
         xrfg_core

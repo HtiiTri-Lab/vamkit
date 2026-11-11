@@ -1,4 +1,4 @@
-// In-game menu of the VaM hair budget plugin: a "头发预算" tab in VaM's main
+// In-game menu of the VaM hair budget plugin: a "Hair Budget" tab in VaM's main
 // menu (SuperController.mainMenuTabSelector; MenuTab=UserPrefs in the ini puts
 // it under User Preferences instead, MenuTab=None leaves the menu alone).
 //
@@ -17,13 +17,14 @@ using UnityEngine.UI;
 public sealed partial class VaMHairBudget
 {
     private const string MenuTabName = "Hair Budget";      // GameObject name UITabSelector matches on
-    private const string MenuTabLabel = "头发预算";
+    private static readonly string MenuTabLabel = Lang.T("Hair Budget");
     private const string NoTranslate = "᠎";            // XUnity AutoTranslator IgnoreTextStartingWith
     private const int MenuAttemptsMax = 5;
 
     private static readonly List<string> ProfileIds = new List<string>(new string[] { "Off", "High", "Balanced", "Performance", "Custom" });
     private static readonly List<string> ProfileLabels = new List<string>(new string[] {
-        "关闭（不修改头发）", "高质量（只压极端值）", "均衡（推荐）", "性能", "自定义（右侧数值）" });
+        Lang.T("Off (hair left as it is)"), Lang.T("High quality (only the extremes)"), Lang.T("Balanced (recommended)"), Lang.T("Performance"),
+        Lang.T("Custom (the values on the right)") });
 
     private sealed class PersonStat
     {
@@ -204,44 +205,40 @@ public sealed partial class VaMHairBudget
         RectTransform right = MakeColumn(panel, "Right", 0.5f, 1f);
 
         AddText(left, prefabs, 330f,
-            "VaM 头发预算\n\n" +
-            "给物理头发的渲染开销设上限（每个人物、整个场景）。超出时只把最贵的头发降到同一水位，较便宜的头发和小件不动。\n\n" +
-            "只改实际渲染与物理读取的数值：头发滑块、场景和预设文件里仍是原值，存档不受影响。\n\n" +
-            "开销 = 面片 × hm × (cd + 25) × 24/49 段（每根发丝另算 25 段）\n" +
-            "设置自动保存到 BepInEx\\config\\VaMHairBudget.ini");
-        uiProfile = new JSONStorableStringChooser("profile", ProfileIds, ProfileLabels, settings.profile, "档位",
+            Lang.T("VaM Hair Budget\n\nPuts a ceiling on what simulated hair costs to draw (per person and for the whole scene). Above it, only the most expensive hair comes down to a common level; cheaper hair and small pieces stay as they are.\n\nOnly the values the renderer and the physics read change: the hair sliders, the scene and the preset files keep their own values, and saves are not affected.\n\nCost = patches × hm × (cd + 25) × 24/49 segments (25 more per strand)\nSettings are saved to BepInEx\\config\\VaMHairBudget.ini as you change them"));
+        uiProfile = new JSONStorableStringChooser("profile", ProfileIds, ProfileLabels, settings.profile, Lang.T("Profile"),
             new JSONStorableStringChooser.SetStringCallback(OnProfile));
         UIDynamicPopup popup = Make<UIDynamicPopup>(prefabs.configurablePopupPrefab, left);
-        popup.label = "档位";
+        popup.label = Lang.T("Profile");
         uiProfile.popup = popup.popup;
         uiShadows = new JSONStorableBool("shadows", settings.disableShadows, new JSONStorableBool.SetBoolCallback(OnShadows));
-        AddToggle(left, prefabs, uiShadows, "头发不投射阴影（每盏阴影灯少画一遍头发）");
+        AddToggle(left, prefabs, uiShadows, Lang.T("Hair casts no shadows (one pass less per light)"));
         uiPaused = new JSONStorableBool("paused", paused, new JSONStorableBool.SetBoolCallback(OnPaused));
-        AddToggle(left, prefabs, uiPaused, "临时关闭（对比原效果，不保存）");
-        AddText(left, prefabs, 110f, "头发物理速率：默认跟随身体物理（同样的步数和步长）；选一个速率则是 VaM 物理速率设置的一份副本，只作用于物理头发。");
-        uiHairRate = new JSONStorableStringChooser("hairRate", HairRateIds, HairRateLabels, settings.hairRate, "头发物理速率",
+        AddToggle(left, prefabs, uiPaused, Lang.T("Off for now (to compare; not saved)"));
+        AddText(left, prefabs, 110f, Lang.T("Hair physics rate: by default it follows the body's physics (the same steps and step length); a rate chosen here is a copy of VaM's physics rate setting that applies to simulated hair only."));
+        uiHairRate = new JSONStorableStringChooser("hairRate", HairRateIds, HairRateLabels, settings.hairRate, Lang.T("Hair physics rate"),
             new JSONStorableStringChooser.SetStringCallback(OnHairRate));
         UIDynamicPopup ratePopup = Make<UIDynamicPopup>(prefabs.configurablePopupPrefab, left);
-        ratePopup.label = "头发物理速率";
+        ratePopup.label = Lang.T("Hair physics rate");
         uiHairRate.popup = ratePopup.popup;
-        uiHairCap = new JSONStorableStringChooser("hairCap", HairCapIds, HairCapIds, settings.hairCap.ToString(), "头发物理更新上限",
+        uiHairCap = new JSONStorableStringChooser("hairCap", HairCapIds, HairCapIds, settings.hairCap.ToString(), Lang.T("Hair update cap"),
             new JSONStorableStringChooser.SetStringCallback(OnHairCap));
         UIDynamicPopup capPopup = Make<UIDynamicPopup>(prefabs.configurablePopupPrefab, left);
-        capPopup.label = "头发物理更新上限";
+        capPopup.label = Lang.T("Hair update cap");
         uiHairCap.popup = capPopup.popup;
         uiStatus = new JSONStorableString("status", "");
         UIDynamicTextField status = Make<UIDynamicTextField>(prefabs.configurableTextFieldPrefab, left);
         status.height = 470f;
         uiStatus.dynamicText = status;
 
-        AddText(right, prefabs, 110f, "拖动下面任意一项会切换到“自定义”档位；上限为 0 表示不限。");
-        uiPerson = AddSlider(right, prefabs, "每人开销上限（万段）", 0f, 300f, "F0", 0);
-        uiScene = AddSlider(right, prefabs, "场景开销上限（万段）", 0f, 800f, "F0", 1);
-        uiDensity = AddSlider(right, prefabs, "单件密度上限 hm×cd", 0f, 4096f, "F0", 2);
-        uiIterations = AddSlider(right, prefabs, "物理迭代上限", 0f, 5f, "F0", 3);
-        uiWidth = AddSlider(right, prefabs, "发丝加宽补偿（倍）", 1f, 2f, "F2", 4);
-        uiCdMin = AddSlider(right, prefabs, "curveDensity 下限", 2f, 32f, "F0", 6);
-        uiHmMin = AddSlider(right, prefabs, "hairMultiplier 下限", 1f, 16f, "F0", 7);
+        AddText(right, prefabs, 110f, Lang.T("Moving any of these switches the profile to Custom; a limit of 0 means no limit."));
+        uiPerson = AddSlider(right, prefabs, Lang.T("Cost limit per person (10k segments)"), 0f, 300f, "F0", 0);
+        uiScene = AddSlider(right, prefabs, Lang.T("Cost limit for the scene (10k segments)"), 0f, 800f, "F0", 1);
+        uiDensity = AddSlider(right, prefabs, Lang.T("Density limit per piece, hm×cd"), 0f, 4096f, "F0", 2);
+        uiIterations = AddSlider(right, prefabs, Lang.T("Physics iteration limit"), 0f, 5f, "F0", 3);
+        uiWidth = AddSlider(right, prefabs, Lang.T("Strand width compensation (×)"), 1f, 2f, "F2", 4);
+        uiCdMin = AddSlider(right, prefabs, Lang.T("curveDensity floor"), 2f, 32f, "F0", 6);
+        uiHmMin = AddSlider(right, prefabs, Lang.T("hairMultiplier floor"), 1f, 16f, "F0", 7);
     }
 
     private static RectTransform MakeColumn(RectTransform parent, string name, float x0, float x1)
@@ -444,28 +441,28 @@ public sealed partial class VaMHairBudget
     {
         StringBuilder b = new StringBuilder();
         int index = ProfileIds.IndexOf(settings.profile);
-        b.Append("当前档位：").Append(index >= 0 ? ProfileLabels[index] : settings.profile);
-        if (paused) b.Append("　（已临时关闭）");
+        b.Append(Lang.T("Profile: ")).Append(index >= 0 ? ProfileLabels[index] : settings.profile);
+        if (paused) b.Append(Lang.T("  (off for now)"));
         b.Append('\n').Append(HairRateStatus()).Append('\n');
         if (personStats.Count == 0)
         {
-            b.Append("\n场景里没有正在显示的物理头发。");
+            b.Append('\n').Append(Lang.T("No simulated hair is shown in the scene."));
             return b.ToString();
         }
         double requested = 0, drawn = 0;
         foreach (PersonStat p in personStats) { requested += p.requested; drawn += p.drawn; }
-        b.Append("场景开销：").Append(Wan(requested)).Append(" → ").Append(Wan(drawn)).Append(" 万段");
-        if (!paused && limits.enabled && limits.sceneBudget > 0) b.Append("（上限 ").Append(Wan(limits.sceneBudget)).Append("）");
+        b.Append(Lang.F("Scene cost: {0} → {1} ×10k segments", Wan(requested), Wan(drawn)));
+        if (!paused && limits.enabled && limits.sceneBudget > 0) b.Append(Lang.F(" (limit {0})", Wan(limits.sceneBudget)));
         b.Append("\n\n");
         int shown = 0;
         foreach (PersonStat p in personStats)
         {
-            if (++shown > 8) { b.Append("……另有 ").Append(personStats.Count - 8).Append(" 个人物\n"); break; }
-            b.Append(p.atom).Append("：").Append(p.items).Append(" 件，").Append(Wan(p.requested)).Append(" → ").Append(Wan(p.drawn)).Append(" 万");
-            if (p.lowered > 0) b.Append("（降低 ").Append(p.lowered).Append(" 件）");
+            if (++shown > 8) { b.Append(Lang.F("… and {0} more people", personStats.Count - 8)).Append('\n'); break; }
+            b.Append(Lang.F("{0}: {1} pieces, {2} → {3} ×10k", p.atom, p.items, Wan(p.requested), Wan(p.drawn)));
+            if (p.lowered > 0) b.Append(Lang.F(" ({0} lowered)", p.lowered));
             b.Append('\n');
         }
-        b.Append("\n每件头发的具体改动见 BepInEx\\LogOutput.log（搜 VaM hair budget）。");
+        b.Append('\n').Append(Lang.T("What changed for each piece is in BepInEx\\LogOutput.log (search for VaM hair budget)."));
         return b.ToString();
     }
 

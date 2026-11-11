@@ -4,9 +4,10 @@
     ["NR", "Enabled"], ["NR", "FoveationSize"], ["NR", "Intensity"], ["NR", "LocalStructureStrength"], ["NR", "LocalToneStrength"],
     ["NR", "RegionShiftY"], ["NR", "RenderPreset"], ["NR", "SkinStructureStrength"], ["NR", "Style"],
     ["Performance", "DLSSGLite"], ["Performance", "DLSSMenuNative"], ["Performance", "DLSSPreset"], ["Performance", "DLSSSharpenLast"],
-    ["Performance", "DLSSSharpness"], ["Performance", "FrameGeneration"], ["Performance", "NRAfterScale"], ["Performance", "NRAfterUpscale"],
-    ["Performance", "NRFeatherPercent"], ["Performance", "OutputScale"], ["Performance", "RRStereo"], ["Performance", "RenderScale"],
-    ["Performance", "RenderScaleK"], ["Performance", "RenderScaleL"], ["Performance", "RenderScaleM"], ["Performance", "RenderScaleRR"]
+    ["Performance", "DLSSSharpness"], ["Performance", "FrameGenModel"], ["Performance", "FrameGeneration"], ["Performance", "NRAfterScale"],
+    ["Performance", "NRAfterUpscale"], ["Performance", "NRFeatherPercent"], ["Performance", "OutputScale"], ["Performance", "RRStereo"],
+    ["Performance", "RenderScale"], ["Performance", "RenderScaleFSR"], ["Performance", "RenderScaleK"], ["Performance", "RenderScaleL"],
+    ["Performance", "RenderScaleM"], ["Performance", "RenderScaleRR"], ["Performance", "RenderScaleXeSS"]
   ],
   "layer": [["ofxr", "frame_multiplier"], ["overlay", "position"]],
   "config": {

@@ -3,16 +3,24 @@
 For an agent installing this project into someone's VaM. Read [../protocol/changes.md](../protocol/changes.md) first:
 the VaM folder is the user's, and every step that touches it is announced and reversible.
 
-**Status.** Every step below is a command. The whole flow has been run once from this repository, on the development
-machine, into a content-free copy of a VaM 1.22 installation: fetch (from a local mirror), build, the offline tests,
-install, and the first run on the desktop (`tools/lab/session/first_run.py`: vanilla, then the mod with path tracing
-switched on and off while playing). Not run from this repository's build yet: VR, and scenes with real content. Say
-what you ran and what you did not; do not describe a step as run when it was not.
+**Status.** Every step below is a command. The whole flow has been run from this repository on the development
+machine, twice: into a content-free copy of a repacked VaM 1.22.0.3 with BepInEx 5.0.1, and into an official
+installation (VaM 1.22.0.13 from MeshedVR's updater, BepInEx 5.4.23.6 from its release page, no licence key): fetch
+(from a local mirror), build, the offline tests, install, and the first run (`tools/lab/session/first_run.py`:
+vanilla, then the mod on the desktop with path tracing switched on and off while playing, then the mod in VR on the
+simulated headset with path tracing and frame generation). Its exit code is 0 when every part ran as asked, 2 when it
+works with less than the kit has (a missing run-time file, a plugin that stepped aside, a stand-in upscaler or frame
+generator: each is listed with its reason and remedy, and is yours to mend), 1 when a check failed. Other builds of
+VaM:
+[adapt-vam-version.md](adapt-vam-version.md). Not run from this repository's build yet: a real headset, a graphics
+card that is not NVIDIA's, and scenes with real content. What was left for you to decide on the user's machine:
+[open-items.md](open-items.md). Say what you ran and what you did not; do not
+describe a step as run when it was not.
 
 ## What the user must bring
 
 - Their own licensed VaM 1.x with BepInEx 5 installed in it (`BepInEx/core/BepInEx.dll`, `winhttp.dll` beside
-  `VaM.exe`).
+  `VaM.exe`). Built and run with BepInEx 5.0.1 and 5.4.23.6; the plugins are compiled against the one that is there.
 - Windows 10 or 11, an NVIDIA RTX GPU with a current driver. Path tracing needs DXR 1.1; hair in the path tracer uses
   linear swept spheres, which older RTX generations lack (everything else traces).
 - Visual Studio 2022 Build Tools with the C++ workload, the ATL component (OpenComposite uses it) and a Windows SDK
@@ -34,7 +42,7 @@ in `local/vam.txt` (git-ignored).
 | 3 Build | `python tools/vamkit build` | generators, native libraries and plugins of every component into `out/` |
 | 4 Test | `python tools/vamkit test` | the offline tests against this VaM |
 | 5 Install | `python tools/vamkit install`, then again with `--yes` | the plan first; then copies the build into the VaM folder, records what was there, writes two settings |
-| 6 First run | `<VaM>/vamkit/launcher/LaunchPanel.py` | mod on the desktop first, then VR |
+| 6 First run | `tools/lab/session/first_run.py --vam <VaM>` for you; `<VaM>/vamkit-launcher.bat` (the panel, `vamkit/launcher/LaunchPanel.py`) for the user | mod on the desktop first, then VR |
 
 ### 2 Fetch
 
@@ -130,9 +138,12 @@ An update is the same command: build, `install` (the plan shows `update` lines),
 
 `python tools/lab/session/first_run.py --vam <VaM folder>` does the first three steps below by itself, in the background
 and without a headset: a vanilla session (nothing of the kit may be in the process), then a mod session on the desktop
-with one person, DLSS super resolution and frame generation, and path tracing switched on and off while playing. It
-prints one line per check and keeps what it saw. It starts the game twice (about three minutes): say so first. Then go
-through the steps with the user:
+with one person, DLSS super resolution and frame generation, and path tracing switched on and off while playing. When
+the simulated headset is built (`vamkit fetch --lab --accept-licenses`, `vamkit build --lab`) a third session runs the
+mod in VR on it: the VR session comes up, the frames handed to the headset show a picture, path tracing takes over,
+frame generation hands over one frame per refresh. No real headset is used or needed, and the machine's own OpenXR
+runtime is not touched. It prints one line per check and keeps what it saw. It starts the game two or three times
+(three to six minutes): say so first. Then go through the steps with the user:
 
 1. Start the launch panel, choose **mod** and **Desktop**. The desktop needs no headset and shows whether the chain
    works: the game starts, the menu opens, frame generation is generating.
@@ -140,8 +151,9 @@ through the steps with the user:
    frame after a build waits for the driver to compile the pipelines, about 26 s with the picture frozen, once.
 3. Look at the run's logs in `<VaM>/vamkit/logs/<time>-<mode>/`: no DLSS feature failed to create, the plugins loaded,
    no error storm.
-4. Then VR. To tune from there: [../knowledge/frame-budget.md](../knowledge/frame-budget.md) and
-   [../knowledge/settings-and-menu.md](../knowledge/settings-and-menu.md).
+4. Then VR, in the user's headset. To tune from there: [../knowledge/frame-budget.md](../knowledge/frame-budget.md) and
+   [../knowledge/settings-and-menu.md](../knowledge/settings-and-menu.md); to put numbers on a setup before and after,
+   [../benchmarks/README.md](../benchmarks/README.md).
 5. Show the user **vanilla** in the panel once, so that they know their way back, and `launch.py --restore` for a run
    that was killed.
 

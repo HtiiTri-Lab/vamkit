@@ -1,0 +1,14 @@
+{
+ "processors": 32,
+ "gpu": "NVIDIA GeForce RTX 5090 D",
+ "driver": "616.56",
+ "video_memory": "32607 MiB",
+ "cpu": "AMD Ryzen 9 9950X3D2 16-Core Processor",
+ "desktop": [
+  3840,
+  2160
+ ],
+ "refresh": 144,
+ "multiplier": 4,
+ "seconds": 30.0
+}

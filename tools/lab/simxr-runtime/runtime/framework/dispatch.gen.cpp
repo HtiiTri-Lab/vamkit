@@ -1,0 +1,2425 @@
+// *********** THIS FILE IS GENERATED - DO NOT EDIT ***********
+// MIT License
+//
+// Copyright(c) 2022-2024 Matthieu Bucchianeri
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this softwareand associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
+//
+// The above copyright noticeand this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+#include "pch.h"
+
+#include <runtime.h>
+
+#include "dispatch.h"
+#include "log.h"
+
+#ifndef RUNTIME_NAMESPACE
+#error Must define RUNTIME_NAMESPACE
+#endif
+
+namespace RUNTIME_NAMESPACE {
+    using namespace RUNTIME_NAMESPACE::log;
+
+
+	// Auto-generated wrappers for the APIs.
+
+	XrResult XRAPI_CALL xrEnumerateInstanceExtensionProperties(const char* layerName, uint32_t propertyCapacityInput, uint32_t* propertyCountOutput, XrExtensionProperties* properties) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrEnumerateInstanceExtensionProperties");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrEnumerateInstanceExtensionProperties(layerName, propertyCapacityInput, propertyCountOutput, properties);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrEnumerateInstanceExtensionProperties_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrEnumerateInstanceExtensionProperties: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrEnumerateInstanceExtensionProperties", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrEnumerateInstanceExtensionProperties failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateInstance(const XrInstanceCreateInfo* createInfo, XrInstance* instance) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateInstance");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateInstance(createInfo, instance);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateInstance_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateInstance: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateInstance", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateInstance failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrPollEvent(XrInstance instance, XrEventDataBuffer* eventData) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrPollEvent");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrPollEvent(instance, eventData);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrPollEvent_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrPollEvent: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrPollEvent", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrPollEvent failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrResultToString(XrInstance instance, XrResult value, char buffer[XR_MAX_RESULT_STRING_SIZE]) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrResultToString");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrResultToString(instance, value, buffer);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrResultToString_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrResultToString: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrResultToString", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrResultToString failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrStructureTypeToString(XrInstance instance, XrStructureType value, char buffer[XR_MAX_STRUCTURE_NAME_SIZE]) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrStructureTypeToString");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrStructureTypeToString(instance, value, buffer);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrStructureTypeToString_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrStructureTypeToString: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrStructureTypeToString", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrStructureTypeToString failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetSystem(XrInstance instance, const XrSystemGetInfo* getInfo, XrSystemId* systemId) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetSystem");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetSystem(instance, getInfo, systemId);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetSystem_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetSystem: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetSystem", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetSystem failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetSystemProperties(XrInstance instance, XrSystemId systemId, XrSystemProperties* properties) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetSystemProperties");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetSystemProperties(instance, systemId, properties);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetSystemProperties_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetSystemProperties: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetSystemProperties", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetSystemProperties failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrEnumerateEnvironmentBlendModes(XrInstance instance, XrSystemId systemId, XrViewConfigurationType viewConfigurationType, uint32_t environmentBlendModeCapacityInput, uint32_t* environmentBlendModeCountOutput, XrEnvironmentBlendMode* environmentBlendModes) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrEnumerateEnvironmentBlendModes");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrEnumerateEnvironmentBlendModes(instance, systemId, viewConfigurationType, environmentBlendModeCapacityInput, environmentBlendModeCountOutput, environmentBlendModes);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrEnumerateEnvironmentBlendModes_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrEnumerateEnvironmentBlendModes: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrEnumerateEnvironmentBlendModes", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrEnumerateEnvironmentBlendModes failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateSession(XrInstance instance, const XrSessionCreateInfo* createInfo, XrSession* session) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateSession");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateSession(instance, createInfo, session);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateSession_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateSession: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateSession", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateSession failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrDestroySession(XrSession session) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrDestroySession");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrDestroySession(session);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrDestroySession_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrDestroySession: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrDestroySession", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrDestroySession failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrEnumerateReferenceSpaces(XrSession session, uint32_t spaceCapacityInput, uint32_t* spaceCountOutput, XrReferenceSpaceType* spaces) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrEnumerateReferenceSpaces");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrEnumerateReferenceSpaces(session, spaceCapacityInput, spaceCountOutput, spaces);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrEnumerateReferenceSpaces_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrEnumerateReferenceSpaces: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrEnumerateReferenceSpaces", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrEnumerateReferenceSpaces failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateReferenceSpace(XrSession session, const XrReferenceSpaceCreateInfo* createInfo, XrSpace* space) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateReferenceSpace");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateReferenceSpace(session, createInfo, space);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateReferenceSpace_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateReferenceSpace: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateReferenceSpace", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateReferenceSpace failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetReferenceSpaceBoundsRect(XrSession session, XrReferenceSpaceType referenceSpaceType, XrExtent2Df* bounds) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetReferenceSpaceBoundsRect");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetReferenceSpaceBoundsRect(session, referenceSpaceType, bounds);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetReferenceSpaceBoundsRect_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetReferenceSpaceBoundsRect: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetReferenceSpaceBoundsRect", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetReferenceSpaceBoundsRect failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateActionSpace(XrSession session, const XrActionSpaceCreateInfo* createInfo, XrSpace* space) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateActionSpace");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateActionSpace(session, createInfo, space);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateActionSpace_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateActionSpace: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateActionSpace", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateActionSpace failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrLocateSpace(XrSpace space, XrSpace baseSpace, XrTime time, XrSpaceLocation* location) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrLocateSpace");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrLocateSpace(space, baseSpace, time, location);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrLocateSpace_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrLocateSpace: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrLocateSpace", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrLocateSpace failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrDestroySpace(XrSpace space) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrDestroySpace");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrDestroySpace(space);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrDestroySpace_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrDestroySpace: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrDestroySpace", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrDestroySpace failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrEnumerateViewConfigurations(XrInstance instance, XrSystemId systemId, uint32_t viewConfigurationTypeCapacityInput, uint32_t* viewConfigurationTypeCountOutput, XrViewConfigurationType* viewConfigurationTypes) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrEnumerateViewConfigurations");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrEnumerateViewConfigurations(instance, systemId, viewConfigurationTypeCapacityInput, viewConfigurationTypeCountOutput, viewConfigurationTypes);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrEnumerateViewConfigurations_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrEnumerateViewConfigurations: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrEnumerateViewConfigurations", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrEnumerateViewConfigurations failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetViewConfigurationProperties(XrInstance instance, XrSystemId systemId, XrViewConfigurationType viewConfigurationType, XrViewConfigurationProperties* configurationProperties) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetViewConfigurationProperties");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetViewConfigurationProperties(instance, systemId, viewConfigurationType, configurationProperties);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetViewConfigurationProperties_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetViewConfigurationProperties: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetViewConfigurationProperties", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetViewConfigurationProperties failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrEnumerateViewConfigurationViews(XrInstance instance, XrSystemId systemId, XrViewConfigurationType viewConfigurationType, uint32_t viewCapacityInput, uint32_t* viewCountOutput, XrViewConfigurationView* views) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrEnumerateViewConfigurationViews");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrEnumerateViewConfigurationViews(instance, systemId, viewConfigurationType, viewCapacityInput, viewCountOutput, views);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrEnumerateViewConfigurationViews_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrEnumerateViewConfigurationViews: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrEnumerateViewConfigurationViews", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrEnumerateViewConfigurationViews failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrEnumerateSwapchainFormats(XrSession session, uint32_t formatCapacityInput, uint32_t* formatCountOutput, int64_t* formats) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrEnumerateSwapchainFormats");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrEnumerateSwapchainFormats(session, formatCapacityInput, formatCountOutput, formats);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrEnumerateSwapchainFormats_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrEnumerateSwapchainFormats: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrEnumerateSwapchainFormats", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrEnumerateSwapchainFormats failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateSwapchain(XrSession session, const XrSwapchainCreateInfo* createInfo, XrSwapchain* swapchain) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateSwapchain");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateSwapchain(session, createInfo, swapchain);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateSwapchain_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateSwapchain: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateSwapchain", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateSwapchain failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrDestroySwapchain(XrSwapchain swapchain) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrDestroySwapchain");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrDestroySwapchain(swapchain);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrDestroySwapchain_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrDestroySwapchain: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrDestroySwapchain", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrDestroySwapchain failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrEnumerateSwapchainImages(XrSwapchain swapchain, uint32_t imageCapacityInput, uint32_t* imageCountOutput, XrSwapchainImageBaseHeader* images) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrEnumerateSwapchainImages");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrEnumerateSwapchainImages(swapchain, imageCapacityInput, imageCountOutput, images);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrEnumerateSwapchainImages_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrEnumerateSwapchainImages: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrEnumerateSwapchainImages", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrEnumerateSwapchainImages failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrAcquireSwapchainImage(XrSwapchain swapchain, const XrSwapchainImageAcquireInfo* acquireInfo, uint32_t* index) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrAcquireSwapchainImage");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrAcquireSwapchainImage(swapchain, acquireInfo, index);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrAcquireSwapchainImage_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrAcquireSwapchainImage: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrAcquireSwapchainImage", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrAcquireSwapchainImage failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrWaitSwapchainImage(XrSwapchain swapchain, const XrSwapchainImageWaitInfo* waitInfo) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrWaitSwapchainImage");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrWaitSwapchainImage(swapchain, waitInfo);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrWaitSwapchainImage_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrWaitSwapchainImage: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrWaitSwapchainImage", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrWaitSwapchainImage failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrReleaseSwapchainImage(XrSwapchain swapchain, const XrSwapchainImageReleaseInfo* releaseInfo) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrReleaseSwapchainImage");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrReleaseSwapchainImage(swapchain, releaseInfo);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrReleaseSwapchainImage_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrReleaseSwapchainImage: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrReleaseSwapchainImage", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrReleaseSwapchainImage failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrBeginSession(XrSession session, const XrSessionBeginInfo* beginInfo) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrBeginSession");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrBeginSession(session, beginInfo);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrBeginSession_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrBeginSession: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrBeginSession", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrBeginSession failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrEndSession(XrSession session) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrEndSession");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrEndSession(session);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrEndSession_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrEndSession: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrEndSession", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrEndSession failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrRequestExitSession(XrSession session) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrRequestExitSession");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrRequestExitSession(session);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrRequestExitSession_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrRequestExitSession: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrRequestExitSession", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrRequestExitSession failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrWaitFrame(XrSession session, const XrFrameWaitInfo* frameWaitInfo, XrFrameState* frameState) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrWaitFrame");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrWaitFrame(session, frameWaitInfo, frameState);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrWaitFrame_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrWaitFrame: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrWaitFrame", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrWaitFrame failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrBeginFrame(XrSession session, const XrFrameBeginInfo* frameBeginInfo) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrBeginFrame");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrBeginFrame(session, frameBeginInfo);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrBeginFrame_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrBeginFrame: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrBeginFrame", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrBeginFrame failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrEndFrame(XrSession session, const XrFrameEndInfo* frameEndInfo) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrEndFrame");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrEndFrame(session, frameEndInfo);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrEndFrame_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrEndFrame: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrEndFrame", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrEndFrame failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrLocateViews(XrSession session, const XrViewLocateInfo* viewLocateInfo, XrViewState* viewState, uint32_t viewCapacityInput, uint32_t* viewCountOutput, XrView* views) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrLocateViews");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrLocateViews(session, viewLocateInfo, viewState, viewCapacityInput, viewCountOutput, views);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrLocateViews_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrLocateViews: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrLocateViews", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrLocateViews failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrStringToPath(XrInstance instance, const char* pathString, XrPath* path) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrStringToPath");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrStringToPath(instance, pathString, path);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrStringToPath_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrStringToPath: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrStringToPath", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrStringToPath failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrPathToString(XrInstance instance, XrPath path, uint32_t bufferCapacityInput, uint32_t* bufferCountOutput, char* buffer) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrPathToString");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrPathToString(instance, path, bufferCapacityInput, bufferCountOutput, buffer);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrPathToString_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrPathToString: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrPathToString", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrPathToString failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateActionSet(XrInstance instance, const XrActionSetCreateInfo* createInfo, XrActionSet* actionSet) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateActionSet");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateActionSet(instance, createInfo, actionSet);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateActionSet_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateActionSet: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateActionSet", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateActionSet failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrDestroyActionSet(XrActionSet actionSet) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrDestroyActionSet");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrDestroyActionSet(actionSet);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrDestroyActionSet_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrDestroyActionSet: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrDestroyActionSet", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrDestroyActionSet failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateAction(XrActionSet actionSet, const XrActionCreateInfo* createInfo, XrAction* action) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateAction");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateAction(actionSet, createInfo, action);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateAction_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateAction: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateAction", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateAction failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrDestroyAction(XrAction action) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrDestroyAction");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrDestroyAction(action);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrDestroyAction_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrDestroyAction: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrDestroyAction", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrDestroyAction failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrSuggestInteractionProfileBindings(XrInstance instance, const XrInteractionProfileSuggestedBinding* suggestedBindings) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrSuggestInteractionProfileBindings");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrSuggestInteractionProfileBindings(instance, suggestedBindings);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrSuggestInteractionProfileBindings_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrSuggestInteractionProfileBindings: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrSuggestInteractionProfileBindings", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result) && result != XR_ERROR_PATH_UNSUPPORTED) {
+			ErrorLog("xrSuggestInteractionProfileBindings failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrAttachSessionActionSets(XrSession session, const XrSessionActionSetsAttachInfo* attachInfo) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrAttachSessionActionSets");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrAttachSessionActionSets(session, attachInfo);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrAttachSessionActionSets_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrAttachSessionActionSets: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrAttachSessionActionSets", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrAttachSessionActionSets failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetCurrentInteractionProfile(XrSession session, XrPath topLevelUserPath, XrInteractionProfileState* interactionProfile) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetCurrentInteractionProfile");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetCurrentInteractionProfile(session, topLevelUserPath, interactionProfile);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetCurrentInteractionProfile_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetCurrentInteractionProfile: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetCurrentInteractionProfile", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetCurrentInteractionProfile failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetActionStateBoolean(XrSession session, const XrActionStateGetInfo* getInfo, XrActionStateBoolean* state) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetActionStateBoolean");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetActionStateBoolean(session, getInfo, state);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetActionStateBoolean_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetActionStateBoolean: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetActionStateBoolean", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetActionStateBoolean failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetActionStateFloat(XrSession session, const XrActionStateGetInfo* getInfo, XrActionStateFloat* state) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetActionStateFloat");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetActionStateFloat(session, getInfo, state);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetActionStateFloat_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetActionStateFloat: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetActionStateFloat", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetActionStateFloat failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetActionStateVector2f(XrSession session, const XrActionStateGetInfo* getInfo, XrActionStateVector2f* state) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetActionStateVector2f");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetActionStateVector2f(session, getInfo, state);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetActionStateVector2f_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetActionStateVector2f: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetActionStateVector2f", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetActionStateVector2f failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetActionStatePose(XrSession session, const XrActionStateGetInfo* getInfo, XrActionStatePose* state) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetActionStatePose");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetActionStatePose(session, getInfo, state);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetActionStatePose_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetActionStatePose: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetActionStatePose", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetActionStatePose failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrSyncActions(XrSession session, const XrActionsSyncInfo* syncInfo) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrSyncActions");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrSyncActions(session, syncInfo);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrSyncActions_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrSyncActions: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrSyncActions", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrSyncActions failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrEnumerateBoundSourcesForAction(XrSession session, const XrBoundSourcesForActionEnumerateInfo* enumerateInfo, uint32_t sourceCapacityInput, uint32_t* sourceCountOutput, XrPath* sources) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrEnumerateBoundSourcesForAction");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrEnumerateBoundSourcesForAction(session, enumerateInfo, sourceCapacityInput, sourceCountOutput, sources);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrEnumerateBoundSourcesForAction_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrEnumerateBoundSourcesForAction: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrEnumerateBoundSourcesForAction", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrEnumerateBoundSourcesForAction failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetInputSourceLocalizedName(XrSession session, const XrInputSourceLocalizedNameGetInfo* getInfo, uint32_t bufferCapacityInput, uint32_t* bufferCountOutput, char* buffer) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetInputSourceLocalizedName");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetInputSourceLocalizedName(session, getInfo, bufferCapacityInput, bufferCountOutput, buffer);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetInputSourceLocalizedName_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetInputSourceLocalizedName: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetInputSourceLocalizedName", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetInputSourceLocalizedName failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrApplyHapticFeedback(XrSession session, const XrHapticActionInfo* hapticActionInfo, const XrHapticBaseHeader* hapticFeedback) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrApplyHapticFeedback");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrApplyHapticFeedback(session, hapticActionInfo, hapticFeedback);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrApplyHapticFeedback_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrApplyHapticFeedback: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrApplyHapticFeedback", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrApplyHapticFeedback failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrStopHapticFeedback(XrSession session, const XrHapticActionInfo* hapticActionInfo) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrStopHapticFeedback");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrStopHapticFeedback(session, hapticActionInfo);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrStopHapticFeedback_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrStopHapticFeedback: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrStopHapticFeedback", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrStopHapticFeedback failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrLocateSpaces(XrSession session, const XrSpacesLocateInfo* locateInfo, XrSpaceLocations* spaceLocations) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrLocateSpaces");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrLocateSpaces(session, locateInfo, spaceLocations);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrLocateSpaces_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrLocateSpaces: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrLocateSpaces", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrLocateSpaces failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetOpenGLGraphicsRequirementsKHR(XrInstance instance, XrSystemId systemId, XrGraphicsRequirementsOpenGLKHR* graphicsRequirements) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetOpenGLGraphicsRequirementsKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetOpenGLGraphicsRequirementsKHR(instance, systemId, graphicsRequirements);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetOpenGLGraphicsRequirementsKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetOpenGLGraphicsRequirementsKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetOpenGLGraphicsRequirementsKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetOpenGLGraphicsRequirementsKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetVulkanInstanceExtensionsKHR(XrInstance instance, XrSystemId systemId, uint32_t bufferCapacityInput, uint32_t* bufferCountOutput, char* buffer) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetVulkanInstanceExtensionsKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetVulkanInstanceExtensionsKHR(instance, systemId, bufferCapacityInput, bufferCountOutput, buffer);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetVulkanInstanceExtensionsKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetVulkanInstanceExtensionsKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetVulkanInstanceExtensionsKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetVulkanInstanceExtensionsKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetVulkanDeviceExtensionsKHR(XrInstance instance, XrSystemId systemId, uint32_t bufferCapacityInput, uint32_t* bufferCountOutput, char* buffer) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetVulkanDeviceExtensionsKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetVulkanDeviceExtensionsKHR(instance, systemId, bufferCapacityInput, bufferCountOutput, buffer);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetVulkanDeviceExtensionsKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetVulkanDeviceExtensionsKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetVulkanDeviceExtensionsKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetVulkanDeviceExtensionsKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetVulkanGraphicsDeviceKHR(XrInstance instance, XrSystemId systemId, VkInstance vkInstance, VkPhysicalDevice* vkPhysicalDevice) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetVulkanGraphicsDeviceKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetVulkanGraphicsDeviceKHR(instance, systemId, vkInstance, vkPhysicalDevice);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetVulkanGraphicsDeviceKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetVulkanGraphicsDeviceKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetVulkanGraphicsDeviceKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetVulkanGraphicsDeviceKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetVulkanGraphicsRequirementsKHR(XrInstance instance, XrSystemId systemId, XrGraphicsRequirementsVulkanKHR* graphicsRequirements) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetVulkanGraphicsRequirementsKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetVulkanGraphicsRequirementsKHR(instance, systemId, graphicsRequirements);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetVulkanGraphicsRequirementsKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetVulkanGraphicsRequirementsKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetVulkanGraphicsRequirementsKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetVulkanGraphicsRequirementsKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetD3D11GraphicsRequirementsKHR(XrInstance instance, XrSystemId systemId, XrGraphicsRequirementsD3D11KHR* graphicsRequirements) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetD3D11GraphicsRequirementsKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetD3D11GraphicsRequirementsKHR(instance, systemId, graphicsRequirements);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetD3D11GraphicsRequirementsKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetD3D11GraphicsRequirementsKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetD3D11GraphicsRequirementsKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetD3D11GraphicsRequirementsKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetD3D12GraphicsRequirementsKHR(XrInstance instance, XrSystemId systemId, XrGraphicsRequirementsD3D12KHR* graphicsRequirements) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetD3D12GraphicsRequirementsKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetD3D12GraphicsRequirementsKHR(instance, systemId, graphicsRequirements);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetD3D12GraphicsRequirementsKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetD3D12GraphicsRequirementsKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetD3D12GraphicsRequirementsKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetD3D12GraphicsRequirementsKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetVisibilityMaskKHR(XrSession session, XrViewConfigurationType viewConfigurationType, uint32_t viewIndex, XrVisibilityMaskTypeKHR visibilityMaskType, XrVisibilityMaskKHR* visibilityMask) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetVisibilityMaskKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetVisibilityMaskKHR(session, viewConfigurationType, viewIndex, visibilityMaskType, visibilityMask);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetVisibilityMaskKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetVisibilityMaskKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetVisibilityMaskKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetVisibilityMaskKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrConvertWin32PerformanceCounterToTimeKHR(XrInstance instance, const LARGE_INTEGER* performanceCounter, XrTime* time) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrConvertWin32PerformanceCounterToTimeKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrConvertWin32PerformanceCounterToTimeKHR(instance, performanceCounter, time);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrConvertWin32PerformanceCounterToTimeKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrConvertWin32PerformanceCounterToTimeKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrConvertWin32PerformanceCounterToTimeKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrConvertWin32PerformanceCounterToTimeKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrConvertTimeToWin32PerformanceCounterKHR(XrInstance instance, XrTime time, LARGE_INTEGER* performanceCounter) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrConvertTimeToWin32PerformanceCounterKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrConvertTimeToWin32PerformanceCounterKHR(instance, time, performanceCounter);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrConvertTimeToWin32PerformanceCounterKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrConvertTimeToWin32PerformanceCounterKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrConvertTimeToWin32PerformanceCounterKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrConvertTimeToWin32PerformanceCounterKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrConvertTimespecTimeToTimeKHR(XrInstance instance, const struct timespec* timespecTime, XrTime* time) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrConvertTimespecTimeToTimeKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrConvertTimespecTimeToTimeKHR(instance, timespecTime, time);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrConvertTimespecTimeToTimeKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrConvertTimespecTimeToTimeKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrConvertTimespecTimeToTimeKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrConvertTimespecTimeToTimeKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrConvertTimeToTimespecTimeKHR(XrInstance instance, XrTime time, struct timespec* timespecTime) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrConvertTimeToTimespecTimeKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrConvertTimeToTimespecTimeKHR(instance, time, timespecTime);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrConvertTimeToTimespecTimeKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrConvertTimeToTimespecTimeKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrConvertTimeToTimespecTimeKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrConvertTimeToTimespecTimeKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateVulkanInstanceKHR(XrInstance instance, const XrVulkanInstanceCreateInfoKHR* createInfo, VkInstance* vulkanInstance, VkResult* vulkanResult) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateVulkanInstanceKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateVulkanInstanceKHR(instance, createInfo, vulkanInstance, vulkanResult);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateVulkanInstanceKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateVulkanInstanceKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateVulkanInstanceKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateVulkanInstanceKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateVulkanDeviceKHR(XrInstance instance, const XrVulkanDeviceCreateInfoKHR* createInfo, VkDevice* vulkanDevice, VkResult* vulkanResult) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateVulkanDeviceKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateVulkanDeviceKHR(instance, createInfo, vulkanDevice, vulkanResult);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateVulkanDeviceKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateVulkanDeviceKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateVulkanDeviceKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateVulkanDeviceKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetVulkanGraphicsDevice2KHR(XrInstance instance, const XrVulkanGraphicsDeviceGetInfoKHR* getInfo, VkPhysicalDevice* vulkanPhysicalDevice) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetVulkanGraphicsDevice2KHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetVulkanGraphicsDevice2KHR(instance, getInfo, vulkanPhysicalDevice);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetVulkanGraphicsDevice2KHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetVulkanGraphicsDevice2KHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetVulkanGraphicsDevice2KHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetVulkanGraphicsDevice2KHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId, XrGraphicsRequirementsVulkanKHR* graphicsRequirements) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetVulkanGraphicsRequirements2KHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetVulkanGraphicsRequirements2KHR(instance, systemId, graphicsRequirements);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetVulkanGraphicsRequirements2KHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetVulkanGraphicsRequirements2KHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetVulkanGraphicsRequirements2KHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetVulkanGraphicsRequirements2KHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrLocateSpacesKHR(XrSession session, const XrSpacesLocateInfo* locateInfo, XrSpaceLocations* spaceLocations) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrLocateSpacesKHR");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrLocateSpacesKHR(session, locateInfo, spaceLocations);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrLocateSpacesKHR_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrLocateSpacesKHR: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrLocateSpacesKHR", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrLocateSpacesKHR failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateHandTrackerEXT(XrSession session, const XrHandTrackerCreateInfoEXT* createInfo, XrHandTrackerEXT* handTracker) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateHandTrackerEXT");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateHandTrackerEXT(session, createInfo, handTracker);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateHandTrackerEXT_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateHandTrackerEXT: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateHandTrackerEXT", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateHandTrackerEXT failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrDestroyHandTrackerEXT(XrHandTrackerEXT handTracker) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrDestroyHandTrackerEXT");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrDestroyHandTrackerEXT(handTracker);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrDestroyHandTrackerEXT_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrDestroyHandTrackerEXT: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrDestroyHandTrackerEXT", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrDestroyHandTrackerEXT failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrLocateHandJointsEXT(XrHandTrackerEXT handTracker, const XrHandJointsLocateInfoEXT* locateInfo, XrHandJointLocationsEXT* locations) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrLocateHandJointsEXT");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrLocateHandJointsEXT(handTracker, locateInfo, locations);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrLocateHandJointsEXT_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrLocateHandJointsEXT: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrLocateHandJointsEXT", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrLocateHandJointsEXT failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateBodyTrackerFB(XrSession session, const XrBodyTrackerCreateInfoFB* createInfo, XrBodyTrackerFB* bodyTracker) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateBodyTrackerFB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateBodyTrackerFB(session, createInfo, bodyTracker);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateBodyTrackerFB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateBodyTrackerFB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateBodyTrackerFB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateBodyTrackerFB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrDestroyBodyTrackerFB(XrBodyTrackerFB bodyTracker) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrDestroyBodyTrackerFB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrDestroyBodyTrackerFB(bodyTracker);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrDestroyBodyTrackerFB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrDestroyBodyTrackerFB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrDestroyBodyTrackerFB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrDestroyBodyTrackerFB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrLocateBodyJointsFB(XrBodyTrackerFB bodyTracker, const XrBodyJointsLocateInfoFB* locateInfo, XrBodyJointLocationsFB* locations) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrLocateBodyJointsFB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrLocateBodyJointsFB(bodyTracker, locateInfo, locations);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrLocateBodyJointsFB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrLocateBodyJointsFB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrLocateBodyJointsFB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrLocateBodyJointsFB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetBodySkeletonFB(XrBodyTrackerFB bodyTracker, XrBodySkeletonFB* skeleton) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetBodySkeletonFB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetBodySkeletonFB(bodyTracker, skeleton);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetBodySkeletonFB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetBodySkeletonFB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetBodySkeletonFB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetBodySkeletonFB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrEnumerateDisplayRefreshRatesFB(XrSession session, uint32_t displayRefreshRateCapacityInput, uint32_t* displayRefreshRateCountOutput, float* displayRefreshRates) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrEnumerateDisplayRefreshRatesFB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrEnumerateDisplayRefreshRatesFB(session, displayRefreshRateCapacityInput, displayRefreshRateCountOutput, displayRefreshRates);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrEnumerateDisplayRefreshRatesFB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrEnumerateDisplayRefreshRatesFB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrEnumerateDisplayRefreshRatesFB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrEnumerateDisplayRefreshRatesFB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetDisplayRefreshRateFB(XrSession session, float* displayRefreshRate) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetDisplayRefreshRateFB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetDisplayRefreshRateFB(session, displayRefreshRate);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetDisplayRefreshRateFB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetDisplayRefreshRateFB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetDisplayRefreshRateFB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetDisplayRefreshRateFB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrRequestDisplayRefreshRateFB(XrSession session, float displayRefreshRate) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrRequestDisplayRefreshRateFB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrRequestDisplayRefreshRateFB(session, displayRefreshRate);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrRequestDisplayRefreshRateFB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrRequestDisplayRefreshRateFB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrRequestDisplayRefreshRateFB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrRequestDisplayRefreshRateFB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrEnumerateViveTrackerPathsHTCX(XrInstance instance, uint32_t pathCapacityInput, uint32_t* pathCountOutput, XrViveTrackerPathsHTCX* paths) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrEnumerateViveTrackerPathsHTCX");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrEnumerateViveTrackerPathsHTCX(instance, pathCapacityInput, pathCountOutput, paths);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrEnumerateViveTrackerPathsHTCX_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrEnumerateViveTrackerPathsHTCX: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrEnumerateViveTrackerPathsHTCX", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrEnumerateViveTrackerPathsHTCX failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetAudioOutputDeviceGuidOculus(XrInstance instance, wchar_t buffer[XR_MAX_AUDIO_DEVICE_STR_SIZE_OCULUS]) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetAudioOutputDeviceGuidOculus");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetAudioOutputDeviceGuidOculus(instance, buffer);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetAudioOutputDeviceGuidOculus_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetAudioOutputDeviceGuidOculus: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetAudioOutputDeviceGuidOculus", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result) && result != XR_ERROR_FEATURE_UNSUPPORTED) {
+			ErrorLog("xrGetAudioOutputDeviceGuidOculus failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetAudioInputDeviceGuidOculus(XrInstance instance, wchar_t buffer[XR_MAX_AUDIO_DEVICE_STR_SIZE_OCULUS]) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetAudioInputDeviceGuidOculus");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetAudioInputDeviceGuidOculus(instance, buffer);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetAudioInputDeviceGuidOculus_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetAudioInputDeviceGuidOculus: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetAudioInputDeviceGuidOculus", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result) && result != XR_ERROR_FEATURE_UNSUPPORTED) {
+			ErrorLog("xrGetAudioInputDeviceGuidOculus failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateFaceTrackerFB(XrSession session, const XrFaceTrackerCreateInfoFB* createInfo, XrFaceTrackerFB* faceTracker) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateFaceTrackerFB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateFaceTrackerFB(session, createInfo, faceTracker);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateFaceTrackerFB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateFaceTrackerFB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateFaceTrackerFB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateFaceTrackerFB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrDestroyFaceTrackerFB(XrFaceTrackerFB faceTracker) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrDestroyFaceTrackerFB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrDestroyFaceTrackerFB(faceTracker);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrDestroyFaceTrackerFB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrDestroyFaceTrackerFB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrDestroyFaceTrackerFB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrDestroyFaceTrackerFB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetFaceExpressionWeightsFB(XrFaceTrackerFB faceTracker, const XrFaceExpressionInfoFB* expressionInfo, XrFaceExpressionWeightsFB* expressionWeights) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetFaceExpressionWeightsFB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetFaceExpressionWeightsFB(faceTracker, expressionInfo, expressionWeights);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetFaceExpressionWeightsFB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetFaceExpressionWeightsFB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetFaceExpressionWeightsFB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetFaceExpressionWeightsFB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateEyeTrackerFB(XrSession session, const XrEyeTrackerCreateInfoFB* createInfo, XrEyeTrackerFB* eyeTracker) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateEyeTrackerFB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateEyeTrackerFB(session, createInfo, eyeTracker);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateEyeTrackerFB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateEyeTrackerFB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateEyeTrackerFB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateEyeTrackerFB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrDestroyEyeTrackerFB(XrEyeTrackerFB eyeTracker) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrDestroyEyeTrackerFB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrDestroyEyeTrackerFB(eyeTracker);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrDestroyEyeTrackerFB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrDestroyEyeTrackerFB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrDestroyEyeTrackerFB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrDestroyEyeTrackerFB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetEyeGazesFB(XrEyeTrackerFB eyeTracker, const XrEyeGazesInfoFB* gazeInfo, XrEyeGazesFB* eyeGazes) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetEyeGazesFB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetEyeGazesFB(eyeTracker, gazeInfo, eyeGazes);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetEyeGazesFB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetEyeGazesFB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetEyeGazesFB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetEyeGazesFB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrSuggestBodyTrackingCalibrationOverrideMETA(XrBodyTrackerFB bodyTracker, const XrBodyTrackingCalibrationInfoMETA* calibrationInfo) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrSuggestBodyTrackingCalibrationOverrideMETA");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrSuggestBodyTrackingCalibrationOverrideMETA(bodyTracker, calibrationInfo);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrSuggestBodyTrackingCalibrationOverrideMETA_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrSuggestBodyTrackingCalibrationOverrideMETA: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrSuggestBodyTrackingCalibrationOverrideMETA", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrSuggestBodyTrackingCalibrationOverrideMETA failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrResetBodyTrackingCalibrationMETA(XrBodyTrackerFB bodyTracker) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrResetBodyTrackingCalibrationMETA");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrResetBodyTrackingCalibrationMETA(bodyTracker);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrResetBodyTrackingCalibrationMETA_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrResetBodyTrackingCalibrationMETA: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrResetBodyTrackingCalibrationMETA", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrResetBodyTrackingCalibrationMETA failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrRequestBodyTrackingFidelityMETA(XrBodyTrackerFB bodyTracker, const XrBodyTrackingFidelityMETA fidelity) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrRequestBodyTrackingFidelityMETA");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrRequestBodyTrackingFidelityMETA(bodyTracker, fidelity);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrRequestBodyTrackingFidelityMETA_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrRequestBodyTrackingFidelityMETA: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrRequestBodyTrackingFidelityMETA", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrRequestBodyTrackingFidelityMETA failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrCreateFaceTracker2FB(XrSession session, const XrFaceTrackerCreateInfo2FB* createInfo, XrFaceTracker2FB* faceTracker) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrCreateFaceTracker2FB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrCreateFaceTracker2FB(session, createInfo, faceTracker);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrCreateFaceTracker2FB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrCreateFaceTracker2FB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrCreateFaceTracker2FB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrCreateFaceTracker2FB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrDestroyFaceTracker2FB(XrFaceTracker2FB faceTracker) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrDestroyFaceTracker2FB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrDestroyFaceTracker2FB(faceTracker);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrDestroyFaceTracker2FB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrDestroyFaceTracker2FB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrDestroyFaceTracker2FB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrDestroyFaceTracker2FB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+	XrResult XRAPI_CALL xrGetFaceExpressionWeights2FB(XrFaceTracker2FB faceTracker, const XrFaceExpressionInfo2FB* expressionInfo, XrFaceExpressionWeights2FB* expressionWeights) {
+		TraceLocalActivity(local);
+		TraceLoggingWriteStart(local, "xrGetFaceExpressionWeights2FB");
+
+		XrResult result;
+		try {
+			result = RUNTIME_NAMESPACE::GetInstance()->xrGetFaceExpressionWeights2FB(faceTracker, expressionInfo, expressionWeights);
+		} catch (std::exception& exc) {
+			TraceLoggingWriteTagged(local, "xrGetFaceExpressionWeights2FB_Error", TLArg(exc.what(), "Error"));
+			ErrorLog("xrGetFaceExpressionWeights2FB: %s\n", exc.what());
+			result = XR_ERROR_RUNTIME_FAILURE;
+		}
+
+		TraceLoggingWriteStop(local, "xrGetFaceExpressionWeights2FB", TLArg(xr::ToCString(result), "Result"));
+		if (XR_FAILED(result)) {
+			ErrorLog("xrGetFaceExpressionWeights2FB failed with %s\n", xr::ToCString(result));
+		}
+
+		return result;
+	}
+
+
+	// Auto-generated dispatcher handler.
+	XrResult OpenXrApi::xrGetInstanceProcAddr(XrInstance instance, const char* name, PFN_xrVoidFunction* function) {
+		const std::string_view apiName(name);
+
+		if (apiName == "xrGetInstanceProcAddr") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetInstanceProcAddr);
+		}
+		else if (apiName == "xrEnumerateInstanceExtensionProperties") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrEnumerateInstanceExtensionProperties);
+		}
+		else if (apiName == "xrCreateInstance") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateInstance);
+		}
+		else if (apiName == "xrDestroyInstance") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrDestroyInstance);
+		}
+		else if (apiName == "xrGetInstanceProperties") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetInstanceProperties);
+		}
+		else if (apiName == "xrPollEvent") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrPollEvent);
+		}
+		else if (apiName == "xrResultToString") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrResultToString);
+		}
+		else if (apiName == "xrStructureTypeToString") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrStructureTypeToString);
+		}
+		else if (apiName == "xrGetSystem") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetSystem);
+		}
+		else if (apiName == "xrGetSystemProperties") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetSystemProperties);
+		}
+		else if (apiName == "xrEnumerateEnvironmentBlendModes") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrEnumerateEnvironmentBlendModes);
+		}
+		else if (apiName == "xrCreateSession") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateSession);
+		}
+		else if (apiName == "xrDestroySession") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrDestroySession);
+		}
+		else if (apiName == "xrEnumerateReferenceSpaces") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrEnumerateReferenceSpaces);
+		}
+		else if (apiName == "xrCreateReferenceSpace") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateReferenceSpace);
+		}
+		else if (apiName == "xrGetReferenceSpaceBoundsRect") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetReferenceSpaceBoundsRect);
+		}
+		else if (apiName == "xrCreateActionSpace") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateActionSpace);
+		}
+		else if (apiName == "xrLocateSpace") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrLocateSpace);
+		}
+		else if (apiName == "xrDestroySpace") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrDestroySpace);
+		}
+		else if (apiName == "xrEnumerateViewConfigurations") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrEnumerateViewConfigurations);
+		}
+		else if (apiName == "xrGetViewConfigurationProperties") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetViewConfigurationProperties);
+		}
+		else if (apiName == "xrEnumerateViewConfigurationViews") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrEnumerateViewConfigurationViews);
+		}
+		else if (apiName == "xrEnumerateSwapchainFormats") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrEnumerateSwapchainFormats);
+		}
+		else if (apiName == "xrCreateSwapchain") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateSwapchain);
+		}
+		else if (apiName == "xrDestroySwapchain") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrDestroySwapchain);
+		}
+		else if (apiName == "xrEnumerateSwapchainImages") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrEnumerateSwapchainImages);
+		}
+		else if (apiName == "xrAcquireSwapchainImage") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrAcquireSwapchainImage);
+		}
+		else if (apiName == "xrWaitSwapchainImage") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrWaitSwapchainImage);
+		}
+		else if (apiName == "xrReleaseSwapchainImage") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrReleaseSwapchainImage);
+		}
+		else if (apiName == "xrBeginSession") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrBeginSession);
+		}
+		else if (apiName == "xrEndSession") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrEndSession);
+		}
+		else if (apiName == "xrRequestExitSession") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrRequestExitSession);
+		}
+		else if (apiName == "xrWaitFrame") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrWaitFrame);
+		}
+		else if (apiName == "xrBeginFrame") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrBeginFrame);
+		}
+		else if (apiName == "xrEndFrame") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrEndFrame);
+		}
+		else if (apiName == "xrLocateViews") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrLocateViews);
+		}
+		else if (apiName == "xrStringToPath") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrStringToPath);
+		}
+		else if (apiName == "xrPathToString") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrPathToString);
+		}
+		else if (apiName == "xrCreateActionSet") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateActionSet);
+		}
+		else if (apiName == "xrDestroyActionSet") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrDestroyActionSet);
+		}
+		else if (apiName == "xrCreateAction") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateAction);
+		}
+		else if (apiName == "xrDestroyAction") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrDestroyAction);
+		}
+		else if (apiName == "xrSuggestInteractionProfileBindings") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrSuggestInteractionProfileBindings);
+		}
+		else if (apiName == "xrAttachSessionActionSets") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrAttachSessionActionSets);
+		}
+		else if (apiName == "xrGetCurrentInteractionProfile") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetCurrentInteractionProfile);
+		}
+		else if (apiName == "xrGetActionStateBoolean") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetActionStateBoolean);
+		}
+		else if (apiName == "xrGetActionStateFloat") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetActionStateFloat);
+		}
+		else if (apiName == "xrGetActionStateVector2f") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetActionStateVector2f);
+		}
+		else if (apiName == "xrGetActionStatePose") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetActionStatePose);
+		}
+		else if (apiName == "xrSyncActions") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrSyncActions);
+		}
+		else if (apiName == "xrEnumerateBoundSourcesForAction") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrEnumerateBoundSourcesForAction);
+		}
+		else if (apiName == "xrGetInputSourceLocalizedName") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetInputSourceLocalizedName);
+		}
+		else if (apiName == "xrApplyHapticFeedback") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrApplyHapticFeedback);
+		}
+		else if (apiName == "xrStopHapticFeedback") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrStopHapticFeedback);
+		}
+		else if (apiName == "xrLocateSpaces") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrLocateSpaces);
+		}
+		else if (has_XR_KHR_opengl_enable && apiName == "xrGetOpenGLGraphicsRequirementsKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetOpenGLGraphicsRequirementsKHR);
+		}
+		else if (has_XR_KHR_vulkan_enable && apiName == "xrGetVulkanInstanceExtensionsKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetVulkanInstanceExtensionsKHR);
+		}
+		else if (has_XR_KHR_vulkan_enable && apiName == "xrGetVulkanDeviceExtensionsKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetVulkanDeviceExtensionsKHR);
+		}
+		else if (has_XR_KHR_vulkan_enable && apiName == "xrGetVulkanGraphicsDeviceKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetVulkanGraphicsDeviceKHR);
+		}
+		else if (has_XR_KHR_vulkan_enable && apiName == "xrGetVulkanGraphicsRequirementsKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetVulkanGraphicsRequirementsKHR);
+		}
+		else if (has_XR_KHR_D3D11_enable && apiName == "xrGetD3D11GraphicsRequirementsKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetD3D11GraphicsRequirementsKHR);
+		}
+		else if (has_XR_KHR_D3D12_enable && apiName == "xrGetD3D12GraphicsRequirementsKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetD3D12GraphicsRequirementsKHR);
+		}
+		else if (has_XR_KHR_visibility_mask && apiName == "xrGetVisibilityMaskKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetVisibilityMaskKHR);
+		}
+		else if (has_XR_KHR_win32_convert_performance_counter_time && apiName == "xrConvertWin32PerformanceCounterToTimeKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrConvertWin32PerformanceCounterToTimeKHR);
+		}
+		else if (has_XR_KHR_win32_convert_performance_counter_time && apiName == "xrConvertTimeToWin32PerformanceCounterKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrConvertTimeToWin32PerformanceCounterKHR);
+		}
+		else if (has_XR_KHR_convert_timespec_time && apiName == "xrConvertTimespecTimeToTimeKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrConvertTimespecTimeToTimeKHR);
+		}
+		else if (has_XR_KHR_convert_timespec_time && apiName == "xrConvertTimeToTimespecTimeKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrConvertTimeToTimespecTimeKHR);
+		}
+		else if (has_XR_KHR_vulkan_enable2 && apiName == "xrCreateVulkanInstanceKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateVulkanInstanceKHR);
+		}
+		else if (has_XR_KHR_vulkan_enable2 && apiName == "xrCreateVulkanDeviceKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateVulkanDeviceKHR);
+		}
+		else if (has_XR_KHR_vulkan_enable2 && apiName == "xrGetVulkanGraphicsDevice2KHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetVulkanGraphicsDevice2KHR);
+		}
+		else if (has_XR_KHR_vulkan_enable2 && apiName == "xrGetVulkanGraphicsRequirements2KHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetVulkanGraphicsRequirements2KHR);
+		}
+		else if (has_XR_KHR_locate_spaces && apiName == "xrLocateSpacesKHR") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrLocateSpacesKHR);
+		}
+		else if (has_XR_EXT_hand_tracking && apiName == "xrCreateHandTrackerEXT") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateHandTrackerEXT);
+		}
+		else if (has_XR_EXT_hand_tracking && apiName == "xrDestroyHandTrackerEXT") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrDestroyHandTrackerEXT);
+		}
+		else if (has_XR_EXT_hand_tracking && apiName == "xrLocateHandJointsEXT") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrLocateHandJointsEXT);
+		}
+		else if (has_XR_FB_body_tracking && apiName == "xrCreateBodyTrackerFB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateBodyTrackerFB);
+		}
+		else if (has_XR_FB_body_tracking && apiName == "xrDestroyBodyTrackerFB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrDestroyBodyTrackerFB);
+		}
+		else if (has_XR_FB_body_tracking && apiName == "xrLocateBodyJointsFB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrLocateBodyJointsFB);
+		}
+		else if (has_XR_FB_body_tracking && apiName == "xrGetBodySkeletonFB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetBodySkeletonFB);
+		}
+		else if (has_XR_FB_display_refresh_rate && apiName == "xrEnumerateDisplayRefreshRatesFB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrEnumerateDisplayRefreshRatesFB);
+		}
+		else if (has_XR_FB_display_refresh_rate && apiName == "xrGetDisplayRefreshRateFB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetDisplayRefreshRateFB);
+		}
+		else if (has_XR_FB_display_refresh_rate && apiName == "xrRequestDisplayRefreshRateFB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrRequestDisplayRefreshRateFB);
+		}
+		else if (has_XR_HTCX_vive_tracker_interaction && apiName == "xrEnumerateViveTrackerPathsHTCX") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrEnumerateViveTrackerPathsHTCX);
+		}
+		else if (has_XR_OCULUS_audio_device_guid && apiName == "xrGetAudioOutputDeviceGuidOculus") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetAudioOutputDeviceGuidOculus);
+		}
+		else if (has_XR_OCULUS_audio_device_guid && apiName == "xrGetAudioInputDeviceGuidOculus") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetAudioInputDeviceGuidOculus);
+		}
+		else if (has_XR_FB_face_tracking && apiName == "xrCreateFaceTrackerFB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateFaceTrackerFB);
+		}
+		else if (has_XR_FB_face_tracking && apiName == "xrDestroyFaceTrackerFB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrDestroyFaceTrackerFB);
+		}
+		else if (has_XR_FB_face_tracking && apiName == "xrGetFaceExpressionWeightsFB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetFaceExpressionWeightsFB);
+		}
+		else if (has_XR_FB_eye_tracking_social && apiName == "xrCreateEyeTrackerFB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateEyeTrackerFB);
+		}
+		else if (has_XR_FB_eye_tracking_social && apiName == "xrDestroyEyeTrackerFB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrDestroyEyeTrackerFB);
+		}
+		else if (has_XR_FB_eye_tracking_social && apiName == "xrGetEyeGazesFB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetEyeGazesFB);
+		}
+		else if (has_XR_META_body_tracking_calibration && apiName == "xrSuggestBodyTrackingCalibrationOverrideMETA") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrSuggestBodyTrackingCalibrationOverrideMETA);
+		}
+		else if (has_XR_META_body_tracking_calibration && apiName == "xrResetBodyTrackingCalibrationMETA") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrResetBodyTrackingCalibrationMETA);
+		}
+		else if (has_XR_META_body_tracking_fidelity && apiName == "xrRequestBodyTrackingFidelityMETA") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrRequestBodyTrackingFidelityMETA);
+		}
+		else if (has_XR_FB_face_tracking2 && apiName == "xrCreateFaceTracker2FB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrCreateFaceTracker2FB);
+		}
+		else if (has_XR_FB_face_tracking2 && apiName == "xrDestroyFaceTracker2FB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrDestroyFaceTracker2FB);
+		}
+		else if (has_XR_FB_face_tracking2 && apiName == "xrGetFaceExpressionWeights2FB") {
+			*function = reinterpret_cast<PFN_xrVoidFunction>(RUNTIME_NAMESPACE::xrGetFaceExpressionWeights2FB);
+		}
+		else {
+			return XR_ERROR_FUNCTION_UNSUPPORTED;
+		}
+
+		return XR_SUCCESS;
+	}
+
+	// Auto-generated extension registration handler.
+	void OpenXrApi::registerInstanceExtension(const std::string& extensionName) {
+		if (false) {
+		}
+		else if (extensionName == "XR_KHR_D3D11_enable") {
+			has_XR_KHR_D3D11_enable = true;
+		}
+		else if (extensionName == "XR_KHR_D3D12_enable") {
+			has_XR_KHR_D3D12_enable = true;
+		}
+		else if (extensionName == "XR_KHR_vulkan_enable") {
+			has_XR_KHR_vulkan_enable = true;
+		}
+		else if (extensionName == "XR_KHR_vulkan_enable2") {
+			has_XR_KHR_vulkan_enable2 = true;
+		}
+		else if (extensionName == "XR_KHR_opengl_enable") {
+			has_XR_KHR_opengl_enable = true;
+		}
+		else if (extensionName == "XR_KHR_composition_layer_depth") {
+			has_XR_KHR_composition_layer_depth = true;
+		}
+		else if (extensionName == "XR_KHR_composition_layer_cylinder") {
+			has_XR_KHR_composition_layer_cylinder = true;
+		}
+		else if (extensionName == "XR_KHR_composition_layer_cube") {
+			has_XR_KHR_composition_layer_cube = true;
+		}
+		else if (extensionName == "XR_KHR_visibility_mask") {
+			has_XR_KHR_visibility_mask = true;
+		}
+		else if (extensionName == "XR_KHR_win32_convert_performance_counter_time") {
+			has_XR_KHR_win32_convert_performance_counter_time = true;
+		}
+		else if (extensionName == "XR_KHR_convert_timespec_time") {
+			has_XR_KHR_convert_timespec_time = true;
+		}
+		else if (extensionName == "XR_FB_display_refresh_rate") {
+			has_XR_FB_display_refresh_rate = true;
+		}
+		else if (extensionName == "XR_EXT_hand_tracking") {
+			has_XR_EXT_hand_tracking = true;
+		}
+		else if (extensionName == "XR_EXT_hand_tracking_data_source") {
+			has_XR_EXT_hand_tracking_data_source = true;
+		}
+		else if (extensionName == "XR_EXT_eye_gaze_interaction") {
+			has_XR_EXT_eye_gaze_interaction = true;
+		}
+		else if (extensionName == "XR_EXT_uuid") {
+			has_XR_EXT_uuid = true;
+		}
+		else if (extensionName == "XR_META_headset_id") {
+			has_XR_META_headset_id = true;
+		}
+		else if (extensionName == "XR_OCULUS_audio_device_guid") {
+			has_XR_OCULUS_audio_device_guid = true;
+		}
+		else if (extensionName == "XR_MND_headless") {
+			has_XR_MND_headless = true;
+		}
+		else if (extensionName == "XR_FB_eye_tracking_social") {
+			has_XR_FB_eye_tracking_social = true;
+		}
+		else if (extensionName == "XR_FB_face_tracking") {
+			has_XR_FB_face_tracking = true;
+		}
+		else if (extensionName == "XR_FB_face_tracking2") {
+			has_XR_FB_face_tracking2 = true;
+		}
+		else if (extensionName == "XR_FB_hand_tracking_aim") {
+			has_XR_FB_hand_tracking_aim = true;
+		}
+		else if (extensionName == "XR_FB_body_tracking") {
+			has_XR_FB_body_tracking = true;
+		}
+		else if (extensionName == "XR_META_body_tracking_full_body") {
+			has_XR_META_body_tracking_full_body = true;
+		}
+		else if (extensionName == "XR_META_body_tracking_fidelity") {
+			has_XR_META_body_tracking_fidelity = true;
+		}
+		else if (extensionName == "XR_META_body_tracking_calibration") {
+			has_XR_META_body_tracking_calibration = true;
+		}
+		else if (extensionName == "XR_HTCX_vive_tracker_interaction") {
+			has_XR_HTCX_vive_tracker_interaction = true;
+		}
+		else if (extensionName == "XR_EXT_active_action_set_priority") {
+			has_XR_EXT_active_action_set_priority = true;
+		}
+		else if (extensionName == "XR_KHR_locate_spaces") {
+			has_XR_KHR_locate_spaces = true;
+		}
+		else if (extensionName == "XR_KHR_maintenance1") {
+			has_XR_KHR_maintenance1 = true;
+		}
+		else if (extensionName == "XR_EXT_local_floor") {
+			has_XR_EXT_local_floor = true;
+		}
+		else if (extensionName == "XR_EXT_palm_pose") {
+			has_XR_EXT_palm_pose = true;
+		}
+
+	}
+
+} // namespace RUNTIME_NAMESPACE
+

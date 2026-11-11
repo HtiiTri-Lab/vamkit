@@ -5,6 +5,7 @@
                                                      third-party SDKs and runtimes into third_party/
   python tools/vamkit build  [ids] [--steps generate,native,managed] [--clean]
                                                      every component into out/<id>/, in the manifest's order
+  python tools/vamkit fetch --lab ... / build --lab  the same for the test tools under tools/lab (the simulated headset)
   python tools/vamkit test   [ids]                   the offline tests of the components
   python tools/vamkit install   [--yes] [--replace]  what was built, into the VaM folder (install.py); the plan without --yes
   python tools/vamkit verify                         the install's record against the VaM folder and the build
@@ -25,6 +26,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -195,10 +197,16 @@ def doctor(vam):
     check("Windows SDK dxc.exe", found["VAMKIT_DXC"], str(found["VAMKIT_DXC"] or HINTS["VAMKIT_DXC"]))
     check("C# 3.5 compiler", found["VAMKIT_CSC"], str(found["VAMKIT_CSC"] or HINTS["VAMKIT_CSC"]))
     check("git (for fetch)", shutil.which("git"), shutil.which("git") or "install Git for Windows")
-    items = third_party()
+    items = [i for i in third_party() if i.get("only") != "lab"]
     have = [i["id"] for i in items if fetched(i)]
     lacking = [i["id"] for i in items if not fetched(i) and not i.get("optional")]
     check("third-party downloads", not lacking, f"{len(have)} of {len(items)} in third_party/" + (f"; missing: {', '.join(lacking)} (vamkit fetch)" if lacking else ""), need=False)
+    for r in runtimes():   # each run-time file by name: what is there, and what the user does not get without it
+        if r["present"]:
+            detail = f"version {r['version']}" + ("" if r["developed_with"] else ", not the version this project was developed with")
+        else:
+            detail = f"MISSING. You do not get: {r['without']}. To add it: {r['how']}"
+        check(f"run-time file {r['name']}", r["present"], detail, need=False)
     return checks
 
 
@@ -221,14 +229,101 @@ def pin(item):
     return {k: item[k] for k in ("commit", "version", "sha256") if k in item}
 
 
-def fetched(item):
-    marker = THIRD / item["id"] / MARKER
-    if not marker.is_file():
-        return False
+def marker_of(item):
     try:
-        return json.loads(marker.read_text(encoding="utf-8")) == pin(item)
-    except ValueError:
-        return False
+        return json.loads((THIRD / item["id"] / MARKER).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def fetched(item):
+    """Is this item in third_party/, for this manifest's pin? A run-time file of another version that was taken for
+    its signature counts: the marker then also says which one it is (`got`)."""
+    marker = marker_of(item)
+    return marker is not None and {k: marker.get(k) for k in pin(item)} == pin(item)
+
+
+def signature(path):
+    """(signer's subject or None, file version) of a Windows binary: None unless its Authenticode signature is valid."""
+    script = ("$s = Get-AuthenticodeSignature -LiteralPath $env:VAMKIT_FILE; $v = (Get-Item -LiteralPath $env:VAMKIT_FILE).VersionInfo; "
+              "@{ok = ($s.Status -eq 'Valid'); subject = [string]$s.SignerCertificate.Subject; "
+              "version = ('{0}.{1}.{2}.{3}' -f $v.FileMajorPart, $v.FileMinorPart, $v.FileBuildPart, $v.FilePrivatePart)} | ConvertTo-Json -Compress")
+    try:
+        done = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", script], capture_output=True, text=True,
+                              env=dict(os.environ, VAMKIT_FILE=str(path)), timeout=60)
+        found = json.loads(done.stdout.strip().splitlines()[-1])
+    except (OSError, ValueError, IndexError, subprocess.TimeoutExpired):
+        return None, ""
+    return (found.get("subject") if found.get("ok") else None), found.get("version", "")
+
+
+def numbers(version):
+    return tuple(int(x) for x in re.findall(r"\d+", version)[:4])
+
+
+def usable(item, path):
+    """Can this file serve as the item's run-time file? (word, version, sha256): word is "developed-with" for the
+    manifest's own hash, "signed" for another version with the vendor's valid signature, None with the reason in
+    `version`'s place otherwise."""
+    digest = sha256(path)
+    if digest == item.get("sha256"):
+        return "developed-with", "", digest
+    if not item.get("signer"):
+        return None, f"sha256 {digest[:12]}..., the manifest pins {item['sha256'][:12]}...", digest
+    subject, version = signature(path)
+    if subject is None or item["signer"].lower() not in subject.lower():
+        return None, f"not a file with a valid signature of {item['signer']}", digest
+    if item.get("min_version") and numbers(version) < numbers(item["min_version"]):
+        return None, f"version {version} is older than {item['min_version']}, the oldest this project can use", digest
+    return "signed", version, digest
+
+
+def find_runtime(item):
+    """The best file among the places the manifest names (`find`): the developed-with version when it is there, else
+    the newest one the vendor signed."""
+    candidates = [Path(p) for pattern in item.get("find", []) for p in glob.glob(pattern) if Path(p).is_file()]
+    best = None
+    for path in candidates:
+        if sha256(path) == item.get("sha256"):
+            return path
+    for path in candidates:
+        word, version, _ = usable(item, path)
+        if word == "signed" and (best is None or numbers(version) > best[0]):
+            best = (numbers(version), path)
+    return best[1] if best else None
+
+
+def how_to_add(item):
+    if item["kind"] == "user":
+        where = ("fetch looks in " + ", ".join(item["find"]) + ". " if item.get("find") else "")
+        return f"{where}{item.get('suggest', '')} Then: python tools/vamkit fetch --file {item['id']}=<path to {item['name']}>".strip()
+    return f"python tools/vamkit fetch {item['id']}" + (" --accept-licenses" if item.get("terms") == "accept" else "") + \
+        (f" (downloads {item['url']}); or give a copy: --file {item['id']}=<path>" if item.get("url") else "")
+
+
+def runtimes():
+    """Every run-time file the kit installs: is it in third_party/, which version, and when it is missing what the
+    user does not get and how to add it. Used by fetch, doctor, install and verify: nothing missing goes unsaid."""
+    found = []
+    for item in third_party():
+        if not item.get("installs"):
+            continue
+        marker = marker_of(item) if fetched(item) else None
+        got = (marker or {}).get("got")
+        found.append(dict(id=item["id"], name=item["name"], present=marker is not None,
+                          version=(got or {}).get("version") or (re.search(r"\d+\.\d+\.\d+", item["what"]) or [""])[0],
+                          developed_with=marker is not None and not got,
+                          without=item.get("without", item["what"]), how=how_to_add(item), optional=bool(item.get("optional"))))
+    return found
+
+
+def say_missing(found, indent="  "):
+    """The lines for the run-time files that are missing."""
+    lines = []
+    for r in found:
+        if not r["present"]:
+            lines += [f"{indent}MISSING  {r['name']}  ({r['id']})", f"{indent}         you do not get: {r['without']}", f"{indent}         to add it: {r['how']}"]
+    return lines
 
 
 def keep(source, dest, layout):
@@ -304,19 +399,22 @@ def fetch_one(item, mirror, given):
                 z.extractall(Path(tmp) / "x")
             keep(Path(tmp) / "x", dest, item.get("layout"))
     elif kind == "file":
-        with tempfile.TemporaryDirectory() as tmp:
-            got = Path(tmp) / item["name"]
-            download(item["url"], got)
-            return place_file(item, got)
+        if given.get(item["id"]) is not None:
+            return place_file(item, Path(given[item["id"]]))
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                got = Path(tmp) / item["name"]
+                download(item["url"], got)
+                return place_file(item, got)
+        except (OSError, urllib.error.URLError) as e:   # no network: is a copy of the vendor's on this machine?
+            source = find_runtime(item)
+            if source is None:
+                raise
+            return place_file(item, source) + f" (the download failed: {e})"
     elif kind == "user":
-        source = given.get(item["id"])
+        source = given.get(item["id"]) or find_runtime(item)
         if source is None:
-            for pattern in item.get("find", []):
-                source = next((Path(p) for p in glob.glob(pattern) if Path(p).is_file() and sha256(p) == item["sha256"]), None)
-                if source:
-                    break
-        if source is None:
-            return "not given" + (" (optional)" if item.get("optional") else "")
+            return "not given"
         return place_file(item, Path(source))
     else:
         raise SystemExit(f"{item['id']}: unknown kind {kind}")
@@ -327,18 +425,22 @@ def fetch_one(item, mirror, given):
 def place_file(item, source):
     if not source.is_file():
         return f"no file at {source}"
-    digest = sha256(source)
-    if digest != item["sha256"]:
-        return f"wrong file: sha256 {digest[:12]}..., the manifest pins {item['sha256'][:12]}..."
+    word, version, digest = usable(item, source)
+    if word is None:
+        return f"cannot use {source}: {version}"
     dest = THIRD / item["id"]
     dest.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source, dest / item["name"])
-    (dest / MARKER).write_text(json.dumps(pin(item)), encoding="utf-8")
-    return "fetched"
+    marker = pin(item) if word == "developed-with" else dict(pin(item), got=dict(sha256=digest, version=version, source=str(source)))
+    (dest / MARKER).write_text(json.dumps(marker), encoding="utf-8")
+    if word == "developed-with":
+        return "fetched"
+    return f"fetched: version {version}, signed by {item['signer']}, not the version this project was developed with (models and cost can differ)"
 
 
 def fetch(args):
-    items = [i for i in third_party() if not args.ids or i["id"] in args.ids]
+    # the items of the lab tools (only = "lab") are fetched when asked for: --lab, or by id
+    items = [i for i in third_party() if ((i["id"] in args.ids) if args.ids else (args.lab or i.get("only") != "lab"))]
     unknown = set(args.ids) - {i["id"] for i in items}
     if unknown:
         raise SystemExit("not in manifest/thirdparty.toml: " + ", ".join(sorted(unknown)))
@@ -360,11 +462,15 @@ def fetch(args):
             result = fetch_one(i, mirror, given)
         except (OSError, urllib.error.URLError) as e:
             result = f"failed: {e}"
-        ok = result in ("present", "fetched") or (i.get("optional") and result.startswith("not "))
-        failed += not ok
-        print(f"{'ok  ' if ok else 'FAIL'}  {i['id']:<14} {result}")
-        if result.startswith("not given") and i.get("suggest"):
-            print(f"      {i['suggest']}\n      then: vamkit fetch --file {i['id']}=<path to {i['name']}>")
+        got = result == "present" or result.startswith("fetched")
+        failed += not got and not i.get("optional")
+        word = "ok  " if got else ("left out" if i.get("optional") else "FAIL")
+        print(f"{word}  {i['id']:<14} {result}")
+    # A run-time file that is not there is said, with what it costs and how to get it: also an optional one.
+    missing = say_missing([r for r in runtimes() if r["id"] in {i["id"] for i in items}], indent="")
+    if missing:
+        print("\nThe kit builds and installs without these, and the user gets less:")
+        print("\n".join(missing))
     return 1 if failed else 0
 
 
@@ -393,6 +499,11 @@ def step(name, argv, env, log, cwd=None):
     return code == 0
 
 
+# Compiled into every plugin that references Harmony: one source for the Harmony 2.0 of BepInEx 5.0-5.3 and the
+# HarmonyX of BepInEx 5.4 (the file says how).
+HARMONY, HARMONY_COMPAT = "BepInEx/core/0Harmony.dll", "components/shared/harmony-compat/HarmonyCompat.cs"
+
+
 def csc_arguments(c, vam, csc):
     m = c["managed"]
     folder = REPO / c["path"]
@@ -404,6 +515,9 @@ def csc_arguments(c, vam, csc):
     argv += ["/reference:" + str(vam / r) for r in m["references"]]
     argv += [f"/resource:{folder / f},{name}" for f, name in m.get("resources", [])]
     argv += [str(folder / s) for s in m["sources"]] + [str(REPO / g) for g in m.get("generated", [])]
+    argv += [str(REPO / "components" / "shared" / s) for s in m.get("shared", [])]
+    if HARMONY in m["references"]:
+        argv.append(str(REPO / HARMONY_COMPAT))
     return argv
 
 
@@ -420,8 +534,25 @@ def needs_fetched(c):
     return not missing
 
 
+# The lab's own builds: name, build script, the third-party items it reads. Not components: nothing of theirs is installed.
+LAB = (("simxr-runtime", "tools/lab/simxr-runtime/build.cmd", ("libovr", "vdxr-meta", "vulkan-sdk", "wil", "gameinput", "detours", "ngx-sdk")),)
+
+
+def build_lab(env):
+    """The test tools that need building: the simulated headset (out/lab/simxr)."""
+    for name, script, needs in LAB:
+        if not needs_fetched(dict(id=name, needs=list(needs))):
+            print("      (python tools/vamkit fetch --lab --accept-licenses fetches the lab tools' items)")
+            return 1
+        if not step(f"{name:<16} lab      {Path(script).name}", ["cmd", "/c", REPO / script], env, OUT / "logs" / f"{name}.lab.log"):
+            return 1
+    return 0
+
+
 def build(args, vam):
     env = build_environment(vam)
+    if args.lab:
+        return build_lab(env)
     steps = set(args.steps.split(","))
     logs = OUT / "logs"
     for c in selected(args.ids):
@@ -463,6 +594,7 @@ def test(args, vam):
         if c.get("tests") and not needs_fetched(c):
             failed += 1
             continue
+        (OUT / c["id"]).mkdir(parents=True, exist_ok=True)   # a test may compile into it before any build has
         for n, command in enumerate(c.get("tests", [])):
             argv = [expand(a, env) for a in command]
             shown = " ".join(Path(a).name if "{repo}" in b else a for a, b in zip(argv, command))
@@ -474,6 +606,10 @@ def test(args, vam):
 
 
 def main():
+    # A build log can hold bytes the console's code page has no character for; printing its tail must never hide it.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(errors="replace")
     ap = argparse.ArgumentParser(prog="vamkit", description=__doc__.split("\n")[0])
     ap.add_argument("command", choices=("doctor", "status", "fetch", "build", "test", "install", "verify", "uninstall", "rollback"))
     ap.add_argument("ids", nargs="*", help="component ids (build, test) or third-party ids (fetch); all when omitted")
@@ -481,6 +617,7 @@ def main():
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--steps", default="generate,native,managed", help="build: which steps to run")
     ap.add_argument("--clean", action="store_true", help="build: delete out/<id> first")
+    ap.add_argument("--lab", action="store_true", help="fetch: also the lab tools' items; build: the lab tools instead of the components (the simulated headset)")
     ap.add_argument("--accept-licenses", action="store_true", help="fetch: you have read the vendors' licences")
     ap.add_argument("--mirror", help="fetch: take everything from this folder (<DIR>/<id>/...) instead of the network")
     ap.add_argument("--file", action="append", metavar="ID=PATH", help="fetch: your own copy of a runtime that has no download")
@@ -499,7 +636,7 @@ def main():
             return kit_install.uninstall(vam, args.yes, args.purge)
         if args.command == "rollback":
             return kit_install.rollback(vam, args.yes)
-        kit = kit_install.Kit(REPO, components(), third_party(), fetched)
+        kit = kit_install.Kit(REPO, components(), third_party(), fetched, runtimes)
         if args.command == "verify":
             return kit_install.verify(kit, vam, args.json)
         return kit_install.install(kit, vam, args.yes, args.json, args.replace)

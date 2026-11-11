@@ -117,7 +117,29 @@ natively. Details in [../knowledge/cpu.md](../knowledge/cpu.md).
 
 Details in [../knowledge/settings-and-menu.md](../knowledge/settings-and-menu.md).
 
-## 10. When corrected
+## 10. Working with less is a failure to report, not a way to pass
+
+The project exists to give the user more: a better picture, more frames. A part that cannot run and quietly makes
+room for something lesser keeps everything "working" and delivers nothing. Safe fallbacks stay (a part that would
+compute wrong results must step aside), but stepping aside is a fault state, never a success state.
+
+- **Try before refusing.** Do not decide from a card's name, a file's presence or a version number that something
+  cannot run. Ask the thing itself (create the feature, load the library, check the code) and take its answer.
+- **Look for what is missing before doing without it.** A run-time file may be on the machine in another place or
+  another version: the vendor's own model store, a newer signed build. Accept what the vendor signed, say which version
+  is in use, and refuse only what cannot work, with the reason.
+- **Never substitute in silence.** When a stand-in runs (another upscaler, another frame generator, VaM's own code
+  after a plugin stepped aside), say at the moment and place the user or their agent will see: what was asked for,
+  what runs instead, what that costs them, how to get the real thing. A line in a log nobody opens is silence.
+- **Never rewrite the user's choice.** A setting that cannot be honoured now stays as the user set it; what runs
+  instead is shown beside it. The next start, with the missing piece added, must give them what they chose.
+- **Do not hide the door.** A menu row or panel entry for something that cannot run here says why it cannot, rather
+  than disappearing.
+- **A check that passes on less is wrong.** Tools report three states, not two: as asked, working with less (each
+  item with its reason and remedy), failed. `vamkit fetch`, `doctor`, `install`, `verify`, the first-run check and the
+  benchmark all do; keep it so in anything new. "No error" is not the test; "the user got what the kit has" is.
+
+## 11. When corrected
 
 Replace the rule that caused the mistake; do not stack another on top. Move by the size of the correction: a named
 defect is fixed as that defect, not answered by swinging to the opposite extreme. A list of single-incident rules

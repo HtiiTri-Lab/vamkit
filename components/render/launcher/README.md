@@ -13,13 +13,16 @@ plugins live, and the player's way back to an untouched game.
 |---|---|
 | `launch.py` | `--variant mod|vanilla`, `--display VR|Desktop`, `--run <folder>`, `--test`, `--restore`; swaps files, builds the environment, starts VaM, restores on exit, keeps logs |
 | `LaunchPanel.py` | The panel: settings validation (`validate`), `performance_ini()`, `flow_ini()`, `begin_launch()`, taking over what the in-game menu wrote into the run's `performance.ini`; `--preset 2|3|4` |
+| `runtimes.py` | Where the NVIDIA libraries of a launch come from: the kit's own, else the graphics driver's model store (`locate`, `prepare`: signature checked, copied to `<VaM>/vamkit/cache/ngx/`), and what is found nowhere, with what is lost and how to get it (`describe`). `launch.py` calls `prepare`; the panel's `launch_notes` calls `locate` |
 | `ModeProfiles.py` | Per-display-mode presets (`profiles/VR`, `profiles/Desktop`): capture, apply, byte-exact cleanup of test runs (`begin` / `finish`) |
+| `lang.py` | The panel's words per language: `tr("English text")`, the tables of `components/shared/lang`, the Language row's choice (`profiles/language.json`), which the in-game menus read too |
+| `vamkit-launcher.bat` | Installed beside `VaM.exe`: opens the panel with `pyw` / `pythonw` |
 | `profile-manifest.json` | Which keys of which files a preset carries: `performance` keys, OFXR `layer` keys, `config` keys of the skin and tone-mapping cfgs, `whole_files` (the gloss tier file and the hair budget ini) |
 
 ## Build
 
-None: `python tools/vamkit install` copies the four files to `<VaM>/vamkit/launcher/` (the component's `installs`). Layout `launch.py` expects, relative to itself: `<VaM>/vamkit/launcher/` (here), `<VaM>/vamkit/bin/`
-(`openvr_api.dll`, `d3d11.dll`, `ofxr/OFXRBridgeTray.exe`, `dlss/{sr,nr,fg}`), `<VaM>/vamkit/original/` (VaM's own `openvr_api.dll`,
+None: `python tools/vamkit install` copies the files to `<VaM>/vamkit/launcher/` and `vamkit-launcher.bat` to the VaM folder (the component's `installs`). Layout `launch.py` expects, relative to itself: `<VaM>/vamkit/launcher/` (here), `<VaM>/vamkit/bin/`
+(`openvr_api.dll`, `d3d11.dll`, `ofxr/OFXRBridgeTray.exe`, `dlss/{sr,nr,fg}`, `xess/`, `fsr/`), `<VaM>/vamkit/original/` (VaM's own `openvr_api.dll`,
 `d3d11.dll`, `opencomposite.ini`, or `<name>.absent` when there was none), `<VaM>/vamkit/logs/`. Do not commit `__pycache__`.
 
 ## Settings
@@ -30,11 +33,11 @@ The panel writes a run folder `profiles/<mode>/panel-runs/<stamp>/` with `perfor
 
 | File / section / key | Default | Meaning |
 |---|---|---|
-| `performance.ini` `[Performance] DLSSPreset` | `K` | `Off`, `K`, `L`, `M`: super resolution model when path tracing is off (an old `RR` preset is read as `K`) |
-| `[Performance] RenderScaleK` / `L` / `M` | 75 / 33 / 50 | Render scale of each model, 33 to 100 |
+| `performance.ini` `[Performance] DLSSPreset` | `K` | `Off`, `K`, `L`, `M` (DLSS), `XeSS`, `FSR`: the upscaler when path tracing is off (an old `RR` preset is read as `K`). The launcher never replaces the model: the compositor tries it and lets another stand in only where it cannot run. `launch_notes` says in the panel what will not run as chosen, why, and how to get it |
+| `[Performance] RenderScaleK` / `L` / `M` / `XeSS` / `FSR` | 75 / 33 / 50 / 67 / 67 | Render scale of each model, 33 to 100 |
 | `[Performance] RenderScaleRR` | 33 | Render scale of Ray Reconstruction (path tracing on), 33 to 100 |
 | `[Performance] OutputScale` | 100 | Output scale, 75 to 150 |
-| `[Performance] FrameGeneration`, `DLSSGLite` | | Frame generation on / off and its light model |
+| `[Performance] FrameGeneration`, `FrameGenModel`, `DLSSGLite` | 1, `DLSS`, 0 | Frame generation on / off, the generator (`DLSS` or `FSR`; the other stands in where the chosen one cannot run; FSR is 2x) and DLSS-G's light model |
 | `[NR] Enabled`, `Style`, `Intensity`, ... | `Enabled` 1, `Style` 0, `Intensity` 100 | The neural denoiser's settings |
 | `selection.json` `frame_multiplier` | 2 | 2, 3 or 4; written to the OFXR layer; `OFXR_FRAME_MULTIPLIER=4` is set for 4 |
 
@@ -46,8 +49,12 @@ Change settings through the menu or the preset, not only in the live cfg.
 
 - Sets for the mod: `VAM_DISPLAY_MODE` (`VR` or `Desktop`), `VAM_PERFORMANCE_CONFIG`, `VAM_DESKTOP_CONFIG` (desktop),
   `VAM_NR_PREPASS_PATH` / `_LOG`, `VAM_DLSS_RUNTIME_PATH` / `VAM_DLSS_LOG` / `VAM_DLSS_BRIDGE=1`, `D3DINTEROP_MODE=on12`, `OFXR_DLSSG=1`,
-  `OFXR_DLSSG_RUNTIME_PATH` / `_LOG`, `OFXR_FRAME_MULTIPLIER`. `OUR_VARIABLES` in `launch.py` is the list removed from the environment first (and
-  for vanilla); extend it with every new variable.
+  `OFXR_DLSSG_RUNTIME_PATH` / `_LOG`, `OFXR_FRAME_MULTIPLIER`, `VAM_XESS_RUNTIME_PATH` and `VAM_FSR_RUNTIME_PATH` (`vamkit/bin/xess`, `vamkit/bin/fsr`:
+  the optional run-time libraries of XeSS and of AMD's FSR API). `OUR_VARIABLES` in `launch.py` is the list removed from the environment first (and
+  for vanilla); extend it with every new variable. `VAMKIT_NO_DLSS=1` in the launcher's own environment is passed on: a test of the path a card
+  without RTX takes (no DLSS SR, RR or DLSS-G). The other switches of that kind pass the same way: `VAMKIT_NO_NVOF=1` (no NVIDIA optical
+  flow in the OpenXR layer), `VAMKIT_AS_VENDOR=1002` (stand-ins ordered as on an AMD card), `VAMKIT_FSR_FRAMES=2` (the probe of FSR's
+  second generated frame). None of them changes what the launcher writes: it never replaces a chosen model.
 - VaM starts with `-vrmode OpenVR` (VR) or `-vrmode None` (desktop); vanilla also passes the Doorstop disable flags and `DOORSTOP_DISABLE=TRUE`.
 - Writes `VaM_Data/Plugins/openvr_api.dll`, `VaM_Data/Plugins/opencomposite.ini` (original text plus our lines) and `<VaM>/d3d11.dll`; the OFXR
   tray registers its OpenXR layer under `HKCU\SOFTWARE\Khronos\OpenXR\1\ApiLayers\Implicit` while it runs.

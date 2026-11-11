@@ -3,9 +3,10 @@
 The tools this project was developed with. They are here so that whoever continues the work measures the same things
 the same way. How to decide what to run is in [../../docs/protocol/testing.md](../../docs/protocol/testing.md).
 
-**Status.** These files were exported from the development tree as they are. The stand-alone ones run from here today.
-The ones that drive a VaM session still expect the development tree's launcher and folders and need the porting listed
-at the end before they run from this repository. Nothing here is installed into VaM.
+**Status.** Sessions on the desktop and in VR on the simulated headset, the first-run check and the benchmark run from
+this repository against an installed VaM folder. Four older scripts (`vamrun.py`, `vrtest.py`, `shoot.py`,
+`cpu_census.py`) were exported from the development tree as they are and still expect its launcher and folders; the
+porting they need is listed at the end. Nothing here is installed into VaM.
 
 ## What is here
 
@@ -16,16 +17,18 @@ at the end before they run from this repository. Nothing here is installed into 
 | `simxr/flightlog.py` | frame pacing as the frame generation layer logged it: durations per cycle and per real frame, repeats, gaps. Works on runs with a real headset too | yes, on a run's log folder |
 | `simxr/imagecheck.py` | image checks on captured eye images: content shift between frames by phase correlation, double-image detection during a head turn | yes, as a library (numpy, Pillow) |
 | `census/thread_census.py` | CPU time of every thread of the process and every logical CPU, sampled from outside | yes, given a process |
-| `simxr/simxr.py` | client for the simulated headset's control port: scripted head motion, button presses, eye-image capture, statistics | needs the simulated headset |
+| `simxr-runtime/` | the simulated headset itself: an OpenXR runtime with a stand-in headset library, built by `vamkit build --lab` into `out/lab/simxr/` (its own README: variables, control port, what was changed upstream) | yes, after `vamkit fetch --lab --accept-licenses` |
+| `simxr/simxr.py` | client for the simulated headset's control port (scripted head motion, button presses, eye-image capture, statistics) and `analyze`, the display model's summary of a run | yes |
 | `simxr/vamrun.py` | one VaM session on the simulated headset, driven from Python (launch, wait until ready, load a scene, change a setting live, quit and restore) | needs porting |
 | `simxr/vrtest.py` | the standard scenarios: `smoke`, `menu`, `headturn`, `pacing`, and `selfcheck` of the simulator itself | needs porting |
 | `simxr/shoot.py` | picture series of VaM for look comparisons: frames the face or a region from what the eye camera sees, checks every capture, several scenes in one VaM | needs porting |
 | `census/cpu_census.py`, `census_report.py`, `CensusProbe.cs` | which task takes how much CPU per frame: main thread per Unity subsystem, our plugins on every thread, every thread from outside; `--candidate` swaps plugins in for one run | needs porting |
 | `test-agent/VaMTestAgent.cs` | a BepInEx plugin that lets a test see and drive VaM over a local port: status, load a scene, open and close menus, freeze animation, get / set / invoke by reflection, click a scene's buttons, a per-frame log. Dormant unless the test launch sets its environment variable; listens on 127.0.0.1 only | builds; installed only for a test run |
-| `session/session.py` | one VaM session from an installed VaM folder, in the background, driven through the test agent: the mod or vanilla on the desktop, status, get / set / invoke by reflection, the compositor's live settings, quit. Compiles the agent, puts it into the plugins folder for the run and removes it | yes (desktop sessions) |
-| `session/first_run.py` | the first run after an install, as checks: a vanilla session (nothing of the kit in the process) and a mod session (plugins, proxy, a person rendered, DLSS super resolution and frame generation, path tracing and ray reconstruction switched on and off while playing), then VaM's own files and window settings back | yes |
+| `session/session.py` | one VaM session from an installed VaM folder, in the background, driven through the test agent: the mod on the desktop or in VR on the simulated headset, vanilla, or VaM alone with the agent (`baseline`); status, get / set / invoke by reflection, scene parameters, the compositor's live settings, quit. Compiles the agent, puts it into the plugins folder for the run and removes it; `without=[...]` parks single plugins for a run | yes |
+| `session/first_run.py` | the first run after an install, as checks: a vanilla session (nothing of the kit in the process), a mod session on the desktop (plugins, proxy, a person rendered, DLSS super resolution and frame generation, path tracing and ray reconstruction switched on and off while playing) and one in VR on the simulated headset (VR session up, a picture in the frames handed to the headset, path tracing, frame generation at one frame per refresh), then VaM's own files and window settings back | yes |
 | `session/trial_copy.py` | a copy of a VaM installation's program files without any content: a place to try an install without touching the VaM someone uses | yes |
 | `session/scenes/person.json` | the smallest scene with something to shade: one default person, one light (VaM starts with an empty scene) | yes |
+| `bench/bench.py`, `bench/make_scenes.py`, `bench/scenes/` | the benchmark: four standard scenes made of VaM's built-in content and a motion plugin, measured per display (desktop, simulated headset) and case (path tracing off / on, frame generation off / on), against VaM alone and with single plugins parked. What is measured and how to read it: [../../docs/benchmarks/README.md](../../docs/benchmarks/README.md) | yes |
 
 Offline probes live with their components and run today: the path tracer's contract probes
 (`components/shading/rt-core/tests`), the skin tests (`components/shading/skin/tests`), cpu-boost's harness
@@ -57,22 +60,22 @@ Rules that came with it:
 - Do not stop a session by killing the test script: the launcher goes with it and VaM's files stay swapped. If it
   happened, see "Stopping a test midway" in the testing protocol.
 
-The simulated runtime is not in the repository yet. It is a build of an open-source OpenXR runtime with a stand-in
-headset library; its upstream licence files have to be restored in our copy before it can be published.
+The runtime is in `simxr-runtime/`: a build of an open-source OpenXR runtime (VirtualDesktop-OpenXR, MIT) with a
+stand-in headset library. A session selects it for the one VaM process it starts (`XR_RUNTIME_JSON` in that process's
+environment); the machine's active OpenXR runtime and a connected headset are never touched.
 
 ## Porting still to do
 
 1. `vamrun.py` starts sessions through the development tree's launcher and its launch-panel run folders. It has to
    become a layer over `session/session.py`, which starts the installed launcher in its test mode (`launch.py --test`:
-   minimized, kept from taking the focus, presets and window settings put back) and handles the test agent. What VR
-   still needs there: choosing the simulated runtime for the launched process only, and a marker file while a test owns
-   VaM.
+   minimized, kept from taking the focus, presets and window settings put back), selects the simulated runtime for VR
+   and handles the test agent. Still missing there: a marker file while a test owns VaM.
 2. Paths: the tools import each other and find VaM by their place in the development tree. They should take the VaM
    folder from `VAMKIT_VAM` and write results under `out/lab/`.
 3. `cpu_census.py` uses a main-thread phase probe and a helper module that were not exported, and names a test scene of
    the development tree. The scene should become an argument; the phase probe has to be exported or replaced.
-4. `shoot.py` and `vrtest.py` have a default heavy scene from the development tree; scenes should be arguments.
-5. The simulated runtime, with its licence files.
+4. `shoot.py` and `vrtest.py` have a default heavy scene from the development tree; scenes should be arguments. The
+   scenarios of `vrtest.py` (menu, head turn, pacing) are not covered by `session/` yet.
 
-Until then: use the stand-alone tools, the offline probes, desktop sessions (`session/`) for end-to-end checks, and
-the logs of each run (`<VaM>/vamkit/logs/<run>/`).
+Until then: use the stand-alone tools, the offline probes, `session/` for end-to-end checks on the desktop and in VR,
+`bench/` for numbers, and the logs of each run (`<VaM>/vamkit/logs/<run>/`).

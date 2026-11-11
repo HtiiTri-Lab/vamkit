@@ -168,6 +168,14 @@ public sealed class VaMDLSSBridge : BaseUnityPlugin
     [DllImport("openvr_api")] private static extern int VaMDLSS_GetDesktopSize(out int width, out int height);
     [DllImport("openvr_api", CharSet=CharSet.Unicode)] private static extern int VaMDLSS_CaptureDesktop(string path);
     public static string CaptureDesktop(string path) { return VaMDLSS_CaptureDesktop(path) != 0 ? "queued" : "busy"; }
+    // A test capture of desktop frame generation: the next generated frame as <path>, with the real frame it follows
+    // (<path>.real.ppm) and what was presented (<path>.presented.ppm).
+    [DllImport("openvr_api", CharSet=CharSet.Unicode)] private static extern int VaMDLSS_CaptureGenerated(string path);
+    public static string CaptureGenerated(string path)
+    {
+        try { return VaMDLSS_CaptureGenerated(path) != 0 ? "queued" : "busy"; }
+        catch (EntryPointNotFoundException) { return "unavailable"; }
+    }
 
     private IntPtr slots = IntPtr.Zero, drawSlots = IntPtr.Zero, matrixSlots = IntPtr.Zero;
     private IntPtr renderEvent = IntPtr.Zero;

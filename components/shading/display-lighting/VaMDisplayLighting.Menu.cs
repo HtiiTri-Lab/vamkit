@@ -48,7 +48,7 @@ public sealed partial class VaMDisplayLighting
         tab.isOn = false;
         tab.group = template.group;
         Text tabLabel = menuTab.GetComponentInChildren<Text>(true);
-        tabLabel.text = "展示照明";
+        tabLabel.text = Lang.T("Display Lighting");
         menuTab.transform.SetParent(container, false);
         menuTab.transform.SetAsLastSibling();
         Destroy(holder);
@@ -87,9 +87,9 @@ public sealed partial class VaMDisplayLighting
         layout.spacing = 14f; layout.childControlWidth = true; layout.childControlHeight = true;
         layout.childForceExpandWidth = true; layout.childForceExpandHeight = false;
         Font font = tabLabel.font;
-        AddText(body.transform, font, "展示照明", 38, 60f);
+        AddText(body.transform, font, Lang.T("Display Lighting"), 38, 60f);
         statusLabel = AddText(body.transform, font, message, 28, 85f);
-        runButton = AddButton(prefabs, rect, "启动转换");
+        runButton = AddButton(prefabs, rect, Lang.T("Start relighting"));
         runButton.button.onClick.AddListener(delegate { if (running) StopLighting(); else StartLighting(); });
         styleButtons.Clear();
         string group = null;
@@ -99,19 +99,19 @@ public sealed partial class VaMDisplayLighting
             if (style.Group != group)
             {
                 group = style.Group;
-                AddText(body.transform, font, group, 28, 42f);
+                AddText(body.transform, font, Lang.T(group), 28, 42f);
                 row = null;
             }
             if (row == null || row.childCount == 2) row = AddRow(rect);
             string id = style.Id;
-            UIDynamicButton button = AddButton(prefabs, row, style.Label);
+            UIDynamicButton button = AddButton(prefabs, row, Lang.T(style.Label));
             button.button.onClick.AddListener(delegate { SetStyle(id); });
             styleButtons.Add(button);
         }
         AddText(body.transform, font,
-            "主光是柔和的环境光（VaM 的环境球谐和环境高光），灯只做塑形、轮廓和背景色光。都围绕人物、按你看过去的方向摆放：人物走动时跟着走，转身时光在身上流动；窗边和太阳的方向固定在世界里。\n停止后恢复原灯光和环境；切换场景自动停止。", 28, 190f);
+            Lang.T("The main light is soft ambient light (VaM's ambient spherical harmonics and ambient specular); the lamps only shape, rim and colour the background. All of it is placed around the person, from where you look: it follows the person walking, and the light moves over the body as the person turns; the window's and the sun's directions stay fixed in the world.\nStopping puts the scene's own lights and ambient back; changing the scene stops it by itself."), 28, 0f);
         SyncMenu();
-        Logger.LogInfo("Display lighting: independent 展示照明 tab ready.");
+        Logger.LogInfo("Display lighting: its own tab is ready.");
     }
 
     private static RectTransform AddRow(RectTransform parent)
@@ -150,15 +150,19 @@ public sealed partial class VaMDisplayLighting
         label.alignment = TextAnchor.UpperLeft; label.supportRichText = false;
         label.horizontalOverflow = HorizontalWrapMode.Wrap; label.verticalOverflow = VerticalWrapMode.Overflow;
         label.raycastTarget = false; label.text = text;
-        LayoutElement layout = go.AddComponent<LayoutElement>();
-        layout.minHeight = height; layout.preferredHeight = height;
+        // A height of 0: as tall as its own text, whatever the language makes of it.
+        if (height > 0f)
+        {
+            LayoutElement layout = go.AddComponent<LayoutElement>();
+            layout.minHeight = height; layout.preferredHeight = height;
+        }
         return label;
     }
 
     private void SyncMenu()
     {
         if (statusLabel != null) statusLabel.text = message;
-        if (runButton != null) runButton.label = running ? "停止并恢复" : "启动转换";
+        if (runButton != null) runButton.label = running ? Lang.T("Stop and restore") : Lang.T("Start relighting");
         Color chosen = new Color(0.30f, 0.55f, 0.90f);
         for (int i = 0; i < styleButtons.Count && i < Styles.Length; i++)
         {

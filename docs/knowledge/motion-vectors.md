@@ -154,7 +154,7 @@ tessellates (Phong) and the rendered surface differs from the redrawn mesh by mi
   more than half a pixel"). Values were correct (checked: no jitter, bottom-up v, transparents produce none). On the headset it produced strong artefacts, hair worst: GPUTools' hair shader has its own
   motion pass that takes the previous position from `current - TessRenderParticle.Velocity`, and in VaM that velocity is not a per-frame displacement, so Unity drew a wrong hair
   vector over the correct guide-strand one (about 4.7% of pixels on a head translation). Setting the hair renderers' `MotionVectorGenerationMode` to `Camera` would remove it; not done. A
-  stable design would also need "Unity wins" to be replaced because wherever Unity is wrong, its wrong value wins. Reverted; do not propose it again without the hair fix.
+  stable design would also need "Unity wins" to be replaced because wherever Unity is wrong, its wrong value wins. Reverted. To take it up again, do the two things above first (the hair renderers' mode, and a rule other than "Unity wins"), then judge it in a headset on hair.
   What Unity would add over the collected set: blend-shape skinned renderers, skinned renderers outside CUAs (a VR hand), and dynamically created renderers.
 - **"People first" draw order** (skin and clothing, then hair, props only on pixels nobody claimed): installed, removed after minutes. Once transparents no longer wrote depth into the guide depth,
   the depth test alone was right, and the priority only broke props that really are in front of a face.

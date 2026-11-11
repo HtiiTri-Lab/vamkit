@@ -1,0 +1,345 @@
+{
+   "playerNavCollider": "PlayerNavigationPanel:Floor",
+   "worldScale": "1",
+   "useSceneLoadPosition": "false",
+   "atoms": [
+      {
+         "id": "CoreControl",
+         "on": "true",
+         "type": "CoreControl",
+         "storables": []
+      },
+      {
+         "id": "PlayerNavigationPanel",
+         "on": "true",
+         "type": "PlayerNavigationPanel",
+         "storables": [],
+         "position": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      },
+      {
+         "id": "PersonA",
+         "on": "true",
+         "type": "Person",
+         "storables": [
+            {
+               "id": "geometry",
+               "character": "Female 5",
+               "clothing": [
+                  {
+                     "id": "Heat Up Skirt Sim",
+                     "enabled": "true"
+                  },
+                  {
+                     "id": "Heat Up Top",
+                     "enabled": "true"
+                  },
+                  {
+                     "id": "Harli Heels",
+                     "enabled": "true"
+                  }
+               ],
+               "hair": [
+                  {
+                     "id": "SimV2 Hair",
+                     "enabled": "true"
+                  }
+               ]
+            },
+            {
+               "id": "PluginManager",
+               "plugins": {
+                  "plugin#0": "Saves/scene/vamkit-bench/BenchMotion.cs"
+               }
+            },
+            {
+               "id": "plugin#0_BenchMotion",
+               "Speed": "0.6",
+               "Size": "1.0",
+               "Phase": "0.0"
+            }
+         ],
+         "position": {
+            "x": "-0.32",
+            "y": "0",
+            "z": "-0.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "25",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-0.32",
+            "y": "0",
+            "z": "-0.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "25",
+            "z": "0"
+         }
+      },
+      {
+         "id": "PersonB",
+         "on": "true",
+         "type": "Person",
+         "storables": [
+            {
+               "id": "geometry",
+               "character": "Female 12",
+               "clothing": [
+                  {
+                     "id": "DATM Pants Sim",
+                     "enabled": "true"
+                  },
+                  {
+                     "id": "DATM Jumper Sim",
+                     "enabled": "true"
+                  }
+               ],
+               "hair": [
+                  {
+                     "id": "SimV2 Hair",
+                     "enabled": "true"
+                  }
+               ]
+            },
+            {
+               "id": "PluginManager",
+               "plugins": {
+                  "plugin#0": "Saves/scene/vamkit-bench/BenchMotion.cs"
+               }
+            },
+            {
+               "id": "plugin#0_BenchMotion",
+               "Speed": "0.6",
+               "Size": "1.0",
+               "Phase": "0.5"
+            }
+         ],
+         "position": {
+            "x": "0.32",
+            "y": "0",
+            "z": "-0.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "-25",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0.32",
+            "y": "0",
+            "z": "-0.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "-25",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Key",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Spot",
+               "intensity": "1.6",
+               "range": "10",
+               "shadowsOn": "true",
+               "spotAngle": "70"
+            }
+         ],
+         "position": {
+            "x": "1.2",
+            "y": "2.3",
+            "z": "1.7"
+         },
+         "rotation": {
+            "x": "20",
+            "y": "205",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "1.2",
+            "y": "2.3",
+            "z": "1.7"
+         },
+         "containerRotation": {
+            "x": "20",
+            "y": "205",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Fill",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Spot",
+               "intensity": "0.9",
+               "range": "10",
+               "shadowsOn": "true",
+               "spotAngle": "70"
+            }
+         ],
+         "position": {
+            "x": "-1.5",
+            "y": "1.9",
+            "z": "1.5"
+         },
+         "rotation": {
+            "x": "12",
+            "y": "150",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-1.5",
+            "y": "1.9",
+            "z": "1.5"
+         },
+         "containerRotation": {
+            "x": "12",
+            "y": "150",
+            "z": "0"
+         }
+      },
+      {
+         "id": "RimLeft",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Spot",
+               "intensity": "1.3",
+               "range": "10",
+               "shadowsOn": "true",
+               "spotAngle": "70",
+               "color": {
+                  "h": "0.95",
+                  "s": "0.5",
+                  "v": "1"
+               }
+            }
+         ],
+         "position": {
+            "x": "-1.2",
+            "y": "2.2",
+            "z": "-1.8"
+         },
+         "rotation": {
+            "x": "25",
+            "y": "35",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "-1.2",
+            "y": "2.2",
+            "z": "-1.8"
+         },
+         "containerRotation": {
+            "x": "25",
+            "y": "35",
+            "z": "0"
+         }
+      },
+      {
+         "id": "RimRight",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Spot",
+               "intensity": "1.3",
+               "range": "10",
+               "shadowsOn": "true",
+               "spotAngle": "70",
+               "color": {
+                  "h": "0.55",
+                  "s": "0.5",
+                  "v": "1"
+               }
+            }
+         ],
+         "position": {
+            "x": "1.2",
+            "y": "2.2",
+            "z": "-1.8"
+         },
+         "rotation": {
+            "x": "25",
+            "y": "-35",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "1.2",
+            "y": "2.2",
+            "z": "-1.8"
+         },
+         "containerRotation": {
+            "x": "25",
+            "y": "-35",
+            "z": "0"
+         }
+      },
+      {
+         "id": "Top",
+         "on": "true",
+         "type": "InvisibleLight",
+         "storables": [
+            {
+               "id": "Light",
+               "type": "Point",
+               "intensity": "0.4",
+               "range": "10",
+               "shadowsOn": "false"
+            }
+         ],
+         "position": {
+            "x": "0",
+            "y": "2.8",
+            "z": "-0.2"
+         },
+         "rotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         },
+         "containerPosition": {
+            "x": "0",
+            "y": "2.8",
+            "z": "-0.2"
+         },
+         "containerRotation": {
+            "x": "0",
+            "y": "0",
+            "z": "0"
+         }
+      }
+   ]
+}

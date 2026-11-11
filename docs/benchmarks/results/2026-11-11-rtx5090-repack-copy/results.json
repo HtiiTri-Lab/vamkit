@@ -1,0 +1,3894 @@
+[
+ {
+  "scene": "portrait",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:13:34",
+  "start_seconds": 16.4,
+  "load_seconds": 7.9,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3173.0,
+  "case": "raster",
+  "window": [
+   1794377654.4084384,
+   1794377684.4090552
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 98.7,
+  "video_memory_mb": 9312.0,
+  "frames": 6109,
+  "fps": 203.64,
+  "frame_ms_p50": 4.87,
+  "frame_ms_p95": 5.79,
+  "frame_ms_p99": 6.33,
+  "frame_ms_max": 7.59,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 3.28,
+  "menus_open_at_end": false,
+  "motion_cycles": 7.76,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 2,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-141335-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-141334-bench-portrait-Desktop-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 4054,
+    "total_ms": 0.1,
+    "parts": {
+     "draw": 0.1
+    }
+   },
+   "eye submission": {
+    "samples": 4054,
+    "total_ms": 2.812,
+    "parts": {
+     "crop": 0.018,
+     "guides": 0.052,
+     "nr": 0.004,
+     "upscale": 0.932,
+     "denoise": 1.727,
+     "sharpen": 0.05,
+     "output": 0.028
+    }
+   }
+  }
+ },
+ {
+  "scene": "portrait",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:13:34",
+  "start_seconds": 16.4,
+  "load_seconds": 7.9,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3173.0,
+  "case": "raster+fg",
+  "window": [
+   1794377691.5240035,
+   1794377721.52516
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 29.8,
+  "video_memory_mb": 8789.0,
+  "frames": 1183,
+  "fps": 39.45,
+  "frame_ms_p50": 25.32,
+  "frame_ms_p95": 26.1,
+  "frame_ms_p99": 26.55,
+  "frame_ms_max": 28.44,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 0.76,
+  "menus_open_at_end": false,
+  "motion_cycles": 7.78,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 2,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-141335-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-141334-bench-portrait-Desktop-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 790,
+    "total_ms": 0.087,
+    "parts": {
+     "draw": 0.087
+    }
+   },
+   "eye submission": {
+    "samples": 790,
+    "total_ms": 23.004,
+    "parts": {
+     "crop": 0.017,
+     "guides": 0.05,
+     "nr": 0.005,
+     "upscale": 0.84,
+     "denoise": 22.022,
+     "sharpen": 0.046,
+     "output": 0.025
+    }
+   }
+  }
+ },
+ {
+  "scene": "portrait",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:13:34",
+  "start_seconds": 16.4,
+  "load_seconds": 7.9,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3173.0,
+  "case": "path",
+  "window": [
+   1794377731.8706071,
+   1794377761.8712673
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 99.0,
+  "video_memory_mb": 9352.0,
+  "frames": 5191,
+  "fps": 173.05,
+  "frame_ms_p50": 5.77,
+  "frame_ms_p95": 6.63,
+  "frame_ms_p99": 7.07,
+  "frame_ms_max": 8.69,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 2.71,
+  "menus_open_at_end": false,
+  "motion_cycles": 7.76,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 630760,
+   "hair_segments": 208224,
+   "scene_build_gpu_ms": 0.1691,
+   "scene_record_cpu_ms": 0.2566,
+   "reconstruction": true,
+   "skins": 2,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-141335-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-141334-bench-portrait-Desktop-mod",
+  "gpu_stages": {
+   "RR F HDR upscaling, both eyes": {
+    "samples": 5191,
+    "total_ms": 3.138,
+    "parts": {
+     "source": 0.003,
+     "left": 3.109,
+     "right": 0.022,
+     "composite": 0.005
+    }
+   },
+   "object motion, both eyes": {
+    "samples": 3454,
+    "total_ms": 0.013,
+    "parts": {
+     "draw": 0.013
+    }
+   },
+   "eye submission": {
+    "samples": 3453,
+    "total_ms": 1.791,
+    "parts": {
+     "crop": 0.009,
+     "guides": 0.003,
+     "nr": 0.003,
+     "upscale": 0.024,
+     "denoise": 1.682,
+     "sharpen": 0.045,
+     "output": 0.026
+    }
+   }
+  }
+ },
+ {
+  "scene": "portrait",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:13:34",
+  "start_seconds": 16.4,
+  "load_seconds": 7.9,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3173.0,
+  "case": "path+fg",
+  "window": [
+   1794377768.982831,
+   1794377798.9832096
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 34.8,
+  "video_memory_mb": 9398.0,
+  "frames": 1184,
+  "fps": 39.47,
+  "frame_ms_p50": 25.31,
+  "frame_ms_p95": 26.14,
+  "frame_ms_p99": 26.53,
+  "frame_ms_max": 29.03,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 0.75,
+  "menus_open_at_end": false,
+  "motion_cycles": 7.78,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 630760,
+   "hair_segments": 208224,
+   "scene_build_gpu_ms": 0.1654,
+   "scene_record_cpu_ms": 0.2543,
+   "reconstruction": true,
+   "skins": 2,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-141335-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-141334-bench-portrait-Desktop-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 1185,
+    "total_ms": 0.012,
+    "parts": {
+     "draw": 0.012
+    }
+   },
+   "eye submission": {
+    "samples": 1185,
+    "total_ms": 20.956,
+    "parts": {
+     "crop": 0.009,
+     "guides": 0.004,
+     "nr": 0.003,
+     "upscale": 0.024,
+     "denoise": 20.845,
+     "sharpen": 0.045,
+     "output": 0.024
+    }
+   },
+   "RR F HDR upscaling, both eyes": {
+    "samples": 790,
+    "total_ms": 2.985,
+    "parts": {
+     "source": 0.003,
+     "left": 2.95,
+     "right": 0.028,
+     "composite": 0.005
+    }
+   }
+  }
+ },
+ {
+  "scene": "portrait",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:16:40",
+  "start_seconds": 21.4,
+  "load_seconds": 8.0,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3070.0,
+  "case": "raster",
+  "window": [
+   1794377850.5051653,
+   1794377880.505951
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 99.1,
+  "video_memory_mb": 13248.0,
+  "frames": 4209,
+  "fps": 120.27,
+  "frame_ms_p50": 8.3,
+  "frame_ms_p95": 9.31,
+  "frame_ms_p99": 10.16,
+  "frame_ms_max": 16.9,
+  "long_frames": 1,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 2.33,
+  "menus_open_at_end": false,
+  "motion_cycles": 9.01,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 2,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 1,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-141641-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-141641-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-141640-bench-portrait-VR-mod",
+  "gpu_stages": {
+   "eye submission": {
+    "samples": 7168,
+    "total_ms": 2.778,
+    "parts": {
+     "crop": 0.018,
+     "guides": 0.116,
+     "nr": 0.004,
+     "upscale": 0.991,
+     "denoise": 1.564,
+     "sharpen": 0.056,
+     "output": 0.029
+    }
+   },
+   "object motion, both eyes": {
+    "samples": 2409,
+    "total_ms": 0.104,
+    "parts": {
+     "draw": 0.104
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 120.108,
+   "submitted_fps": 120.241,
+   "repeat_ratio": 0.166,
+   "hitches": 1,
+   "content_hitches": 1,
+   "longest_image_ms": 20.8,
+   "dropped_frames": 3,
+   "pipeline_gaps": 0,
+   "frozen_pose_runs": 0,
+   "late_frames": 3604,
+   "submit_interval_ms": {
+    "n": 3606,
+    "mean": 8.319,
+    "p50": 8.276,
+    "p95": 9.381,
+    "p99": 10.114,
+    "max": 16.255
+   },
+   "pose_age_intended_ms": {
+    "n": 3595,
+    "mean": 0.732,
+    "p50": 0.0,
+    "p95": 0.154,
+    "p99": 0.521,
+    "max": 2511.819
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "portrait",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:16:40",
+  "start_seconds": 21.4,
+  "load_seconds": 8.0,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3070.0,
+  "case": "raster+fg",
+  "window": [
+   1794377892.7718627,
+   1794377922.7726727
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 53.1,
+  "video_memory_mb": 13277.0,
+  "frames": 1260,
+  "fps": 36.02,
+  "frame_ms_p50": 27.79,
+  "frame_ms_p95": 28.45,
+  "frame_ms_p99": 28.76,
+  "frame_ms_max": 29.59,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 0.84,
+  "menus_open_at_end": false,
+  "motion_cycles": 9.04,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 2,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 2,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-141641-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-141641-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-141640-bench-portrait-VR-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 720,
+    "total_ms": 0.118,
+    "parts": {
+     "draw": 0.118
+    }
+   },
+   "eye submission": {
+    "samples": 1440,
+    "total_ms": 2.815,
+    "parts": {
+     "crop": 0.018,
+     "guides": 0.121,
+     "nr": 0.004,
+     "upscale": 1.006,
+     "denoise": 1.582,
+     "sharpen": 0.055,
+     "output": 0.03
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 143.509,
+   "submitted_fps": 144.109,
+   "repeat_ratio": 0.0035,
+   "hitches": 0,
+   "content_hitches": 0,
+   "longest_image_ms": 13.9,
+   "dropped_frames": 18,
+   "pipeline_gaps": 0,
+   "frozen_pose_runs": 0,
+   "late_frames": 17,
+   "submit_interval_ms": {
+    "n": 4322,
+    "mean": 6.94,
+    "p50": 6.948,
+    "p95": 7.175,
+    "p99": 7.371,
+    "max": 8.265
+   },
+   "pose_age_intended_ms": {
+    "n": 4317,
+    "mean": 12.967,
+    "p50": 13.876,
+    "p95": 13.889,
+    "p99": 13.889,
+    "max": 13.889
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "portrait",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:16:40",
+  "start_seconds": 21.4,
+  "load_seconds": 8.0,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3070.0,
+  "case": "path",
+  "window": [
+   1794377938.8726285,
+   1794377968.8732917
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 99.0,
+  "video_memory_mb": 14049.0,
+  "frames": 3562,
+  "fps": 101.77,
+  "frame_ms_p50": 9.79,
+  "frame_ms_p95": 11.44,
+  "frame_ms_p99": 12.32,
+  "frame_ms_max": 28.27,
+  "long_frames": 1,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 1.94,
+  "menus_open_at_end": false,
+  "motion_cycles": 9.02,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 630760,
+   "hair_segments": 208224,
+   "scene_build_gpu_ms": 0.1514,
+   "scene_record_cpu_ms": 0.333,
+   "reconstruction": true,
+   "skins": 2,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 3,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-141641-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-141641-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-141640-bench-portrait-VR-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 3057,
+    "total_ms": 0.017,
+    "parts": {
+     "draw": 0.017
+    }
+   },
+   "eye submission": {
+    "samples": 5086,
+    "total_ms": 1.474,
+    "parts": {
+     "crop": 0.009,
+     "guides": 0.005,
+     "nr": 0.003,
+     "upscale": 0.029,
+     "denoise": 1.341,
+     "sharpen": 0.056,
+     "output": 0.03
+    }
+   },
+   "RR F HDR upscaling, both eyes": {
+    "samples": 2037,
+    "total_ms": 5.898,
+    "parts": {
+     "source": 0.003,
+     "left": 3.001,
+     "right": 2.828,
+     "composite": 0.065
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 101.773,
+   "submitted_fps": 101.873,
+   "repeat_ratio": 0.2933,
+   "hitches": 1,
+   "content_hitches": 1,
+   "longest_image_ms": 27.8,
+   "dropped_frames": 4,
+   "pipeline_gaps": 1,
+   "frozen_pose_runs": 0,
+   "late_frames": 3052,
+   "submit_interval_ms": {
+    "n": 3055,
+    "mean": 9.816,
+    "p50": 9.804,
+    "p95": 11.428,
+    "p99": 12.058,
+    "max": 27.371
+   },
+   "pose_age_intended_ms": {
+    "n": 3048,
+    "mean": 0.03,
+    "p50": 0.0,
+    "p95": 0.091,
+    "p99": 0.386,
+    "max": 2.084
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "portrait",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:16:40",
+  "start_seconds": 21.4,
+  "load_seconds": 8.0,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3070.0,
+  "case": "path+fg",
+  "window": [
+   1794377981.1325252,
+   1794378011.1333132
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 61.0,
+  "video_memory_mb": 14032.0,
+  "frames": 1260,
+  "fps": 36.0,
+  "frame_ms_p50": 27.78,
+  "frame_ms_p95": 28.46,
+  "frame_ms_p99": 28.84,
+  "frame_ms_max": 29.19,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 0.77,
+  "menus_open_at_end": false,
+  "motion_cycles": 9.04,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 630760,
+   "hair_segments": 208224,
+   "scene_build_gpu_ms": 0.1495,
+   "scene_record_cpu_ms": 0.3423,
+   "reconstruction": true,
+   "skins": 2,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 4,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-141641-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-141641-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-141640-bench-portrait-VR-mod",
+  "gpu_stages": {
+   "eye submission": {
+    "samples": 1440,
+    "total_ms": 1.252,
+    "parts": {
+     "crop": 0.01,
+     "guides": 0.005,
+     "nr": 0.003,
+     "upscale": 0.029,
+     "denoise": 1.119,
+     "sharpen": 0.057,
+     "output": 0.03
+    }
+   },
+   "RR F HDR upscaling, both eyes": {
+    "samples": 720,
+    "total_ms": 6.385,
+    "parts": {
+     "source": 0.003,
+     "left": 3.396,
+     "right": 2.923,
+     "composite": 0.064
+    }
+   },
+   "object motion, both eyes": {
+    "samples": 720,
+    "total_ms": 0.017,
+    "parts": {
+     "draw": 0.017
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 144.009,
+   "submitted_fps": 144.009,
+   "repeat_ratio": 0.0,
+   "hitches": 0,
+   "content_hitches": 0,
+   "longest_image_ms": 6.9,
+   "dropped_frames": 0,
+   "pipeline_gaps": 0,
+   "frozen_pose_runs": 0,
+   "late_frames": 0,
+   "submit_interval_ms": {
+    "n": 4319,
+    "mean": 6.944,
+    "p50": 6.944,
+    "p95": 7.158,
+    "p99": 7.315,
+    "max": 8.104
+   },
+   "pose_age_intended_ms": {
+    "n": 4308,
+    "mean": 19.521,
+    "p50": 20.826,
+    "p95": 20.834,
+    "p99": 20.834,
+    "max": 20.834
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "portrait",
+  "display": "Desktop",
+  "variant": "baseline",
+  "without": [],
+  "time": "2026-11-11T14:20:14",
+  "start_seconds": 11.9,
+  "load_seconds": 6.6,
+  "atoms_missing": [],
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3116.0,
+  "case": "vam",
+  "window": [
+   1794378042.2441974,
+   1794378072.244611
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 38.3,
+  "video_memory_mb": 5718.0,
+  "frames": 9202,
+  "fps": 306.04,
+  "frame_ms_p50": 3.23,
+  "frame_ms_p95": 3.72,
+  "frame_ms_p99": 4.08,
+  "frame_ms_max": 4.85,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 4.87,
+  "menus_open_at_end": false,
+  "motion_cycles": 7.78,
+  "launcher_exit": 0,
+  "logs": null,
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142014-bench-portrait-Desktop-baseline"
+ },
+ {
+  "scene": "dance",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:21:13",
+  "start_seconds": 16.3,
+  "load_seconds": 8.2,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3133.0,
+  "case": "raster",
+  "window": [
+   1794378113.5745175,
+   1794378143.575247
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 98.0,
+  "video_memory_mb": 9587.0,
+  "frames": 5477,
+  "fps": 182.23,
+  "frame_ms_p50": 5.47,
+  "frame_ms_p95": 6.42,
+  "frame_ms_p99": 6.86,
+  "frame_ms_max": 8.07,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 3.53,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.66,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 3,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-142113-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142113-bench-dance-Desktop-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 3638,
+    "total_ms": 0.099,
+    "parts": {
+     "draw": 0.099
+    }
+   },
+   "eye submission": {
+    "samples": 3637,
+    "total_ms": 2.813,
+    "parts": {
+     "crop": 0.019,
+     "guides": 0.055,
+     "nr": 0.005,
+     "upscale": 0.938,
+     "denoise": 1.722,
+     "sharpen": 0.047,
+     "output": 0.028
+    }
+   }
+  }
+ },
+ {
+  "scene": "dance",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:21:13",
+  "start_seconds": 16.3,
+  "load_seconds": 8.2,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3133.0,
+  "case": "raster+fg",
+  "window": [
+   1794378150.744187,
+   1794378180.745758
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 38.0,
+  "video_memory_mb": 9582.0,
+  "frames": 1183,
+  "fps": 39.45,
+  "frame_ms_p50": 25.33,
+  "frame_ms_p95": 26.32,
+  "frame_ms_p99": 27.01,
+  "frame_ms_max": 27.93,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 0.85,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.68,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 3,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-142113-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142113-bench-dance-Desktop-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 790,
+    "total_ms": 0.102,
+    "parts": {
+     "draw": 0.102
+    }
+   },
+   "eye submission": {
+    "samples": 790,
+    "total_ms": 21.483,
+    "parts": {
+     "crop": 0.018,
+     "guides": 0.062,
+     "nr": 0.006,
+     "upscale": 1.087,
+     "denoise": 20.24,
+     "sharpen": 0.045,
+     "output": 0.024
+    }
+   }
+  }
+ },
+ {
+  "scene": "dance",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:21:13",
+  "start_seconds": 16.3,
+  "load_seconds": 8.2,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3133.0,
+  "case": "path",
+  "window": [
+   1794378191.1871307,
+   1794378221.1880403
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 98.0,
+  "video_memory_mb": 10208.0,
+  "frames": 4606,
+  "fps": 153.53,
+  "frame_ms_p50": 6.46,
+  "frame_ms_p95": 7.78,
+  "frame_ms_p99": 8.59,
+  "frame_ms_max": 10.35,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 2.69,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.63,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 606423,
+   "hair_segments": 208224,
+   "scene_build_gpu_ms": 0.202,
+   "scene_record_cpu_ms": 0.2963,
+   "reconstruction": true,
+   "skins": 3,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-142113-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142113-bench-dance-Desktop-mod",
+  "gpu_stages": {
+   "RR F HDR upscaling, both eyes": {
+    "samples": 4605,
+    "total_ms": 3.225,
+    "parts": {
+     "source": 0.003,
+     "left": 3.194,
+     "right": 0.024,
+     "composite": 0.005
+    }
+   },
+   "object motion, both eyes": {
+    "samples": 3063,
+    "total_ms": 0.013,
+    "parts": {
+     "draw": 0.013
+    }
+   },
+   "eye submission": {
+    "samples": 3063,
+    "total_ms": 1.881,
+    "parts": {
+     "crop": 0.01,
+     "guides": 0.003,
+     "nr": 0.004,
+     "upscale": 0.025,
+     "denoise": 1.768,
+     "sharpen": 0.046,
+     "output": 0.026
+    }
+   }
+  }
+ },
+ {
+  "scene": "dance",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:21:13",
+  "start_seconds": 16.3,
+  "load_seconds": 8.2,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3133.0,
+  "case": "path+fg",
+  "window": [
+   1794378228.3253086,
+   1794378258.3257782
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 38.8,
+  "video_memory_mb": 10218.0,
+  "frames": 1184,
+  "fps": 39.47,
+  "frame_ms_p50": 25.34,
+  "frame_ms_p95": 26.33,
+  "frame_ms_p99": 26.85,
+  "frame_ms_max": 28.01,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 0.9,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.68,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 606423,
+   "hair_segments": 208224,
+   "scene_build_gpu_ms": 0.1934,
+   "scene_record_cpu_ms": 0.2875,
+   "reconstruction": true,
+   "skins": 3,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-142113-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142113-bench-dance-Desktop-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 1184,
+    "total_ms": 0.011,
+    "parts": {
+     "draw": 0.011
+    }
+   },
+   "eye submission": {
+    "samples": 1185,
+    "total_ms": 19.916,
+    "parts": {
+     "crop": 0.01,
+     "guides": 0.004,
+     "nr": 0.003,
+     "upscale": 0.024,
+     "denoise": 19.806,
+     "sharpen": 0.045,
+     "output": 0.024
+    }
+   },
+   "RR F HDR upscaling, both eyes": {
+    "samples": 790,
+    "total_ms": 3.105,
+    "parts": {
+     "source": 0.003,
+     "left": 3.07,
+     "right": 0.025,
+     "composite": 0.006
+    }
+   }
+  }
+ },
+ {
+  "scene": "dance",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:24:20",
+  "start_seconds": 21.8,
+  "load_seconds": 8.5,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3171.0,
+  "case": "raster",
+  "window": [
+   1794378310.9682772,
+   1794378340.968641
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 99.0,
+  "video_memory_mb": 13968.0,
+  "frames": 3854,
+  "fps": 110.13,
+  "frame_ms_p50": 9.03,
+  "frame_ms_p95": 10.18,
+  "frame_ms_p99": 10.87,
+  "frame_ms_max": 12.84,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 2.5,
+  "menus_open_at_end": false,
+  "motion_cycles": 21.63,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 3,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 1,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-142420-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-142420-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142420-bench-dance-VR-mod",
+  "gpu_stages": {
+   "eye submission": {
+    "samples": 5524,
+    "total_ms": 2.759,
+    "parts": {
+     "crop": 0.018,
+     "guides": 0.116,
+     "nr": 0.004,
+     "upscale": 0.986,
+     "denoise": 1.551,
+     "sharpen": 0.055,
+     "output": 0.029
+    }
+   },
+   "object motion, both eyes": {
+    "samples": 2233,
+    "total_ms": 0.117,
+    "parts": {
+     "draw": 0.117
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 110.24,
+   "submitted_fps": 110.274,
+   "repeat_ratio": 0.2345,
+   "hitches": 0,
+   "content_hitches": 0,
+   "longest_image_ms": 13.9,
+   "dropped_frames": 0,
+   "pipeline_gaps": 0,
+   "frozen_pose_runs": 0,
+   "late_frames": 3308,
+   "submit_interval_ms": {
+    "n": 3307,
+    "mean": 9.071,
+    "p50": 8.963,
+    "p95": 10.153,
+    "p99": 10.822,
+    "max": 12.536
+   },
+   "pose_age_intended_ms": {
+    "n": 3298,
+    "mean": 0.023,
+    "p50": 0.0,
+    "p95": 0.084,
+    "p99": 0.289,
+    "max": 0.694
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "dance",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:24:20",
+  "start_seconds": 21.8,
+  "load_seconds": 8.5,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3171.0,
+  "case": "raster+fg",
+  "window": [
+   1794378353.211697,
+   1794378383.2126396
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 52.8,
+  "video_memory_mb": 13983.0,
+  "frames": 1260,
+  "fps": 36.01,
+  "frame_ms_p50": 27.79,
+  "frame_ms_p95": 28.46,
+  "frame_ms_p99": 28.83,
+  "frame_ms_max": 29.83,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 0.98,
+  "menus_open_at_end": false,
+  "motion_cycles": 21.7,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 3,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 2,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-142420-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-142420-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142420-bench-dance-VR-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 720,
+    "total_ms": 0.117,
+    "parts": {
+     "draw": 0.117
+    }
+   },
+   "eye submission": {
+    "samples": 1440,
+    "total_ms": 2.813,
+    "parts": {
+     "crop": 0.018,
+     "guides": 0.118,
+     "nr": 0.003,
+     "upscale": 0.986,
+     "denoise": 1.602,
+     "sharpen": 0.055,
+     "output": 0.03
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 143.976,
+   "submitted_fps": 144.009,
+   "repeat_ratio": 0.0002,
+   "hitches": 0,
+   "content_hitches": 0,
+   "longest_image_ms": 13.9,
+   "dropped_frames": 1,
+   "pipeline_gaps": 0,
+   "frozen_pose_runs": 0,
+   "late_frames": 0,
+   "submit_interval_ms": {
+    "n": 4319,
+    "mean": 6.944,
+    "p50": 6.944,
+    "p95": 7.146,
+    "p99": 7.258,
+    "max": 7.788
+   },
+   "pose_age_intended_ms": {
+    "n": 4308,
+    "mean": 18.004,
+    "p50": 20.78,
+    "p95": 20.834,
+    "p99": 20.834,
+    "max": 20.834
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "dance",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:24:20",
+  "start_seconds": 21.8,
+  "load_seconds": 8.5,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3171.0,
+  "case": "path",
+  "window": [
+   1794378399.4227328,
+   1794378429.4231222
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 99.0,
+  "video_memory_mb": 14749.0,
+  "frames": 3359,
+  "fps": 95.99,
+  "frame_ms_p50": 10.37,
+  "frame_ms_p95": 11.44,
+  "frame_ms_p99": 11.98,
+  "frame_ms_max": 82.55,
+  "long_frames": 1,
+  "hitches": 1,
+  "collections": 1,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 2.39,
+  "menus_open_at_end": false,
+  "motion_cycles": 21.64,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 606423,
+   "hair_segments": 208224,
+   "scene_build_gpu_ms": 0.1601,
+   "scene_record_cpu_ms": 0.3278,
+   "reconstruction": true,
+   "skins": 3,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 3,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-142420-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-142420-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142420-bench-dance-VR-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 2882,
+    "total_ms": 0.018,
+    "parts": {
+     "draw": 0.018
+    }
+   },
+   "eye submission": {
+    "samples": 4796,
+    "total_ms": 1.461,
+    "parts": {
+     "crop": 0.01,
+     "guides": 0.005,
+     "nr": 0.003,
+     "upscale": 0.029,
+     "denoise": 1.329,
+     "sharpen": 0.056,
+     "output": 0.03
+    }
+   },
+   "RR F HDR upscaling, both eyes": {
+    "samples": 1921,
+    "total_ms": 5.954,
+    "parts": {
+     "source": 0.003,
+     "left": 2.998,
+     "right": 2.889,
+     "composite": 0.065
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 96.051,
+   "submitted_fps": 96.084,
+   "repeat_ratio": 0.333,
+   "hitches": 1,
+   "content_hitches": 1,
+   "longest_image_ms": 62.5,
+   "dropped_frames": 1,
+   "pipeline_gaps": 1,
+   "frozen_pose_runs": 0,
+   "late_frames": 2880,
+   "submit_interval_ms": {
+    "n": 2880,
+    "mean": 10.413,
+    "p50": 10.402,
+    "p95": 11.31,
+    "p99": 11.738,
+    "max": 79.343
+   },
+   "pose_age_intended_ms": {
+    "n": 2874,
+    "mean": 0.037,
+    "p50": 0.0,
+    "p95": 0.123,
+    "p99": 0.694,
+    "max": 6.945
+   },
+   "simulator_late_vsyncs": 2
+  }
+ },
+ {
+  "scene": "dance",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:24:20",
+  "start_seconds": 21.8,
+  "load_seconds": 8.5,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3171.0,
+  "case": "path+fg",
+  "window": [
+   1794378441.67922,
+   1794378471.6796443
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 65.3,
+  "video_memory_mb": 14750.0,
+  "frames": 1260,
+  "fps": 36.01,
+  "frame_ms_p50": 27.77,
+  "frame_ms_p95": 28.56,
+  "frame_ms_p99": 29.08,
+  "frame_ms_max": 30.08,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 1.17,
+  "menus_open_at_end": false,
+  "motion_cycles": 21.69,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 606423,
+   "hair_segments": 208224,
+   "scene_build_gpu_ms": 0.1583,
+   "scene_record_cpu_ms": 0.3387,
+   "reconstruction": true,
+   "skins": 3,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 4,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-142420-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-142420-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142420-bench-dance-VR-mod",
+  "gpu_stages": {
+   "eye submission": {
+    "samples": 1801,
+    "total_ms": 1.05,
+    "parts": {
+     "crop": 0.01,
+     "guides": 0.005,
+     "nr": 0.003,
+     "upscale": 0.028,
+     "denoise": 0.92,
+     "sharpen": 0.056,
+     "output": 0.03
+    }
+   },
+   "RR F HDR upscaling, both eyes": {
+    "samples": 720,
+    "total_ms": 6.875,
+    "parts": {
+     "source": 0.003,
+     "left": 3.682,
+     "right": 3.123,
+     "composite": 0.068
+    }
+   },
+   "object motion, both eyes": {
+    "samples": 720,
+    "total_ms": 0.017,
+    "parts": {
+     "draw": 0.017
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 143.376,
+   "submitted_fps": 144.076,
+   "repeat_ratio": 0.0044,
+   "hitches": 0,
+   "content_hitches": 0,
+   "longest_image_ms": 13.9,
+   "dropped_frames": 21,
+   "pipeline_gaps": 0,
+   "frozen_pose_runs": 0,
+   "late_frames": 14,
+   "submit_interval_ms": {
+    "n": 4321,
+    "mean": 6.941,
+    "p50": 6.943,
+    "p95": 7.169,
+    "p99": 7.363,
+    "max": 7.924
+   },
+   "pose_age_intended_ms": {
+    "n": 4304,
+    "mean": 19.549,
+    "p50": 20.82,
+    "p95": 20.834,
+    "p99": 20.834,
+    "max": 20.834
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "dance",
+  "display": "Desktop",
+  "variant": "baseline",
+  "without": [],
+  "time": "2026-11-11T14:27:55",
+  "start_seconds": 11.0,
+  "load_seconds": 5.7,
+  "atoms_missing": [],
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3154.0,
+  "case": "vam",
+  "window": [
+   1794378500.9448256,
+   1794378530.9453669
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 52.6,
+  "video_memory_mb": 6384.0,
+  "frames": 9153,
+  "fps": 305.12,
+  "frame_ms_p50": 3.23,
+  "frame_ms_p95": 3.74,
+  "frame_ms_p99": 4.07,
+  "frame_ms_max": 9.13,
+  "long_frames": 1,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 4.95,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.62,
+  "launcher_exit": 0,
+  "logs": null,
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142755-bench-dance-Desktop-baseline"
+ },
+ {
+  "scene": "duo",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:28:52",
+  "start_seconds": 16.0,
+  "load_seconds": 9.9,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3138.0,
+  "case": "raster",
+  "window": [
+   1794378573.52523,
+   1794378603.5260286
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 99.0,
+  "video_memory_mb": 10655.0,
+  "frames": 4175,
+  "fps": 139.15,
+  "frame_ms_p50": 7.17,
+  "frame_ms_p95": 8.16,
+  "frame_ms_p99": 9.06,
+  "frame_ms_max": 18.78,
+  "long_frames": 1,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 4.46,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.63,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 5,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-142852-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142852-bench-duo-Desktop-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 2793,
+    "total_ms": 0.17,
+    "parts": {
+     "draw": 0.17
+    }
+   },
+   "eye submission": {
+    "samples": 2791,
+    "total_ms": 2.719,
+    "parts": {
+     "crop": 0.017,
+     "guides": 0.058,
+     "nr": 0.004,
+     "upscale": 0.94,
+     "denoise": 1.626,
+     "sharpen": 0.045,
+     "output": 0.028
+    }
+   }
+  }
+ },
+ {
+  "scene": "duo",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:28:52",
+  "start_seconds": 16.0,
+  "load_seconds": 9.9,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3138.0,
+  "case": "raster+fg",
+  "window": [
+   1794378610.6616232,
+   1794378640.6626267
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 43.2,
+  "video_memory_mb": 10639.0,
+  "frames": 1183,
+  "fps": 39.46,
+  "frame_ms_p50": 25.32,
+  "frame_ms_p95": 26.25,
+  "frame_ms_p99": 27.11,
+  "frame_ms_max": 27.95,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 1.5,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.67,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 5,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-142852-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142852-bench-duo-Desktop-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 790,
+    "total_ms": 0.157,
+    "parts": {
+     "draw": 0.157
+    }
+   },
+   "eye submission": {
+    "samples": 790,
+    "total_ms": 19.211,
+    "parts": {
+     "crop": 0.016,
+     "guides": 0.056,
+     "nr": 0.003,
+     "upscale": 0.823,
+     "denoise": 18.243,
+     "sharpen": 0.045,
+     "output": 0.025
+    }
+   }
+  }
+ },
+ {
+  "scene": "duo",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:28:52",
+  "start_seconds": 16.0,
+  "load_seconds": 9.9,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3138.0,
+  "case": "path",
+  "window": [
+   1794378651.1165626,
+   1794378681.1181586
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 99.0,
+  "video_memory_mb": 11833.0,
+  "frames": 3765,
+  "fps": 125.51,
+  "frame_ms_p50": 7.88,
+  "frame_ms_p95": 9.75,
+  "frame_ms_p99": 10.77,
+  "frame_ms_max": 12.92,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 3.84,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.63,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 1245080,
+   "hair_segments": 416448,
+   "scene_build_gpu_ms": 0.2813,
+   "scene_record_cpu_ms": 0.3574,
+   "reconstruction": true,
+   "skins": 5,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-142852-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142852-bench-duo-Desktop-mod",
+  "gpu_stages": {
+   "RR F HDR upscaling, both eyes": {
+    "samples": 3765,
+    "total_ms": 4.282,
+    "parts": {
+     "source": 0.003,
+     "left": 4.254,
+     "right": 0.022,
+     "composite": 0.004
+    }
+   },
+   "object motion, both eyes": {
+    "samples": 2534,
+    "total_ms": 0.011,
+    "parts": {
+     "draw": 0.011
+    }
+   },
+   "eye submission": {
+    "samples": 2535,
+    "total_ms": 1.794,
+    "parts": {
+     "crop": 0.009,
+     "guides": 0.003,
+     "nr": 0.003,
+     "upscale": 0.024,
+     "denoise": 1.684,
+     "sharpen": 0.045,
+     "output": 0.026
+    }
+   }
+  }
+ },
+ {
+  "scene": "duo",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:28:52",
+  "start_seconds": 16.0,
+  "load_seconds": 9.9,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3138.0,
+  "case": "path+fg",
+  "window": [
+   1794378688.2512124,
+   1794378718.2518775
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 50.0,
+  "video_memory_mb": 11861.0,
+  "frames": 1183,
+  "fps": 39.45,
+  "frame_ms_p50": 25.34,
+  "frame_ms_p95": 26.34,
+  "frame_ms_p99": 27.07,
+  "frame_ms_max": 29.18,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 1.61,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.67,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 1245080,
+   "hair_segments": 416448,
+   "scene_build_gpu_ms": 0.2801,
+   "scene_record_cpu_ms": 0.3625,
+   "reconstruction": true,
+   "skins": 5,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-142852-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-142852-bench-duo-Desktop-mod",
+  "gpu_stages": {
+   "RR F HDR upscaling, both eyes": {
+    "samples": 789,
+    "total_ms": 4.67,
+    "parts": {
+     "source": 0.003,
+     "left": 4.638,
+     "right": 0.026,
+     "composite": 0.003
+    }
+   },
+   "object motion, both eyes": {
+    "samples": 790,
+    "total_ms": 0.012,
+    "parts": {
+     "draw": 0.012
+    }
+   },
+   "eye submission": {
+    "samples": 790,
+    "total_ms": 17.394,
+    "parts": {
+     "crop": 0.009,
+     "guides": 0.003,
+     "nr": 0.003,
+     "upscale": 0.025,
+     "denoise": 17.284,
+     "sharpen": 0.045,
+     "output": 0.025
+    }
+   }
+  }
+ },
+ {
+  "scene": "duo",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:32:00",
+  "start_seconds": 21.6,
+  "load_seconds": 10.5,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3112.0,
+  "case": "raster",
+  "window": [
+   1794378772.7112887,
+   1794378802.712006
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 99.0,
+  "video_memory_mb": 15074.0,
+  "frames": 2977,
+  "fps": 85.06,
+  "frame_ms_p50": 11.77,
+  "frame_ms_p95": 13.09,
+  "frame_ms_p99": 14.2,
+  "frame_ms_max": 24.51,
+  "long_frames": 1,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 3.8,
+  "menus_open_at_end": false,
+  "motion_cycles": 21.65,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 5,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 1,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-143200-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-143200-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-143200-bench-duo-VR-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 1712,
+    "total_ms": 0.166,
+    "parts": {
+     "draw": 0.166
+    }
+   },
+   "eye submission": {
+    "samples": 3416,
+    "total_ms": 2.843,
+    "parts": {
+     "crop": 0.019,
+     "guides": 0.124,
+     "nr": 0.004,
+     "upscale": 1.016,
+     "denoise": 1.594,
+     "sharpen": 0.056,
+     "output": 0.03
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 85.005,
+   "submitted_fps": 85.005,
+   "repeat_ratio": 0.4097,
+   "hitches": 6,
+   "content_hitches": 6,
+   "longest_image_ms": 27.8,
+   "dropped_frames": 0,
+   "pipeline_gaps": 0,
+   "frozen_pose_runs": 0,
+   "late_frames": 2550,
+   "submit_interval_ms": {
+    "n": 2549,
+    "mean": 11.765,
+    "p50": 11.774,
+    "p95": 12.757,
+    "p99": 13.829,
+    "max": 23.875
+   },
+   "pose_age_intended_ms": {
+    "n": 2543,
+    "mean": 0.027,
+    "p50": 0.0,
+    "p95": 0.124,
+    "p99": 0.347,
+    "max": 0.926
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "duo",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:32:00",
+  "start_seconds": 21.6,
+  "load_seconds": 10.5,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3112.0,
+  "case": "raster+fg",
+  "window": [
+   1794378814.9932117,
+   1794378844.9939559
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 67.7,
+  "video_memory_mb": 15374.0,
+  "frames": 1261,
+  "fps": 36.05,
+  "frame_ms_p50": 27.77,
+  "frame_ms_p95": 28.64,
+  "frame_ms_p99": 29.21,
+  "frame_ms_max": 30.55,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 1.7,
+  "menus_open_at_end": false,
+  "motion_cycles": 21.68,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 5,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 2,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-143200-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-143200-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-143200-bench-duo-VR-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 722,
+    "total_ms": 0.18,
+    "parts": {
+     "draw": 0.18
+    }
+   },
+   "eye submission": {
+    "samples": 1444,
+    "total_ms": 2.889,
+    "parts": {
+     "crop": 0.019,
+     "guides": 0.121,
+     "nr": 0.004,
+     "upscale": 1.04,
+     "denoise": 1.617,
+     "sharpen": 0.056,
+     "output": 0.031
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 143.309,
+   "submitted_fps": 144.243,
+   "repeat_ratio": 0.0049,
+   "hitches": 1,
+   "content_hitches": 1,
+   "longest_image_ms": 20.8,
+   "dropped_frames": 28,
+   "pipeline_gaps": 0,
+   "frozen_pose_runs": 0,
+   "late_frames": 14,
+   "submit_interval_ms": {
+    "n": 4326,
+    "mean": 6.934,
+    "p50": 6.942,
+    "p95": 7.169,
+    "p99": 7.33,
+    "max": 7.761
+   },
+   "pose_age_intended_ms": {
+    "n": 4315,
+    "mean": 24.988,
+    "p50": 27.739,
+    "p95": 27.778,
+    "p99": 27.778,
+    "max": 27.778
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "duo",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:32:00",
+  "start_seconds": 21.6,
+  "load_seconds": 10.5,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3112.0,
+  "case": "path",
+  "window": [
+   1794378861.2546563,
+   1794378891.2556875
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 99.0,
+  "video_memory_mb": 16760.0,
+  "frames": 2736,
+  "fps": 78.18,
+  "frame_ms_p50": 12.64,
+  "frame_ms_p95": 14.87,
+  "frame_ms_p99": 16.35,
+  "frame_ms_max": 27.22,
+  "long_frames": 1,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 3.08,
+  "menus_open_at_end": false,
+  "motion_cycles": 21.68,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 1245080,
+   "hair_segments": 416448,
+   "scene_build_gpu_ms": 0.2845,
+   "scene_record_cpu_ms": 0.5046,
+   "reconstruction": true,
+   "skins": 5,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 3,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-143200-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-143200-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-143200-bench-duo-VR-mod",
+  "gpu_stages": {
+   "eye submission": {
+    "samples": 3914,
+    "total_ms": 1.054,
+    "parts": {
+     "crop": 0.009,
+     "guides": 0.006,
+     "nr": 0.003,
+     "upscale": 0.028,
+     "denoise": 0.924,
+     "sharpen": 0.055,
+     "output": 0.03
+    }
+   },
+   "RR F HDR upscaling, both eyes": {
+    "samples": 1568,
+    "total_ms": 7.486,
+    "parts": {
+     "source": 0.003,
+     "left": 3.841,
+     "right": 3.577,
+     "composite": 0.066
+    }
+   },
+   "object motion, both eyes": {
+    "samples": 1567,
+    "total_ms": 0.018,
+    "parts": {
+     "draw": 0.018
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 78.32,
+   "submitted_fps": 78.32,
+   "repeat_ratio": 0.4561,
+   "hitches": 28,
+   "content_hitches": 28,
+   "longest_image_ms": 27.8,
+   "dropped_frames": 0,
+   "pipeline_gaps": 1,
+   "frozen_pose_runs": 0,
+   "late_frames": 2350,
+   "submit_interval_ms": {
+    "n": 2349,
+    "mean": 12.768,
+    "p50": 12.595,
+    "p95": 14.555,
+    "p99": 15.836,
+    "max": 27.533
+   },
+   "pose_age_intended_ms": {
+    "n": 2343,
+    "mean": 0.03,
+    "p50": 0.0,
+    "p95": 0.077,
+    "p99": 0.347,
+    "max": 2.778
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "duo",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:32:00",
+  "start_seconds": 21.6,
+  "load_seconds": 10.5,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3112.0,
+  "case": "path+fg",
+  "window": [
+   1794378903.496196,
+   1794378933.4968295
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 68.7,
+  "video_memory_mb": 16795.0,
+  "frames": 1262,
+  "fps": 36.06,
+  "frame_ms_p50": 27.76,
+  "frame_ms_p95": 28.66,
+  "frame_ms_p99": 29.15,
+  "frame_ms_max": 29.7,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 1.48,
+  "menus_open_at_end": false,
+  "motion_cycles": 21.69,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 1245080,
+   "hair_segments": 416448,
+   "scene_build_gpu_ms": 0.2808,
+   "scene_record_cpu_ms": 0.5096,
+   "reconstruction": true,
+   "skins": 5,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 4,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-143200-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-143200-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-143200-bench-duo-VR-mod",
+  "gpu_stages": {
+   "RR F HDR upscaling, both eyes": {
+    "samples": 721,
+    "total_ms": 8.663,
+    "parts": {
+     "source": 0.003,
+     "left": 4.415,
+     "right": 4.178,
+     "composite": 0.068
+    }
+   },
+   "object motion, both eyes": {
+    "samples": 721,
+    "total_ms": 0.017,
+    "parts": {
+     "draw": 0.017
+    }
+   },
+   "eye submission": {
+    "samples": 1442,
+    "total_ms": 1.243,
+    "parts": {
+     "crop": 0.01,
+     "guides": 0.005,
+     "nr": 0.003,
+     "upscale": 0.029,
+     "denoise": 1.112,
+     "sharpen": 0.055,
+     "output": 0.03
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 142.942,
+   "submitted_fps": 144.209,
+   "repeat_ratio": 0.0074,
+   "hitches": 0,
+   "content_hitches": 0,
+   "longest_image_ms": 13.9,
+   "dropped_frames": 38,
+   "pipeline_gaps": 0,
+   "frozen_pose_runs": 0,
+   "late_frames": 19,
+   "submit_interval_ms": {
+    "n": 4325,
+    "mean": 6.935,
+    "p50": 6.944,
+    "p95": 7.183,
+    "p99": 7.412,
+    "max": 8.354
+   },
+   "pose_age_intended_ms": {
+    "n": 4314,
+    "mean": 19.443,
+    "p50": 20.82,
+    "p95": 20.834,
+    "p99": 20.834,
+    "max": 20.834
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "duo",
+  "display": "Desktop",
+  "variant": "baseline",
+  "without": [],
+  "time": "2026-11-11T14:35:36",
+  "start_seconds": 11.5,
+  "load_seconds": 8.5,
+  "atoms_missing": [],
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3329.0,
+  "case": "vam",
+  "window": [
+   1794378966.0700972,
+   1794378996.0711172
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 99.5,
+  "video_memory_mb": 7653.0,
+  "frames": 5788,
+  "fps": 192.93,
+  "frame_ms_p50": 4.93,
+  "frame_ms_p95": 7.87,
+  "frame_ms_p99": 8.9,
+  "frame_ms_max": 12.44,
+  "long_frames": 15,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 5.86,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.63,
+  "launcher_exit": 0,
+  "logs": null,
+  "run": "vamkit/launcher/profiles/test-runs/20261111-143537-bench-duo-Desktop-baseline"
+ },
+ {
+  "scene": "stage",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:36:37",
+  "start_seconds": 16.9,
+  "load_seconds": 15.0,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3233.0,
+  "case": "raster",
+  "window": [
+   1794379044.6943047,
+   1794379074.6947982
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 97.1,
+  "video_memory_mb": 12420.0,
+  "frames": 2672,
+  "fps": 89.08,
+  "frame_ms_p50": 10.72,
+  "frame_ms_p95": 18.23,
+  "frame_ms_p99": 22.44,
+  "frame_ms_max": 28.99,
+  "long_frames": 43,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 4.52,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.65,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 9,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-143637-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-143637-bench-stage-Desktop-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 1768,
+    "total_ms": 0.212,
+    "parts": {
+     "draw": 0.212
+    }
+   },
+   "eye submission": {
+    "samples": 1766,
+    "total_ms": 3.216,
+    "parts": {
+     "crop": 0.022,
+     "guides": 0.082,
+     "nr": 0.007,
+     "upscale": 1.083,
+     "denoise": 1.933,
+     "sharpen": 0.052,
+     "output": 0.037
+    }
+   }
+  }
+ },
+ {
+  "scene": "stage",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:36:37",
+  "start_seconds": 16.9,
+  "load_seconds": 15.0,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3233.0,
+  "case": "raster+fg",
+  "window": [
+   1794379081.8323553,
+   1794379111.8331387
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 57.4,
+  "video_memory_mb": 12192.0,
+  "frames": 1182,
+  "fps": 39.41,
+  "frame_ms_p50": 25.36,
+  "frame_ms_p95": 26.68,
+  "frame_ms_p99": 37.87,
+  "frame_ms_max": 41.8,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 2.42,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.68,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 9,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-143637-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-143637-bench-stage-Desktop-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 1184,
+    "total_ms": 0.17,
+    "parts": {
+     "draw": 0.17
+    }
+   },
+   "eye submission": {
+    "samples": 1180,
+    "total_ms": 15.998,
+    "parts": {
+     "crop": 0.018,
+     "guides": 0.068,
+     "nr": 0.004,
+     "upscale": 0.941,
+     "denoise": 14.895,
+     "sharpen": 0.046,
+     "output": 0.025
+    }
+   }
+  }
+ },
+ {
+  "scene": "stage",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:36:37",
+  "start_seconds": 16.9,
+  "load_seconds": 15.0,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3233.0,
+  "case": "path",
+  "window": [
+   1794379122.3255064,
+   1794379152.326023
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 92.5,
+  "video_memory_mb": 13617.0,
+  "frames": 2799,
+  "fps": 93.31,
+  "frame_ms_p50": 11.24,
+  "frame_ms_p95": 13.38,
+  "frame_ms_p99": 15.61,
+  "frame_ms_max": 20.52,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 5.68,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.64,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 1827219,
+   "hair_segments": 624672,
+   "scene_build_gpu_ms": 0.4205,
+   "scene_record_cpu_ms": 0.5779,
+   "reconstruction": true,
+   "skins": 9,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-143637-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-143637-bench-stage-Desktop-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 2796,
+    "total_ms": 0.013,
+    "parts": {
+     "draw": 0.013
+    }
+   },
+   "RR F HDR upscaling, both eyes": {
+    "samples": 2797,
+    "total_ms": 5.529,
+    "parts": {
+     "source": 0.003,
+     "left": 5.496,
+     "right": 0.026,
+     "composite": 0.005
+    }
+   },
+   "eye submission": {
+    "samples": 2797,
+    "total_ms": 1.715,
+    "parts": {
+     "crop": 0.009,
+     "guides": 0.003,
+     "nr": 0.003,
+     "upscale": 0.025,
+     "denoise": 1.6,
+     "sharpen": 0.047,
+     "output": 0.027
+    }
+   }
+  }
+ },
+ {
+  "scene": "stage",
+  "display": "Desktop",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:36:37",
+  "start_seconds": 16.9,
+  "load_seconds": 15.0,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3233.0,
+  "case": "path+fg",
+  "window": [
+   1794379159.4548836,
+   1794379189.4553144
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 58.3,
+  "video_memory_mb": 13845.0,
+  "frames": 1182,
+  "fps": 39.41,
+  "frame_ms_p50": 25.32,
+  "frame_ms_p95": 26.97,
+  "frame_ms_p99": 39.24,
+  "frame_ms_max": 43.84,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 2.45,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.68,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 1827219,
+   "hair_segments": 624672,
+   "scene_build_gpu_ms": 0.4191,
+   "scene_record_cpu_ms": 0.5674,
+   "reconstruction": true,
+   "skins": 9,
+   "error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-143637-Desktop",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-143637-bench-stage-Desktop-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 788,
+    "total_ms": 0.012,
+    "parts": {
+     "draw": 0.012
+    }
+   },
+   "RR F HDR upscaling, both eyes": {
+    "samples": 789,
+    "total_ms": 5.582,
+    "parts": {
+     "source": 0.003,
+     "left": 5.549,
+     "right": 0.027,
+     "composite": 0.004
+    }
+   },
+   "eye submission": {
+    "samples": 789,
+    "total_ms": 14.553,
+    "parts": {
+     "crop": 0.01,
+     "guides": 0.004,
+     "nr": 0.003,
+     "upscale": 0.024,
+     "denoise": 14.441,
+     "sharpen": 0.046,
+     "output": 0.025
+    }
+   }
+  }
+ },
+ {
+  "scene": "stage",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:39:51",
+  "start_seconds": 21.9,
+  "load_seconds": 14.7,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3308.0,
+  "case": "raster",
+  "window": [
+   1794379248.4103189,
+   1794379278.4112966
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 99.0,
+  "video_memory_mb": 16655.0,
+  "frames": 2460,
+  "fps": 70.29,
+  "frame_ms_p50": 14.26,
+  "frame_ms_p95": 16.13,
+  "frame_ms_p99": 17.6,
+  "frame_ms_max": 21.13,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 4.3,
+  "menus_open_at_end": false,
+  "motion_cycles": 21.65,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 9,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 1,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-143951-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-143951-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-143951-bench-stage-VR-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 1405,
+    "total_ms": 0.19,
+    "parts": {
+     "draw": 0.19
+    }
+   },
+   "eye submission": {
+    "samples": 2820,
+    "total_ms": 2.864,
+    "parts": {
+     "crop": 0.019,
+     "guides": 0.128,
+     "nr": 0.004,
+     "upscale": 1.031,
+     "denoise": 1.596,
+     "sharpen": 0.056,
+     "output": 0.03
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 70.405,
+   "submitted_fps": 70.405,
+   "repeat_ratio": 0.5111,
+   "hitches": 154,
+   "content_hitches": 154,
+   "longest_image_ms": 20.8,
+   "dropped_frames": 0,
+   "pipeline_gaps": 0,
+   "frozen_pose_runs": 0,
+   "late_frames": 2112,
+   "submit_interval_ms": {
+    "n": 2111,
+    "mean": 14.206,
+    "p50": 14.188,
+    "p95": 15.784,
+    "p99": 16.455,
+    "max": 20.081
+   },
+   "pose_age_intended_ms": {
+    "n": 2106,
+    "mean": 0.029,
+    "p50": 0.007,
+    "p95": 0.13,
+    "p99": 0.298,
+    "max": 0.926
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "stage",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:39:51",
+  "start_seconds": 21.9,
+  "load_seconds": 14.7,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3308.0,
+  "case": "raster+fg",
+  "window": [
+   1794379290.690808,
+   1794379320.6913645
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 76.5,
+  "video_memory_mb": 16629.0,
+  "frames": 1260,
+  "fps": 36.01,
+  "frame_ms_p50": 27.76,
+  "frame_ms_p95": 28.63,
+  "frame_ms_p99": 29.06,
+  "frame_ms_max": 30.06,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 2.42,
+  "menus_open_at_end": false,
+  "motion_cycles": 21.69,
+  "renderer": {
+   "can_trace": true,
+   "tracing": false,
+   "traced_triangles": 0,
+   "hair_segments": 0,
+   "scene_build_gpu_ms": 0.0,
+   "scene_record_cpu_ms": 0.0,
+   "reconstruction": false,
+   "skins": 9,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 2,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-143951-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-143951-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-143951-bench-stage-VR-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 1081,
+    "total_ms": 0.195,
+    "parts": {
+     "draw": 0.195
+    }
+   },
+   "eye submission": {
+    "samples": 1802,
+    "total_ms": 2.868,
+    "parts": {
+     "crop": 0.019,
+     "guides": 0.131,
+     "nr": 0.005,
+     "upscale": 1.022,
+     "denoise": 1.602,
+     "sharpen": 0.058,
+     "output": 0.03
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 143.909,
+   "submitted_fps": 144.043,
+   "repeat_ratio": 0.0007,
+   "hitches": 0,
+   "content_hitches": 0,
+   "longest_image_ms": 13.9,
+   "dropped_frames": 4,
+   "pipeline_gaps": 0,
+   "frozen_pose_runs": 0,
+   "late_frames": 1,
+   "submit_interval_ms": {
+    "n": 4321,
+    "mean": 6.943,
+    "p50": 6.942,
+    "p95": 7.161,
+    "p99": 7.336,
+    "max": 7.797
+   },
+   "pose_age_intended_ms": {
+    "n": 4304,
+    "mean": 19.539,
+    "p50": 20.823,
+    "p95": 20.834,
+    "p99": 20.834,
+    "max": 20.834
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "stage",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:39:51",
+  "start_seconds": 21.9,
+  "load_seconds": 14.7,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3308.0,
+  "case": "path",
+  "window": [
+   1794379336.9923928,
+   1794379366.9929764
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 99.0,
+  "video_memory_mb": 18411.0,
+  "frames": 2514,
+  "fps": 71.85,
+  "frame_ms_p50": 13.99,
+  "frame_ms_p95": 16.47,
+  "frame_ms_p99": 18.35,
+  "frame_ms_max": 29.16,
+  "long_frames": 1,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 4.11,
+  "menus_open_at_end": false,
+  "motion_cycles": 21.64,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 1827219,
+   "hair_segments": 624672,
+   "scene_build_gpu_ms": 0.4156,
+   "scene_record_cpu_ms": 0.6878,
+   "reconstruction": true,
+   "skins": 9,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 3,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-143951-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-143951-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-143951-bench-stage-VR-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 1443,
+    "total_ms": 0.018,
+    "parts": {
+     "draw": 0.018
+    }
+   },
+   "eye submission": {
+    "samples": 2879,
+    "total_ms": 1.274,
+    "parts": {
+     "crop": 0.01,
+     "guides": 0.005,
+     "nr": 0.003,
+     "upscale": 0.029,
+     "denoise": 1.141,
+     "sharpen": 0.056,
+     "output": 0.03
+    }
+   },
+   "RR F HDR upscaling, both eyes": {
+    "samples": 1443,
+    "total_ms": 7.298,
+    "parts": {
+     "source": 0.003,
+     "left": 3.792,
+     "right": 3.437,
+     "composite": 0.066
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 71.738,
+   "submitted_fps": 71.771,
+   "repeat_ratio": 0.5019,
+   "hitches": 165,
+   "content_hitches": 165,
+   "longest_image_ms": 27.8,
+   "dropped_frames": 1,
+   "pipeline_gaps": 2,
+   "frozen_pose_runs": 0,
+   "late_frames": 2152,
+   "submit_interval_ms": {
+    "n": 2152,
+    "mean": 13.936,
+    "p50": 13.745,
+    "p95": 16.01,
+    "p99": 18.364,
+    "max": 29.316
+   },
+   "pose_age_intended_ms": {
+    "n": 2150,
+    "mean": 0.032,
+    "p50": 0.0,
+    "p95": 0.11,
+    "p99": 0.463,
+    "max": 2.083
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "stage",
+  "display": "VR",
+  "variant": "mod",
+  "without": [],
+  "time": "2026-11-11T14:39:51",
+  "start_seconds": 21.9,
+  "load_seconds": 14.7,
+  "atoms_missing": [],
+  "settings": {
+   "dlss_preset": "K",
+   "render_scale_k": 75,
+   "render_scale_rr": 33,
+   "output_scale": 100,
+   "frame_multiplier": 4,
+   "nr_enabled": 1
+  },
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3308.0,
+  "case": "path+fg",
+  "window": [
+   1794379379.2341902,
+   1794379409.2350261
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 73.0,
+  "video_memory_mb": 18433.0,
+  "frames": 1260,
+  "fps": 36.01,
+  "frame_ms_p50": 27.76,
+  "frame_ms_p95": 28.59,
+  "frame_ms_p99": 29.06,
+  "frame_ms_max": 30.21,
+  "long_frames": 0,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 2.28,
+  "menus_open_at_end": false,
+  "motion_cycles": 21.68,
+  "renderer": {
+   "can_trace": true,
+   "tracing": true,
+   "traced_triangles": 1827219,
+   "hair_segments": 624672,
+   "scene_build_gpu_ms": 0.417,
+   "scene_record_cpu_ms": 0.6865,
+   "reconstruction": true,
+   "skins": 9,
+   "error": ""
+  },
+  "capture": {
+   "capture_id": 4,
+   "active": false,
+   "captured": 1,
+   "written": 1,
+   "dropped": 0,
+   "pending": 0,
+   "done": true,
+   "dir": "vamkit/logs/20261111-143951-VR/simxr/captures",
+   "last_error": ""
+  },
+  "launcher_exit": 0,
+  "logs": "vamkit/logs/20261111-143951-VR",
+  "run": "vamkit/launcher/profiles/test-runs/20261111-143951-bench-stage-VR-mod",
+  "gpu_stages": {
+   "object motion, both eyes": {
+    "samples": 720,
+    "total_ms": 0.017,
+    "parts": {
+     "draw": 0.017
+    }
+   },
+   "eye submission": {
+    "samples": 1440,
+    "total_ms": 1.253,
+    "parts": {
+     "crop": 0.01,
+     "guides": 0.005,
+     "nr": 0.003,
+     "upscale": 0.029,
+     "denoise": 1.12,
+     "sharpen": 0.055,
+     "output": 0.031
+    }
+   },
+   "RR F HDR upscaling, both eyes": {
+    "samples": 720,
+    "total_ms": 8.377,
+    "parts": {
+     "source": 0.003,
+     "left": 4.409,
+     "right": 3.9,
+     "composite": 0.065
+    }
+   }
+  },
+  "headset": {
+   "display_hz": 144.009,
+   "displayed_fps": 143.909,
+   "submitted_fps": 144.043,
+   "repeat_ratio": 0.0007,
+   "hitches": 0,
+   "content_hitches": 0,
+   "longest_image_ms": 13.9,
+   "dropped_frames": 4,
+   "pipeline_gaps": 0,
+   "frozen_pose_runs": 0,
+   "late_frames": 8,
+   "submit_interval_ms": {
+    "n": 4320,
+    "mean": 6.943,
+    "p50": 6.942,
+    "p95": 7.16,
+    "p99": 7.351,
+    "max": 7.909
+   },
+   "pose_age_intended_ms": {
+    "n": 4308,
+    "mean": 19.554,
+    "p50": 20.82,
+    "p95": 20.834,
+    "p99": 20.834,
+    "max": 20.834
+   },
+   "simulator_late_vsyncs": 0
+  }
+ },
+ {
+  "scene": "stage",
+  "display": "Desktop",
+  "variant": "baseline",
+  "without": [],
+  "time": "2026-11-11T14:43:32",
+  "start_seconds": 11.5,
+  "load_seconds": 13.3,
+  "atoms_missing": [],
+  "vam_preferences": {
+   "msaaLevel": 4,
+   "pixelLightCount": 6,
+   "shaderLOD": "High",
+   "physicsRate": "Auto",
+   "physicsUpdateCap": 2,
+   "physicsHighQuality": false,
+   "smoothPasses": 4,
+   "softPhysics": false,
+   "desktopVsync": false,
+   "mirrorReflections": false,
+   "realtimeReflectionProbes": false,
+   "glowEffects": "High"
+  },
+  "video_memory_mb_before_vam": 3288.0,
+  "case": "vam",
+  "window": [
+   1794379446.9390147,
+   1794379476.9394774
+  ],
+  "seconds": 30.0,
+  "gpu_load_percent": 99.5,
+  "video_memory_mb": 8893.0,
+  "frames": 4736,
+  "fps": 157.86,
+  "frame_ms_p50": 5.06,
+  "frame_ms_p95": 10.16,
+  "frame_ms_p99": 11.4,
+  "frame_ms_max": 14.06,
+  "long_frames": 251,
+  "hitches": 0,
+  "collections": 0,
+  "frames_with_menu_open": 0,
+  "cpu_cores": 7.34,
+  "menus_open_at_end": false,
+  "motion_cycles": 18.63,
+  "launcher_exit": 0,
+  "logs": null,
+  "run": "vamkit/launcher/profiles/test-runs/20261111-144333-bench-stage-Desktop-baseline"
+ }
+]

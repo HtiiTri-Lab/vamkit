@@ -1,7 +1,8 @@
 # Directions not taken, and problems still open
 
-Two lists so that nobody spends a day rediscovering them. First, directions that were evaluated and not taken, each with the
-reason and the condition under which the answer would change. Second, problems that are unsolved: what is known, what was ruled
+Two lists so that nobody spends a day rediscovering them. Neither forbids anything: a direction that was not taken here can
+be the right one for another user or another machine, and each entry says what it would take. First, directions that were
+evaluated and not taken, each with the reason and the condition under which the answer would change. Second, problems that are unsolved: what is known, what was ruled
 out, and how to continue. Items that belong to one subsystem are kept short here and detailed in that subsystem's document.
 
 ## Not taken

@@ -20,6 +20,7 @@ a change must not break. Start there for anything local to one component.
 | [modify.md](agent/modify.md) | changing or adding a component: the loop, recipes, tools for finding out what happens |
 | [adapt-vam-version.md](agent/adapt-vam-version.md) | what is bound to VaM's code and data, and how to bring each part back on another build |
 | [troubleshoot.md](agent/troubleshoot.md) | symptom to cause, across all components |
+| [open-items.md](agent/open-items.md) | what was left for the installing agent to decide or finish on the user's machine, with what is known about each |
 
 There is no separate tuning procedure yet. To tune for a machine or headset, read
 [knowledge/frame-budget.md](knowledge/frame-budget.md) (where the time goes, the frame-rate target) and
@@ -48,6 +49,7 @@ Each document has the same sections: how it works, settings, measured, pitfalls,
 | [clothing.md](knowledge/clothing.md) | clothing shading, cloth physics, wrap batching |
 | [cpu.md](knowledge/cpu.md) | character hot paths in native code, the shared worker pool, rules for CPU work |
 | [gc.md](knowledge/gc.md) | the periodic stall and what was done to Mono's collector |
+| [loading.md](knowledge/loading.md) | scene load and image load: where VaM's load time goes, the two components' mechanisms, what differs from VaM's result, settings, measurements |
 | [vam-facts.md](knowledge/vam-facts.md) | facts about VaM and its Unity build that shaped the design |
 | [rejected-and-open.md](knowledge/rejected-and-open.md) | directions evaluated and not taken; problems still open |
 
@@ -62,9 +64,12 @@ Each document has the same sections: how it works, settings, measured, pitfalls,
 
 ## Tools
 
-[../tools/lab/README.md](../tools/lab/README.md): the simulated-headset test scripts, the in-game test agent, the CPU
-census, stack and crash-address tools. Offline probes live with their components (`components/*/*/tests`,
-`components/runtime/cpu-boost/harness`).
+[../tools/lab/README.md](../tools/lab/README.md): the simulated headset and its scripts, the in-game test agent,
+background sessions, the benchmark, the CPU census, stack and crash-address tools. Offline probes live with their
+components (`components/*/*/tests`, `components/runtime/cpu-boost/harness`).
+
+[benchmarks/README.md](benchmarks/README.md): the standard scenes, what is measured and how, how to run it on your
+machine, and the results measured so far.
 
 ## Keeping this useful
 

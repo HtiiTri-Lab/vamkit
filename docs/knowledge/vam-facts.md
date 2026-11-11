@@ -225,8 +225,9 @@ three references when registering. `atom.uid` is still "UID" at the first `PrepR
 
 ## Asset loading, for context
 
-The mod's own load-time work is not in this repository (the development tree carried a scene-load and an image-load plugin); the facts
-below explain why those loads are slow and why parts of this repository (the gc-tuning finalizer rule, the CpuBoost pool) mention loading.
+The mod's load-time work is in `components/runtime/scene-load` and `components/runtime/image-load`, explained in
+[loading.md](loading.md). The facts below are why those loads are slow in VaM itself and why other parts of this repository (the
+gc-tuning finalizer rule, the CpuBoost pool) mention loading.
 
 - **Image loader.** `ImageLoaderThreaded` has one background worker that handles the head of the queue only; the main thread waits for
   it, finishes (create the Unity texture, `Apply`, `Compress`, write the cache, callbacks) one image at a time before the next

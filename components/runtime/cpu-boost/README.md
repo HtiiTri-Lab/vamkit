@@ -65,9 +65,11 @@ wrap-batch and others look it up by name.
 
 - Results bit-identical to VaM's C#: operands widened to double, rounded to float only where the IL stores, comparisons
   in double, `Math.Sin/Cos` as x87 `fsin/fcos`, no FMA contraction (`/fp:strict`).
-- A method is patched only when its IL FNV-1a 64 fingerprint (`SkinIL`, `MorphIL`, `NormalsIL`, `NormalsCoreIL`,
-  `SoftIL` in `VaMCpuBoost.cs`) matches the VaM 1.22.0.3 code; any other body is left to VaM and logged. On another VaM
-  build, re-run the harness against it and update the fingerprints only after the comparisons pass.
+- A method is patched only when the fingerprint of its code (`CpuBoostCode` in `plugin/CpuBoostPaths.cs`: the
+  instructions with metadata tokens resolved to names, so that a VaM compiled again with the same instructions is
+  recognised) matches the code the native library follows; any other body is left to VaM and logged. `run-paths.ps1`
+  prints the five fingerprints of the VaM it runs against and fails when one differs. On a build where one differs,
+  re-read that method, bring the native code into line, and update the constant only after the comparisons pass.
 - `Assembly-CSharp.dll` is never modified. Only our own worker threads get CPU masks; never VaM's, Unity's, drivers'
   threads or the process.
 - Keep the exported `CB_*` signatures; other plugins bind to them by name.

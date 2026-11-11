@@ -20,6 +20,9 @@ for %%F in ("%TRAY%") do set "BIN=%%~dpF"
 copy /y "%TRAY%" "%OUT%\" >NUL || exit /b 1
 if not exist "%OUT%\ofxr" mkdir "%OUT%\ofxr"
 xcopy /y /q "%BIN%ofxr\*" "%OUT%\ofxr\" >NUL || exit /b 1
+rem The tray's post-build step fills its ofxr\ folder only when the tray itself is linked again. The two layer DLLs are
+rem taken from where they are built, so that a change to the layer alone reaches the output.
+for %%F in ("%BIN%XR_APILAYER_XRFrameBridge_diagnostic.dll" "%BIN%OFXR_vulkan_queue_layer.dll") do if exist "%%~F" copy /y "%%~F" "%OUT%\ofxr\" >NUL
 echo built %OUT%
 exit /b 0
 :notray

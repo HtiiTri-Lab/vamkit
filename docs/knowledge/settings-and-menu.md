@@ -3,7 +3,7 @@
 Everything an agent may tune lives in one of four places, and each setting lives in exactly one of them: the run's
 `performance.ini` (render, upscaler, denoiser, frame generation), the plugins' BepInEx cfg files (shading, tone mapping,
 runtime parts), the per-display-mode presets that carry both from one launch to the next, and the in-game menu that edits
-the first two while the game runs. A player sees a "VR 画面" tab (desktop: "画面") inside VaM's main menu with pages and
+the first two while the game runs. A player sees a "VR Graphics" tab (desktop: "Graphics"; in Chinese "VR 画面" / "画面") inside VaM's main menu with pages and
 big buttons; an agent tuning for another machine edits the same files or changes the preset so it survives the launch.
 
 ## How it works
@@ -18,8 +18,9 @@ big buttons; an agent tuning for another machine edits the same files or changes
 - `launcher.log`.
 
 `launch.py` then exports `VAM_PERFORMANCE_CONFIG=<run>/performance.ini` (and `VAM_DESKTOP_CONFIG` for desktop), plus
-`VAM_DISPLAY_MODE`, `VAM_NR_PREPASS_PATH`, `VAM_DLSS_RUNTIME_PATH`, `OFXR_DLSSG_RUNTIME_PATH`, `D3DINTEROP_MODE=on12` and
-the log folders; `OUR_VARIABLES` lists everything it removes first so a vanilla run is clean.
+`VAM_DISPLAY_MODE`, `VAM_NR_PREPASS_PATH`, `VAM_DLSS_RUNTIME_PATH`, `OFXR_DLSSG_RUNTIME_PATH`, `VAM_XESS_RUNTIME_PATH`,
+`VAM_FSR_RUNTIME_PATH` (the folders of Intel's and AMD's run-time libraries, `vamkit/bin/xess` and `vamkit/bin/fsr`),
+`D3DINTEROP_MODE=on12` and the log folders; `OUR_VARIABLES` lists everything it removes first so a vanilla run is clean.
 
 Readers: `ParseVamPerformanceSettings()` in `components/render/opencomposite/OpenOVR/Compositor/vam_performance_config.h`
 (all `[Performance]` keys, re-read when the file's stamp changes, polled every 250 ms), `ReadSettings()` in
@@ -32,11 +33,11 @@ edit it while the game runs and the compositor follows within about 250 ms. Writ
 
 | Key | Owner | Note |
 |---|---|---|
-| `Enabled=1`, `Upscaler=DLSS` | fixed | `Upscaler` is forced by `FIXED` |
-| `RenderScale`, `DLSSPreset`, `RenderScaleK/L/M/RR`, `OutputScale` | menu | semantics in [upscaling.md](upscaling.md) |
+| `Enabled=1`, `Upscaler=DLSS` | fixed | `Upscaler` is forced by `FIXED`; it means the temporal upscaler fed by the bridge, DLSS SR, XeSS or FSR |
+| `RenderScale`, `DLSSPreset`, `RenderScaleK/L/M/XeSS/FSR/RR`, `OutputScale` | menu | `DLSSPreset` is `Off`, `K`, `L`, `M`, `XeSS` or `FSR`; semantics in [upscaling.md](upscaling.md) |
 | `DLSSSharpness`, `DLSSSharpenLast`, `RRStereo` | menu | |
 | `NRAfterUpscale`, `NRAfterScale`, `NRFeatherPercent` | menu | [denoiser.md](denoiser.md) |
-| `FrameGeneration`, `DLSSGLite`, `DLSSMenuNative` | menu | [frame-generation.md](frame-generation.md) |
+| `FrameGeneration`, `FrameGenModel`, `DLSSGLite`, `DLSSMenuNative` | menu | `FrameGenModel` is `DLSS` or `FSR`; [frame-generation.md](frame-generation.md) |
 | `DLSSObjectMotion`, `DLSSHairMotion`, `DLSSHairBias`, `DLSSJitterFlipX/Y`, `NRUseDepth`, `NRUseMotion`, `DLSSFGEyes`, `DLSSSREyes`, `FFREnabled`, `FFRFullRateRadius`, `FFRHalfRateRadius`, `FSRSharpness` | fixed (`FIXED`) | Motion sources and diagnostics; do not tune ([motion-vectors.md](motion-vectors.md)) |
 | `DLSSMipBias`, `DLSSRigidMotion`, `RRTransparentGuides`, `PTReference`, `NISSharpness` | code defaults only | The launcher does not write them; add the line to the run file to change them |
 
@@ -48,6 +49,18 @@ edit it while the game runs and the compositor follows within about 250 ms. Writ
 
 A limit is enforced in up to four places, which must change together: the code reader's `read(...)` clamp, `LIMITS` in
 `LaunchPanel.py`, the menu's `Number(...)` range, and, for NR, `ReadSettings()`.
+
+**What the machine can run** is decided in one place per stage and shown the same way in three. The compositor tries
+DLSS SR, XeSS and FSR with its first frame and reports them, with whether NGX came up at all and whether FSR stands in
+before XeSS (an AMD card) (`VaMDLSS_GetUpscalerSupport`; without NGX the path tracing row stays and the line under it
+says that Ray Reconstruction, the route's only reconstruction, is missing); the frame generation layer
+and the desktop presenter report their generators (`OFXR_GetFrameGeneratorsV1`). The menu lists only what was reported
+and shows a model that cannot run as the one that stands in for it, by the compositor's own rule (`VamSrChoice`). The
+launcher changes no choice: what was chosen is tried first, in the game. Its part is to make the best available
+(`runtimes.py`: an NVIDIA library the kit lacks is taken from the graphics driver's own store) and to say, in the
+panel and in `runtimes.txt` of the run's log folder, what will not run as chosen, why, and how to get it
+(`launch_notes` in `LaunchPanel.py`). The rule behind this: nothing decides "cannot" from a name or a missing file
+before the thing itself was tried, nothing falls back in silence, and no stand-in is written over what a person chose.
 
 ### Plugin cfg files
 
@@ -120,15 +133,21 @@ their plugin is missing or off, when a parent switch is off, or by route (`pathR
 
 | Page | Rows (key) |
 |---|---|
-| Frame generation (插帧) | on/off (`[Performance] FrameGeneration`, implemented by pausing the OFXR layer through its tray pause event, also paused while VaM menus are open with `DLSSMenuNative`); multiplier 2x-4x (`[ofxr] frame_multiplier`, choices from the layer's `OFXR_GetFrameMultiplierV1`); mode quality / performance Preset C (`DLSSGLite`, shown only if the layer reports it follows live); frame-rate display corner (`[overlay] position`); "when VaM menu is open" normal / pause SR and generation (`DLSSMenuNative`) |
-| Clarity (清晰度) | raster route: model Off/K/L/M (`DLSSPreset`) and render scale (`RenderScale`, hidden when Off); path tracing: a fixed status row "reconstruction model RR F", render scale (`RenderScaleRR`), detail preservation (`RRDetail`, step 5), cross-eye consistency (`RRStereo`, VR only, step 10); both: sharpen (`DLSSSharpness`), position after SR / last (`DLSSSharpenLast`); VR: output resolution (`OutputScale`), desktop: a status row with the window size |
-| Noise reduction (降噪) | sub-page "basic": NR on/off, model new/old (`RenderPreset` 2/1), position before/after upscale (raster route only), reduced-size percent (`NRAfterScale`), style, region (`FoveationSize`), region shift (`RegionShiftY`), feather (`NRFeatherPercent`); sub-page "strength": overall, local tone, local structure, skin structure (all under NR on) |
+| Frame gen (插帧) | on/off (`[Performance] FrameGeneration`, implemented by pausing the OFXR layer through its tray pause event, also paused while VaM menus are open with `DLSSMenuNative`); generator model DLSS / FSR (`FrameGenModel`, shown only when both can run); multiplier 2x-4x (`[ofxr] frame_multiplier`, choices from the layer's `OFXR_GetFrameMultiplierV1`), replaced by a status line "2x" while FSR generates; mode quality / performance Preset C (`DLSSGLite`, DLSS-G only, shown only if the layer reports it follows live); frame-rate display corner (`[overlay] position`); "when VaM menu is open" normal / pause SR and generation (`DLSSMenuNative`) |
+| Clarity (清晰度) | raster route: model Off / K / L / M / XeSS / FSR (`DLSSPreset`; only those the compositor reports it can run) and render scale (`RenderScale`, hidden when Off; each model keeps its own in `RenderScaleK/L/M/XeSS/FSR`); path tracing: a fixed status row "reconstruction model RR F", render scale (`RenderScaleRR`), detail preservation (`RRDetail`, step 5), cross-eye consistency (`RRStereo`, VR only, step 10); both: sharpen (`DLSSSharpness`), position after SR / last (`DLSSSharpenLast`); VR: output resolution (`OutputScale`), desktop: a status row with the window size |
+| Denoise (降噪) | sub-page "basic": NR on/off, model new/old (`RenderPreset` 2/1), position before/after upscale (raster route only), reduced-size percent (`NRAfterScale`), style, region (`FoveationSize`), region shift (`RegionShiftY`), feather (`NRFeatherPercent`); sub-page "strength": overall, local tone, local structure, skin structure (all under NR on) |
 | Lighting (光影) | path tracing off/on (`[RayTracing] Renderer`) plus a live status line; bounces 0-3 (`PathBounces`) and background savings no/far/all (`PathBackground`), path tracing only; tone mapping off / with display lighting / always (`Mode`) with style neutral / film |
 | Skin (皮肤) | subsurface scattering 0-1 (`[Subsurface] Strength`, step .1); thin-part light 0-2 (`[General] Strength`, step .1); highlight normalisation (`[Specular] Normalize`); one gloss row per character, 0-4 step .25, kept per skin by the skin plugin |
 | Body (身体) | rows for the animation clock and soft body plugins, which are not in this repository: the page does not appear |
 
-The tab itself is added to VaM's main menu (tab name "VR Settings"; the title is "VR 画面", or "画面" in desktop mode). The
+The tab itself is added to VaM's main menu (tab name "VR Settings"; the title is "VR Graphics", or "Graphics" in desktop mode, in the language in use). The
 hair budget plugin has its own page elsewhere in the main menu (`MenuTab` in its ini).
+
+**Language.** Every text of the menus and of the launch panel is English in the code and goes through `Lang.T` /
+`tr`; a language is one table in `components/shared/lang` (Chinese is there). The launch panel's Language row keeps the
+choice in `vamkit/launcher/profiles/language.json`; without one Windows' display language is followed. The panel
+changes at once, the in-game menus with the next start of VaM. The page names above are the English ones with the
+Chinese in brackets. Adding a language or a text: `components/shared/lang/README.md`.
 
 ### Rules the menu follows
 
@@ -179,12 +198,19 @@ hair budget plugin has its own page elsewhere in the main menu (`MenuTab` in its
 - Menu writes were checked live in a simulated headset: a changed value reaches the file within 0.2 s and the compositor
   log reports the new state; a value changed outside the menu appears in the menu within a second.
 - Not checked by a person in a real headset: the subsurface scattering and thin-part light rows.
+- The model row with XeSS and FSR and the frame generation model row were built and the plugin ran in desktop and
+  simulated-headset sessions (the BepInEx log names the upscalers found); the rows were switched through the file, not
+  clicked, and the layout audit was not run after they were added.
 
 ## Pitfalls
 
+- **The tab appears late or a model is missing from the row.** The list of settings is built once, after the frame
+  generation layer was found and after the compositor reported which upscalers can run (with its first frame; the menu
+  waits up to 60 s and then lists all). A model that is not listed cannot run here: the compositor's log says why
+  (`VAM upscalers: ...`). The BepInEx log has `upscalers that can run here: ...`.
 - **No tab appears.** `VAM_PERFORMANCE_CONFIG` has no `selection.json` beside it, or `BuildItems()` threw (the loader
   retries forever and the tab never appears). Wrap every cross-plugin lookup in try/catch and add the row only when it is
-  found. Search the BepInEx log for "VaM VR menu": "added the 'VR 画面' tab with N settings", "page ...: N rows, ...
+  found. Search the BepInEx log for "VaM VR menu": "added the 'VR Graphics' tab with N settings" (the title in the language in use), "page ...: N rows, ...
   of ...", "wrote ...", "changed outside the menu", "session runs Nx".
 - **Rows stretch to fill the page.** The row's `HorizontalLayoutGroup` reports its child's `flexibleHeight` upward; the row's
   `LayoutElement` must set `flexibleHeight = 0`. Never size the UI through `UIDynamic.height` (its getter and setter read

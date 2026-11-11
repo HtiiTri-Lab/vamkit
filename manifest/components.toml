@@ -9,7 +9,8 @@
 # generate: Python scripts run first (`python -I`), in this order; they write to out/gen/.
 # native:   a build.cmd (MSVC, or CMake inside it) that writes to out/<id>/.
 # [component.managed]: a BepInEx plugin compiled with the C# 3.5 compiler (VaM's Mono) into out/<id>/<out>:
-#           sources (from the component's folder), generated (from the repo root), references (from the VaM folder),
+#           sources (from the component's folder), shared (from components/shared: lang/VamkitLang.cs for a plugin
+#           that shows text), generated (from the repo root), references (from the VaM folder),
 #           resources ([file, name] embedded), unsafe.
 # tests:    command lines `vamkit test` runs, each must exit 0. {repo}, {python} and {csc} are filled in.
 # installs: [built file, path under the VaM folder]. "vamkit/bin" files are swapped in by the launcher only while the
@@ -23,18 +24,18 @@
 [[component]]
 id = "d3d11-proxy"
 path = "components/render/d3d11-proxy"
-summary = "D3D11On12 proxy beside VaM.exe (Unity's device on a D3D12 queue) and the desktop presenter"
-license = "LGPL-3.0-only"
-needs = ["ngx-sdk"]
+summary = "D3D11On12 proxy beside VaM.exe (Unity's device on a D3D12 queue) and the desktop presenter (DLSS or FSR frame generation)"
+license = "LGPL-3.0-or-later"
+needs = ["ngx-sdk", "fsr-sdk"]
 native = "components/render/d3d11-proxy/build.cmd"
 installs = [["out/d3d11-proxy/d3d11.dll", "vamkit/bin/d3d11.dll"]]
 
 [[component]]
 id = "opencomposite"
 path = "components/render/opencomposite"
-summary = "OpenComposite with the VR compositor work: DLSS SR / RR / NR, PT composition, UI and motion guides"
+summary = "OpenComposite with the VR compositor work: DLSS SR / RR / NR, XeSS and FSR upscaling, PT composition, UI and motion guides"
 license = "GPL-3.0-only"
-needs = ["ngx-sdk", "detours", "nis-sdk", "fsr1-sdk", "nvapi", "glm", "openxr-sdk", "vulkan-headers"]
+needs = ["ngx-sdk", "detours", "nis-sdk", "fsr1-sdk", "nvapi", "glm", "openxr-sdk", "vulkan-headers", "xess-sdk", "fsr-sdk"]
 uses = ["rt-core"]
 native = "components/render/opencomposite/build.cmd"
 installs = [["out/opencomposite/openvr_api.dll", "vamkit/bin/openvr_api.dll"]]
@@ -42,9 +43,9 @@ installs = [["out/opencomposite/openvr_api.dll", "vamkit/bin/openvr_api.dll"]]
 [[component]]
 id = "ofxr-dlssg"
 path = "components/render/ofxr-dlssg"
-summary = "OFXR Bridge OpenXR layer and tray with DLSS Frame Generation 2-4x"
-license = "LGPL-3.0-only"
-needs = ["ngx-sdk", "openvr-headers"]
+summary = "OFXR Bridge OpenXR layer and tray with DLSS Frame Generation 2-4x and FSR frame generation 2x"
+license = "LGPL-3.0-or-later"
+needs = ["ngx-sdk", "openvr-headers", "fsr-sdk"]
 native = "components/render/ofxr-dlssg/build.cmd"
 installs = [
     ["out/ofxr-dlssg/OFXRBridgeTray.exe", "vamkit/bin/ofxr/OFXRBridgeTray.exe"],
@@ -85,6 +86,7 @@ installs = [["out/vr-menu/VaMVRMenu.dll", "BepInEx/plugins/VaMVRMenu.dll"]]
   [component.managed]
   out = "VaMVRMenu.dll"
   sources = ["VaMVRMenu.cs", "VaMVRMenu.Menu.cs", "VaMVRMenu.FrameGen.cs", "VRMenuIni.cs"]
+  shared = ["lang/VamkitLang.cs"]
   references = [
       "BepInEx/core/BepInEx.dll", "VaM_Data/Managed/Assembly-CSharp.dll",
       "VaM_Data/Managed/UnityEngine.CoreModule.dll", "VaM_Data/Managed/UnityEngine.dll",
@@ -101,8 +103,25 @@ installs = [
     ["components/render/launcher/launch.py", "vamkit/launcher/launch.py"],
     ["components/render/launcher/LaunchPanel.py", "vamkit/launcher/LaunchPanel.py"],
     ["components/render/launcher/ModeProfiles.py", "vamkit/launcher/ModeProfiles.py"],
+    ["components/render/launcher/runtimes.py", "vamkit/launcher/runtimes.py"],
+    ["components/render/launcher/lang.py", "vamkit/launcher/lang.py"],
+    ["components/render/launcher/vamkit-launcher.bat", "vamkit-launcher.bat"],
     ["components/render/launcher/profile-manifest.json", "vamkit/launcher/profile-manifest.json"]
 ]
+
+[[component]]
+id = "lang"
+path = "components/shared/lang"
+summary = "The menus' words per language: the tables the launch panel and the in-game menus read (English is in the code)"
+license = "MIT"
+tests = [
+    ["{python}", "-I", "{repo}/tools/check_lang.py"],
+    ["{python}", "-I", "{repo}/components/shared/lang/tests/lang_test.py"],
+    ["{csc}", "/nologo", "/target:exe", "/codepage:65001", "/out:{repo}/out/lang/LangTest.exe",
+     "{repo}/components/shared/lang/tests/LangTest.cs", "{repo}/components/shared/lang/VamkitLang.cs"],
+    ["{repo}/out/lang/LangTest.exe", "{repo}/components/shared/lang"]
+]
+installs = [["components/shared/lang/zh.json", "vamkit/lang/zh.json"]]
 
 [[component]]
 id = "window-camera"
@@ -179,6 +198,7 @@ installs = [
       "VaMSkinTransmission.cs", "TongueSurface.cs", "RegionalSurface.cs", "RtScene.cs", "PathSkinned.cs",
       "PathSubmitted.cs", "PathCanvasUi.cs"
 ]
+  shared = ["lang/VamkitLang.cs"]
   generated = [
       "out/gen/skin/PathShaderPrograms.cs", "out/gen/skin/PathShaderStates.cs", "out/gen/skin/PathShadowCasters.cs"
 ]
@@ -270,6 +290,7 @@ installs = [["out/display-lighting/VaMDisplayLighting.dll", "BepInEx/plugins/VaM
   [component.managed]
   out = "VaMDisplayLighting.dll"
   sources = ["VaMDisplayLighting.cs", "VaMDisplayLighting.Menu.cs"]
+  shared = ["lang/VamkitLang.cs"]
   references = [
       "VaM_Data/Managed/UnityEngine.dll", "VaM_Data/Managed/UnityEngine.CoreModule.dll",
       "VaM_Data/Managed/UnityEngine.UI.dll", "VaM_Data/Managed/UnityEngine.UIModule.dll",
@@ -361,6 +382,7 @@ installs = [["out/hair-budget/VaMHairBudget.dll", "BepInEx/plugins/VaMHairBudget
   [component.managed]
   out = "VaMHairBudget.dll"
   sources = ["VaMHairBudget.cs", "VaMHairBudget.Menu.cs", "VaMHairBudget.HairRate.cs", "HairBudgetMath.cs"]
+  shared = ["lang/VamkitLang.cs"]
   resources = [["VaMHairBudget.ini", "VaMHairBudget.ini"]]
   references = [
       "BepInEx/core/BepInEx.dll", "BepInEx/core/0Harmony.dll", "VaM_Data/Managed/Assembly-CSharp.dll",
@@ -408,4 +430,67 @@ guard = "Verify reruns VaM's own LateUpdate on the same inputs and compares ever
   references = [
       "BepInEx/core/BepInEx.dll", "BepInEx/core/0Harmony.dll", "VaM_Data/Managed/Assembly-CSharp.dll",
       "VaM_Data/Managed/UnityEngine.CoreModule.dll", "VaM_Data/Managed/UnityEngine.dll"
+]
+
+[[component]]
+id = "scene-load"
+path = "components/runtime/scene-load"
+summary = "Scene loading: cached plugin compilation, in-memory asset bundles, parallel Vorbis decoding, batched atom creation, scene switching that does not break, and the load work VaM repeats"
+license = "MIT"
+uses = ["cpu-boost"]
+native = "components/runtime/scene-load/native/build.cmd"
+installs = [
+    ["out/scene-load/VaMSceneLoad.dll", "BepInEx/plugins/VaMSceneLoad.dll"],
+    ["out/scene-load/VaMSceneLoadNative.bin", "BepInEx/plugins/VaMSceneLoadNative.bin"]
+]
+guard = "each patch is applied only when the VaM methods and fields it needs are found with the expected shape (else that feature stays off, logged); Unity refusing a prepared bundle sends that bundle to VaM's own path; the verify entry points compare against VaM's own methods"
+
+  [component.managed]
+  out = "VaMSceneLoad.dll"
+  unsafe = true
+  sources = ["VaMSceneLoad.cs", "BundleLoads.cs", "LoadFrames.cs", "SceneSwitch.cs"]
+  references = [
+      "BepInEx/core/BepInEx.dll", "BepInEx/core/0Harmony.dll", "VaM_Data/Managed/Assembly-CSharp.dll",
+      "VaM_Data/Managed/ICSharpCode.SharpZipLib.dll", "VaM_Data/Managed/UnityEngine.dll",
+      "VaM_Data/Managed/UnityEngine.CoreModule.dll", "VaM_Data/Managed/UnityEngine.PhysicsModule.dll",
+      "VaM_Data/Managed/UnityEngine.AssetBundleModule.dll", "VaM_Data/Managed/UnityEngine.UI.dll",
+      "VaM_Data/Managed/UnityEngine.UIModule.dll", "VaM_Data/Managed/UnityEngine.TextRenderingModule.dll"
+]
+
+[[component]]
+id = "image-load"
+path = "components/runtime/image-load"
+summary = "Image loading: VaM's single image worker fed ahead, native decoding, mip generation and BC compression on the shared workers, background cache writes"
+license = "MIT"
+uses = ["cpu-boost", "scene-load"]
+native = "components/runtime/image-load/native/build.cmd"
+installs = [
+    ["out/image-load/ImageLoadPipeline.dll", "BepInEx/plugins/ImageLoadPipeline.dll"],
+    ["out/image-load/ImageLoadWorkNative.bin", "BepInEx/plugins/ImageLoadWorkNative.bin"]
+]
+enable = [
+    ["BepInEx/config/local.vam.imageloadpipeline.cfg", "ImageLoad", "SameFrameMemoryHits", "true"],
+    ["BepInEx/config/local.vam.imageloadpipeline.cfg", "ImageLoad", "AsyncPreparation", "true"],
+    ["BepInEx/config/local.vam.imageloadpipeline.cfg", "ImageLoad", "ParallelPixels", "true"],
+    ["BepInEx/config/local.vam.imageloadpipeline.cfg", "ImageLoad", "ParallelCompression", "true"],
+    ["BepInEx/config/local.vam.imageloadpipeline.cfg", "ImageLoad", "CrossImagePipeline", "true"],
+    ["BepInEx/config/local.vam.imageloadpipeline.cfg", "ImageLoad", "NativeMipmaps", "true"],
+    ["BepInEx/config/local.vam.imageloadpipeline.cfg", "ImageLoad", "AsyncCacheWrite", "true"],
+    ["BepInEx/config/local.vam.imageloadpipeline.cfg", "ImageLoad", "HeadWaitMs", "5000"]
+]
+guard = "a stage whose VaM method is not found, or whose native part or CpuBoost is missing, stays off (logged); an image the native decoder does not take goes through VaM's own decoder"
+
+  [component.managed]
+  out = "ImageLoadPipeline.dll"
+  unsafe = true
+  sources = [
+      "ImageLoadPipeline.cs", "ImageLoadAsync.cs", "ImageLoadPixels.cs", "ImageLoadCompression.cs", "CrossPipeline.cs",
+      "CrossSelfCheck.cs", "OffMain.cs", "StageProfile.cs"
+]
+  references = [
+      "BepInEx/core/BepInEx.dll", "BepInEx/core/0Harmony.dll", "VaM_Data/Managed/Assembly-CSharp.dll",
+      "VaM_Data/Managed/ICSharpCode.SharpZipLib.dll",
+      "VaM_Data/Managed/UnityEngine.dll", "VaM_Data/Managed/UnityEngine.CoreModule.dll",
+      "VaM_Data/Managed/UnityEngine.UI.dll", "VaM_Data/Managed/UnityEngine.UIModule.dll",
+      "VaM_Data/Managed/UnityEngine.ImageConversionModule.dll", "VaM_Data/Managed/UnityEngine.UnityWebRequestModule.dll"
 ]

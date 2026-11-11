@@ -34,7 +34,7 @@
 // Separately, hair can get its own copy of VaM's physics rate settings
 // (VaMHairBudget.HairRate.cs).
 // Settings: BepInEx\config\VaMHairBudget.ini, re-read about once a second, and
-// a "头发预算" tab in VaM's main menu (VaMHairBudget.Menu.cs).
+// a "Hair Budget" tab in VaM's main menu (VaMHairBudget.Menu.cs).
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -210,7 +210,7 @@ public sealed partial class VaMHairBudget : BaseUnityPlugin
             System.Reflection.MethodInfo awake = typeof(HairSimControl).GetMethod("Awake",
                 System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (awake == null) throw new MissingMethodException("HairSimControl", "Awake");
-            new HarmonyLib.Harmony("local.vam.hairbudget.tracking").Patch(awake, null,
+            new Harmony("local.vam.hairbudget.tracking").Patch(awake, null,
                 new HarmonyLib.HarmonyMethod(typeof(VaMHairBudget).GetMethod("ControlAwake")), null, null);
             // Those made before the hook, inactive ones included: the only search.
             // It also returns prefabs from asset bundles, which are in no scene.

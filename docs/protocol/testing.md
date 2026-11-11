@@ -125,6 +125,8 @@ failure it was written for; it must not restart VaM after the person closed it.
 | gc-tuning | `components/runtime/gc-tuning/tools` (`fo_test`, `guard_test`) | The replaced code agrees with Mono's own on random inputs; the boundary guard holds |
 | hair-solver, cloth-physics, wrap-batch | their verify modes, in the game | Results equal GPUTools' / VaM's own step |
 | The compositor, the bridge, frame generation, the menu | a session on the simulated headset or the desktop | Only the game shows it |
+| What a card without DLSS, or another vendor's card, would run | the same session with `VAMKIT_NO_DLSS=1`, `VAMKIT_NO_NVOF=1`, `VAMKIT_AS_VENDOR=1002` in its environment ([frame-generation.md](../knowledge/frame-generation.md), [upscalers-other-vendors.md](../knowledge/upscalers-other-vendors.md)); the run's `dlss/running.json` and `dlssg/running.json` say what was asked for, what ran and why | The stand-in paths run on this card. It does not test another vendor's driver |
+| A menu or launcher text, a language table | `python tools/check_lang.py` (also in `vamkit test lang`) | Every text of the code has its line in every table, with the same `{0}` |
 | First use of a changed path-tracing shader | one path-traced session yourself before handing over | The driver compiles the pipelines once (about 26 s with the picture frozen); the person should not meet that as a hang |
 
 See also [performance.md](performance.md) for how results are judged and [../../tools/lab/README.md](../../tools/lab/README.md)

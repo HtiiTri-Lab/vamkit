@@ -1,6 +1,6 @@
 // VaM VR settings menu (BepInEx 5, Unity 2018.1, C# 3).
 //
-// A "VR 画面" tab in VaM's main menu with what is worth changing from inside
+// A "VR Graphics" tab in VaM's main menu (every text through Lang.T: English here, vamkit/lang/<code>.json) with what is worth changing from inside
 // the headset while the game runs (VaMVRMenu.Menu.cs builds the tab):
 //   * frame generation, in the OFXR layer's ofxr_bridge.ini (beside the loaded
 //     XR_APILAYER_XRFrameBridge_diagnostic.dll, written by the OFXR tray): the
@@ -20,11 +20,12 @@
 //     written by LaunchPanel.py, passed on by Launch.ps1), which the NR
 //     prepass re-reads every 250 ms; in the DLSS launcher also where NR runs
 //     (before or after the upscaler, NRAfterUpscale).
-//   * DLSS SR (v8, all live in the DLSS launcher): the model ([Performance]
-//     DLSSPreset: Off, K, L or M; Off = no SR, native frames), the render
+//   * the upscaler (v8, all live in the DLSS launcher): the model ([Performance]
+//     DLSSPreset: Off, DLSS SR's K, L or M, XeSS or FSR, of which the row lists
+//     those this machine can run; Off = no SR, native frames), the render
 //     scale (RenderScale, 33-100% of the output; 100% with a model = DLAA),
-//     which each model remembers for itself (RenderScaleK/L/M, by default 75,
-//     33 and 50: choosing a model brings its own back), and the output size
+//     which each model remembers for itself (RenderScaleK/L/M/XeSS/FSR, by default
+//     75, 33, 50, 67 and 67: choosing a model brings its own back), and the output size
 //     (OutputScale, 75-150% of the runtime's size; the swapchains follow).
 //     And whether VaM's own menus are shown without SR and without frame
 //     generation (DLSSMenuNative: the DLSS bridge and this plugin read it).
@@ -34,13 +35,13 @@
 //     panel carries this value to the next launch. FFR stays off under 11on12.
 //   * the NR model (v11: [NR] RenderPreset, 2 = new, 1 = 310.8.0's; the NR
 //     prepass of OpenComposite-DLSS-v22 recreates its feature on a change).
-//   * v29: NR after the upscaler's 处理比例 ([Performance] NRAfterScale) and
+//   * v29: NR after the upscaler's Work scale ([Performance] NRAfterScale) and
 //     DLSS-G's mode ([Performance] DLSSGLite, 1 = Preset C; only with a layer
 //     that follows it live, OFXR-DLSSG-v12), both the launch panel's before.
-//   * v30: the same settings in pages (插帧, 清晰度, 降噪, 光影, 皮肤, 身体), each
+//   * v30: the same settings in pages (Frame gen, Clarity, Denoise, Lighting, Skin, Body), each
 //     with its sub-pages, laid out without scrolling (VaMVRMenu.Menu.cs); no
 //     hints: the labels and values say what a row does. v31: pages, sub-pages,
-//     cards and choices each with a look of their own. v32: 区域上移, the NR
+//     cards and choices each with a look of their own. v32: Region up, the NR
 //     region moved up or down ([NR] RegionShiftY, -30..30% of the eye image's
 //     height; OpenComposite-DLSS-on12-nrshift).
 //   * the skin highlights (v17: [Specular] Normalize of VaM Skin Transmission
@@ -103,6 +104,7 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
         return address!=IntPtr.Zero && GetModuleFromAddress(4, address, out module);
     }
     private const string PresetId = "dlss_preset", ScaleId = "render_scale", OutputId = "output_scale", RendererId = "skin_renderer";
+    private const string FgModelId = "framegen_model";
     private const string SkinPlugin = "local.vam.skintransmission", SkinNormalizeId = "skin_normalize";
     private const int SkinSlots = 4;   // characters with a level slider (a scene's first four)
     private const float CheckSeconds = 0.5f, WriteSeconds = 0.2f, RetrySeconds = 0.5f;
@@ -177,10 +179,16 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
     private string upscaler = "", message = "";
     private float startTime, nextLayerSearch, nextLog;
     private bool layerSearchDone;
+    // The temporal upscalers this machine can run, as the compositor found (VaMDLSS_GetUpscalerSupport: bit 0 DLSS SR,
+    // bit 1 XeSS, bit 2 FSR; bit 8 once it has tried them, with its first frame). -1 until then: the model row lists
+    // only what can run, so the list of settings waits for it like it waits for the layer.
+    private int upscalers = -1;
+    [DllImport("openvr_api")] private static extern int VaMDLSS_GetUpscalerSupport();
     // The layer's report on its session (QueryLayer): whether it gives one at
     // all, the multiplier now, the most it can switch to, and whether it
     // follows a switch while it runs.
     private bool layerReports, layerSwitchable = true;
+    private bool fsrGeneratorOnly;      // the layer has FSR's frame generation and no DLSS Frame Generation
     private int framesNow, framesMost;
 
     private void Awake()
@@ -385,7 +393,49 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
         finally { FreeLibrary(module); }
     }
 
-    private bool ShapeKnown { get { return layerSearchDone; } }
+    // The frame generators of the layer or the desktop presenter (OFXR_GetFrameGeneratorsV1): bit 0 DLSS Frame
+    // Generation, bit 1 FSR's (one generated frame per pair, on any card). -1 from a layer without the report, which
+    // has DLSS Frame Generation only.
+    private int QueryGenerators()
+    {
+        IntPtr module;
+        if (!AcquireLayer(out module) || module == IntPtr.Zero) return -1;
+        try
+        {
+            IntPtr report = GetProcAddress(module, "OFXR_GetFrameGeneratorsV1");
+            return report == IntPtr.Zero ? -1
+                : ((LiveModeReport)Marshal.GetDelegateForFunctionPointer(report, typeof(LiveModeReport)))();
+        }
+        finally { FreeLibrary(module); }
+    }
+
+    private bool ShapeKnown { get { return layerSearchDone && UpscalersKnown(); } }
+    // What the compositor reported beside the upscalers: NGX came up (Ray Reconstruction can be tried), and whether FSR
+    // stands in before XeSS (an AMD card). Neither hides anything: they word the status line and order the stand-in.
+    private bool pathOffered = true;
+    private static bool fsrFirst;
+
+    private bool UpscalersKnown()
+    {
+        if (upscalers >= 0) return true;
+        int found;
+        try { found = VaMDLSS_GetUpscalerSupport(); }
+        catch (Exception)
+        {
+            upscalers = 1;      // a compositor without the report: DLSS SR is all it has
+            return true;
+        }
+        if ((found & 0x100) == 0 && Time.realtimeSinceStartup - startTime < LayerWaitSeconds) return false;
+        upscalers = found & 7;
+        // Bit 3: NGX came up, so Ray Reconstruction (the only reconstruction of the path-traced route) can be tried.
+        pathOffered = (found & 0x100) == 0 || (found & 8) != 0;
+        fsrFirst = (found & 0x10) != 0;
+        Logger.LogInfo("VaM VR menu: upscalers that can run here:" + ((upscalers & 1) != 0 ? " DLSS" : "") + ((upscalers & 2) != 0 ? " XeSS" : "") +
+            ((upscalers & 4) != 0 ? " FSR" : "") + (upscalers == 0 ? " none" : "") + ((found & 0x100) == 0 ? " (not reported by the compositor yet: all listed)" : "") +
+            (fsrFirst ? "; FSR stands in first" : "") +
+            (pathOffered ? "" : "; path tracing: the row says why it will not start (it needs NVIDIA Ray Reconstruction, and NGX did not come up)"));
+        return true;
+    }
 
     // What the tray's 3X switch gives: three, or four in a 4X launch - no more
     // than the session was made for, where the layer says.
@@ -394,9 +444,9 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
     // ---- items -------------------------------------------------------------
 
     // v30: the pages, left to right in what a change costs or shows:
-    // 插帧 (frame generation and VaM's menus), 清晰度 (DLSS SR and the output),
-    // 降噪 (NR: 基本 and 强度), 光影 (ray tracing, tone mapping), 皮肤 (the skin
-    // highlights), 身体 (motion sampling, soft body). A new setting goes into the
+    // Frame gen (frame generation and VaM's menus), Clarity (the upscaler and the output),
+    // Denoise (NR: Basics and Strength), Lighting (ray tracing, tone mapping), Skin (the skin
+    // highlights), Body (motion sampling, soft body). A new setting goes into the
     // page and section it belongs to; a page with no row (its plugin missing,
     // no frame generation) has no button.
     private void BuildItems()
@@ -404,7 +454,7 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
         items.Clear();
         byId.Clear();
         pages.Clear();
-        AddPage("插帧");
+        AddPage(Lang.T("Frame gen"));
         if (layer.path != null)
         {
             // The multipliers this session can switch to; from a layer without
@@ -418,122 +468,152 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
                 values.Add(SwitchMultiplier.ToString());
             }
             foreach (string v in values) names.Add(v + "×");
-            if (pauseName != null) Add(OnOff(FrameGenId, "Performance", "FrameGeneration", "1", "插帧"));
-            if (layerSwitchable)
+            // Which generators can run here: DLSS Frame Generation (RTX 40 and newer), FSR's (any card), or both. With
+            // both the model is a choice ([Performance] FrameGenModel, followed live). FSR makes one frame per pair, so
+            // while it generates the multiplier is not a choice: its row gives way to a line that says 2x, and DLSS-G's
+            // mode row goes too.
+            int generators = QueryGenerators();
+            bool fsrToo = generators >= 0 && (generators & 3) == 3, fsrOnly = generators >= 0 && (generators & 3) == 2;
+            fsrGeneratorOnly = fsrOnly;
+            if (pauseName != null) Add(OnOff(FrameGenId, "Performance", "FrameGeneration", "1", Lang.T("Frame generation")));
+            if (fsrToo)
             {
-                Item multiplier = Add(Choice(MultiplierId, "ofxr", "frame_multiplier", "2", "倍数", values.ToArray(), names.ToArray()));
+                Item generator = Add(Choice(FgModelId, "Performance", "FrameGenModel", "DLSS", Lang.T("Generator"),
+                    new string[] { "DLSS", "FSR" }, new string[] { "DLSS", "FSR" }));
+                if (pauseName != null) generator.parent = FrameGenId;
+            }
+            if (layerSwitchable && !fsrOnly)
+            {
+                Item multiplier = Add(Choice(MultiplierId, "ofxr", "frame_multiplier", "2", Lang.T("Multiplier"), values.ToArray(), names.ToArray()));
                 multiplier.layer = true;
                 if (pauseName != null) multiplier.parent = FrameGenId;
+                if (fsrToo) { multiplier.unlessId = FgModelId; multiplier.unlessValue = "FSR"; }
+            }
+            if (fsrToo || fsrOnly)
+            {
+                Item fixedMultiplier = Live("fsr_multiplier", pauseName != null ? FrameGenId : null, delegate { return Lang.T("Multiplier · 2×"); });
+                if (pauseName != null) fixedMultiplier.parent = FrameGenId;
+                if (fsrToo) { fixedMultiplier.unlessId = FgModelId; fixedMultiplier.unlessValue = "DLSS"; }
             }
             // v29: DLSS-G's mode, [Performance] DLSSGLite (the launch panel's before),
             // which OFXR-DLSSG-v12 follows live (OFXR_GetDlssgLiveModeV1).
-            if (dlssg && LayerFollowsDlssgMode())
+            if (dlssg && !fsrOnly && LayerFollowsDlssgMode())
             {
-                Item mode = Add(Choice("dlssg_lite", "Performance", "DLSSGLite", "0", "模式", new string[] { "0", "1" },
-                    new string[] { "质量", "性能（Preset C）" }));
+                Item mode = Add(Choice("dlssg_lite", "Performance", "DLSSGLite", "0", Lang.T("Mode"), new string[] { "0", "1" },
+                    new string[] { Lang.T("Quality"), Lang.T("Performance (Preset C)") }));
                 if (pauseName != null) mode.parent = FrameGenId;
+                if (fsrToo) { mode.unlessId = FgModelId; mode.unlessValue = "FSR"; }
             }
-            Add(Choice("overlay", "overlay", "position", "upper_right", "帧率显示",
+            Add(Choice("overlay", "overlay", "position", "upper_right", Lang.T("FPS overlay"),
                 new string[] { "off", "upper_left", "upper_right", "lower_left", "lower_right" },
-                new string[] { "关闭", "左上", "右上", "左下", "右下" })).layer = true;
+                new string[] { Lang.T("Off##choice"), Lang.T("Top left"), Lang.T("Top right"), Lang.T("Bottom left"), Lang.T("Bottom right") })).layer = true;
         }
         // DLSSMenuNative: the DLSS bridge renders the menus at 100% without
         // SR; this plugin pauses frame generation (VaMVRMenu.FrameGen.cs).
         if (dlss || pauseName != null)
-            Add(OnOff(MenuNativeId, "Performance", "DLSSMenuNative", "1", "VaM 菜单打开时")).names =
-                new string[] { "照常", dlss && pauseName != null ? "暂停超分和插帧" : dlss ? "暂停超分" : "暂停插帧" };
+            Add(OnOff(MenuNativeId, "Performance", "DLSSMenuNative", "1", Lang.T("While VaM's menu is open"))).names =
+                new string[] { Lang.T("As usual"), dlss && pauseName != null ? Lang.T("Pause upscaling + FG") : dlss ? Lang.T("Pause upscaling") : Lang.T("Pause frame gen") };
         // DLSSPreset, RenderScale and OutputScale: live in the DLSS launcher
         // (vam_performance_config.h VamLiveRenderSettings, the bridge's eye
         // texture scale).
-        AddPage("清晰度");
+        AddPage(Lang.T("Clarity"));
         if (dlss)
         {
             // The in-game path tracing switch decides the model. On: RR F at its own input scale. Off: K / L / M or none at
             // theirs, kept untouched while PT is on. vam_performance_config.h reads the same keys the same way.
-            Item model = Add(Choice(PresetId, "Performance", "DLSSPreset", "K", "超分模型", new string[] { "Off", "K", "L", "M" },
-                new string[] { "关闭", "K", "L", "M" }));
+            // The models this machine can run: DLSS SR's K / L / M (an RTX card), Intel XeSS, AMD FSR (the FSR API: FSR 4
+            // on the Radeons that have it, FSR 3.1 on every other card). A model in the file that cannot run here shows
+            // as the one the compositor runs in its place (Normalize).
+            List<string> models = new List<string>(new string[] { "Off" }), modelNames = new List<string>(new string[] { Lang.T("Off##choice") });
+            if ((upscalers & 1) != 0) { models.AddRange(new string[] { "K", "L", "M" }); modelNames.AddRange(new string[] { "K", "L", "M" }); }
+            if ((upscalers & 2) != 0) { models.Add("XeSS"); modelNames.Add("XeSS"); }
+            if ((upscalers & 4) != 0) { models.Add("FSR"); modelNames.Add("FSR"); }
+            Item model = Add(Choice(PresetId, "Performance", "DLSSPreset", models.Count > 1 ? models[1] : "Off", Lang.T("Upscaler"),
+                models.ToArray(), modelNames.ToArray()));
             model.pathRule = -1;
-            Live("pt_reconstruction", PresetId, delegate { return "重建模型 · RR · F"; }).pathRule = 1;
-            Item scale = Add(Number(ScaleId, "Performance", "RenderScale", "75", "渲染比例", 33, 100));
+            Live("pt_reconstruction", PresetId, delegate { return Lang.T("Reconstruction · RR · F"); }).pathRule = 1;
+            Item scale = Add(Number(ScaleId, "Performance", "RenderScale", "75", Lang.T("Render scale"), 33, 100));
             scale.unit = "%";
             scale.unlessId = PresetId; scale.unlessValue = "Off";
             scale.pathRule = -1;
-            Item scaleRr = Add(Number(ScaleId + "_RR", "Performance", "RenderScaleRR", "33", "渲染比例", 33, 100));
+            Item scaleRr = Add(Number(ScaleId + "_RR", "Performance", "RenderScaleRR", "33", Lang.T("Render scale"), 33, 100));
             scaleRr.unit = "%"; scaleRr.group = PresetId; scaleRr.pathRule = 1;
             Hidden(Number(ScaleId + "_K", "Performance", "RenderScaleK", "75", "", 33, 100));
             Hidden(Number(ScaleId + "_L", "Performance", "RenderScaleL", "33", "", 33, 100));
             Hidden(Number(ScaleId + "_M", "Performance", "RenderScaleM", "50", "", 33, 100));
+            Hidden(Number(ScaleId + "_XeSS", "Performance", "RenderScaleXeSS", "67", "", 33, 100));
+            Hidden(Number(ScaleId + "_FSR", "Performance", "RenderScaleFSR", "67", "", 33, 100));
             ConfigEntryBase rrDetailEntry = PluginSetting(SkinPlugin, "RayTracing", "RRDetail");
             if (rrDetailEntry != null) {
-                Item detail = Add(Number("skin_rr_detail", "RayTracing", "RRDetail", "75", "细节保留", 0, 100));
+                Item detail = Add(Number("skin_rr_detail", "RayTracing", "RRDetail", "75", Lang.T("Detail kept"), 0, 100));
                 detail.entry = rrDetailEntry; detail.group = PresetId; detail.pathRule = 1; detail.step = 5f;
             }
             if (!Desktop) {
-                Item stereo = Add(Number("rr_stereo", "Performance", "RRStereo", "0", "双眼一致性", 0, 100));
+                Item stereo = Add(Number("rr_stereo", "Performance", "RRStereo", "0", Lang.T("Stereo consistency"), 0, 100));
                 stereo.unit = "%"; stereo.group = PresetId; stereo.pathRule = 1; stereo.step = 10f;
             }
-            Item sharpness = Add(Number("dlss_sharpness", "Performance", "DLSSSharpness", "25", "锐化", 0, 100));
+            Item sharpness = Add(Number("dlss_sharpness", "Performance", "DLSSSharpness", "25", Lang.T("Sharpening"), 0, 100));
             sharpness.unit = "%";
             sharpness.unlessId = PresetId; sharpness.unlessValue = "Off";
             sharpness.group = PresetId;
-            Item sharpenPosition = Add(Choice("dlss_sharpen_last", "Performance", "DLSSSharpenLast", "1", "锐化位置",
-                new string[] { "0", "1" }, new string[] { "超分后", "最后" }));
+            Item sharpenPosition = Add(Choice("dlss_sharpen_last", "Performance", "DLSSSharpenLast", "1", Lang.T("Sharpen at"),
+                new string[] { "0", "1" }, new string[] { Lang.T("After upscaling##sharpen"), Lang.T("Last") }));
             sharpenPosition.unlessId = PresetId; sharpenPosition.unlessValue = "Off";
             sharpenPosition.group = PresetId;
             if (Desktop)
             {
-                Live("desktop_output", null, delegate { return "窗口分辨率 · " + Screen.width + " × " + Screen.height; });
+                Live("desktop_output", null, delegate { return Lang.F("Window size · {0} × {1}", Screen.width, Screen.height); });
             }
             else
-                Add(Number(OutputId, "Performance", "OutputScale", "100", "输出分辨率", 75, 150)).unit = "%";
+                Add(Number(OutputId, "Performance", "OutputScale", "100", Lang.T("Output size"), 75, 150)).unit = "%";
         }
         // NR: the prepass re-reads [NR] when the file changes. v11: [NR] RenderPreset,
         // the NR model (2 = 310.9.16's new model, 1 = 310.8.0's; the feature is made
-        // again on a change). v28: 放大后 = NR on the output reduced to NRAfterScale
+        // again on a change). v28: After upscaling = NR on the output reduced to NRAfterScale
         // percent (OpenComposite-DLSS-on12-nrscaled), the default; v29: the scale is
         // this tab's. Only the DLSS launcher loads NR 310.9.16 and has NRAfterUpscale.
         // Fallbacks: the NR prepass's own defaults (dx11_nr_prepass.cpp); NRFeatherPercent
         // in vam_performance_config.h.
-        AddPage("降噪");
-        AddSection("基本");
-        Add(OnOff("nr_enabled", "NR", "Enabled", "1", "降噪 NR"));
+        AddPage(Lang.T("Denoise"));
+        AddSection(Lang.T("Basics"));
+        Add(OnOff("nr_enabled", "NR", "Enabled", "1", Lang.T("Denoise (NR)")));
         if (dlss)
         {
-            Add(Choice("nr_model", "NR", "RenderPreset", "2", "模型", new string[] { "2", "1" },
-                new string[] { "新", "旧" })).parent = "nr_enabled";
-            Add(Choice("nr_after", "Performance", "NRAfterUpscale", "1", "位置", new string[] { "0", "1" },
-                new string[] { "放大前", "放大后" })).parent = "nr_enabled";
-            Item nrScale = Add(Number("nr_after_scale", "Performance", "NRAfterScale", "50", "处理比例", 25, 100));
+            Add(Choice("nr_model", "NR", "RenderPreset", "2", Lang.T("Model"), new string[] { "2", "1" },
+                new string[] { Lang.T("New"), Lang.T("Old") })).parent = "nr_enabled";
+            Add(Choice("nr_after", "Performance", "NRAfterUpscale", "1", Lang.T("Where"), new string[] { "0", "1" },
+                new string[] { Lang.T("Before upscaling"), Lang.T("After upscaling") })).parent = "nr_enabled";
+            Item nrScale = Add(Number("nr_after_scale", "Performance", "NRAfterScale", "50", Lang.T("Work scale"), 25, 100));
             nrScale.unit = "%";
             nrScale.parent = "nr_after";
             byId["nr_after"].pathRule = -1; // RR's NR always runs after it
         }
-        Add(Choice("nr_style", "NR", "Style", "0", "风格", new string[] { "0", "1", "2" },
-            new string[] { "0（默认）", "1", "2" })).parent = "nr_enabled";
-        Item region = Add(Number("nr_region", "NR", "FoveationSize", "66", "处理区域", 10, 100));
+        Add(Choice("nr_style", "NR", "Style", "0", Lang.T("Style"), new string[] { "0", "1", "2" },
+            new string[] { Lang.T("0 (default)"), "1", "2" })).parent = "nr_enabled";
+        Item region = Add(Number("nr_region", "NR", "FoveationSize", "66", Lang.T("Region"), 10, 100));
         region.unit = "%";
         region.parent = "nr_enabled";
-        Item shift = Add(Number("nr_shift", "NR", "RegionShiftY", "0", "区域上移", -30, 30));
+        Item shift = Add(Number("nr_shift", "NR", "RegionShiftY", "0", Lang.T("Region up"), -30, 30));
         shift.unit = "%";
         shift.parent = "nr_enabled";
-        Item feather = Add(Number("nr_feather", "Performance", "NRFeatherPercent", "10", "边缘羽化", 1, 45));
+        Item feather = Add(Number("nr_feather", "Performance", "NRFeatherPercent", "10", Lang.T("Edge feather"), 1, 45));
         feather.unit = "%";
         feather.parent = "nr_enabled";
-        AddSection("强度");
-        Add(Number("nr_intensity", "NR", "Intensity", "100", "整体强度", 0, 100)).parent = "nr_enabled";
-        Add(Number("nr_tone", "NR", "LocalToneStrength", "20", "局部色调", 0, 200)).parent = "nr_enabled";
-        Add(Number("nr_structure", "NR", "LocalStructureStrength", "70", "局部结构", 0, 200)).parent = "nr_enabled";
-        Add(Number("nr_skin", "NR", "SkinStructureStrength", "50", "皮肤结构", 0, 200)).parent = "nr_enabled";
+        AddSection(Lang.T("Strength"));
+        Add(Number("nr_intensity", "NR", "Intensity", "100", Lang.T("Overall"), 0, 100)).parent = "nr_enabled";
+        Add(Number("nr_tone", "NR", "LocalToneStrength", "20", Lang.T("Local tone"), 0, 200)).parent = "nr_enabled";
+        Add(Number("nr_structure", "NR", "LocalStructureStrength", "70", Lang.T("Local structure"), 0, 200)).parent = "nr_enabled";
+        Add(Number("nr_skin", "NR", "SkinStructureStrength", "50", Lang.T("Skin structure"), 0, 200)).parent = "nr_enabled";
         // VaM Skin Transmission (none of these without it, or while it is off):
         // v17: [Specular] Normalize (bool) and each character's level (0.18.0
         // SkinGlossLevels / SetSkinGlossLevel). v19: 0.20.0's [Diffuse]
         // OverallScattering as three steps, 0 / 0.5 / 1. v20: 0.22.0's [RayTracing]
         // Enabled (the ray tracing does the shadows, the ambient occlusion and the
         // bounce light, for every character and the clothing). v27: 0.22.22's
-        // [RayTracing] Ambient (2 遮蔽 + 反弹 / 1 只遮蔽 /
-        // 0 关闭) and HairShadows under 光追. v33: 0.22.23's [RayTracing] Lights (1-8, the lights with
-        // ray-traced shadows) under 光追. v42: 0.22.66's [RayTracing] PathBounces (0-3, the PT's diffuse bounces) under
-        // 光追 on the path-tracing route, where 环境光 does not apply.
+        // [RayTracing] Ambient (2 occlusion + bounce / 1 occlusion only /
+        // 0 off) and HairShadows under ray tracing. v33: 0.22.23's [RayTracing] Lights (1-8, the lights with
+        // ray-traced shadows) under ray tracing. v42: 0.22.66's [RayTracing] PathBounces (0-3, the PT's diffuse bounces) under
+        // ray tracing on the path-tracing route, where the ambient setting does not apply.
         ConfigEntryBase normalize = PluginSetting(SkinPlugin, "Specular", "Normalize");
         ConfigEntryBase rtBounces = null, rtBackground = null;
         if (normalize != null)
@@ -546,45 +626,52 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
         // v26: its 0.2.0 [General] Style, 0 neutral / 1 film (a row of its own: children only show while a parent is "1").
         ConfigEntryBase toneMode = PluginSetting("local.vam.tonemapping", "General", "Mode");
         ConfigEntryBase toneStyle = toneMode != null ? PluginSetting("local.vam.tonemapping", "General", "Style") : null;
-        AddPage("光影");
+        AddPage(Lang.T("Lighting"));
         ConfigEntryBase renderer=PluginSetting(SkinPlugin,"RayTracing","Renderer");
         if(renderer!=null) {
             // Off = VaM's own raster lighting with our skin and hair shading.
-            Item route=Add(Choice(RendererId,"RayTracing","Renderer","Legacy","路径追踪",
-                new string[]{"Legacy","PathTracing"},new string[]{"关","开"}));
+            Item route=Add(Choice(RendererId,"RayTracing","Renderer","Legacy",Lang.T("Path tracing"),
+                new string[]{"Legacy","PathTracing"},new string[]{Lang.T("Off"),Lang.T("On")}));
             route.entry=renderer;
             PluginInfo skinInfo;
             if(Chainloader.PluginInfos.TryGetValue(SkinPlugin,out skinInfo) && skinInfo.Instance!=null) {
                 System.Reflection.MethodInfo state=skinInfo.Instance.GetType().GetMethod("RendererState",System.Reflection.BindingFlags.Public|System.Reflection.BindingFlags.Static);
-                if(state!=null)Live("skin_renderer_state",RendererId,(Func<string>)Delegate.CreateDelegate(typeof(Func<string>),state));
+                if(state!=null) {
+                    Func<string> skinState=(Func<string>)Delegate.CreateDelegate(typeof(Func<string>),state);
+                    // The switch stays where it is on a machine without NGX: the line under it says what is missing.
+                    Live("skin_renderer_state",RendererId,delegate() {
+                        string text=skinState();
+                        return pathOffered?text:Lang.T("Needs NVIDIA RR; NGX did not come up here, so it will not start")+(string.IsNullOrEmpty(text)?"":" · "+text);
+                    });
+                }
             }
         }
         if (rtBounces != null && renderer != null)
         {
-            Item bounces = Add(Choice("skin_rt_bounces", "RayTracing", "PathBounces", "0", "反弹", new string[] { "0", "1", "2", "3" },
-                new string[] { "0 次", "1 次", "2 次", "3 次" }));
+            Item bounces = Add(Choice("skin_rt_bounces", "RayTracing", "PathBounces", "0", Lang.T("Bounces"), new string[] { "0", "1", "2", "3" },
+                new string[] { Lang.T("0##bounces"), Lang.T("1##bounces"), Lang.T("2##bounces"), Lang.T("3##bounces") }));
             bounces.entry = rtBounces;
             bounces.group = RendererId; bounces.pathRule = 1;
         }
         // v51: [RayTracing] PathBackground, where what is not the person is traced for less; the same row in VR and on the desktop. The PT's author rules have no switch.
         if (rtBackground != null && renderer != null)
         {
-            Item background = Add(Choice("skin_rt_background", "RayTracing", "PathBackground", "Far", "背景减负", new string[] { "Off", "Far", "All" },
-                new string[] { "不减负", "远处", "全部" }));
+            Item background = Add(Choice("skin_rt_background", "RayTracing", "PathBackground", "Far", Lang.T("Background savings"), new string[] { "Off", "Far", "All" },
+                new string[] { Lang.T("None##savings"), Lang.T("Far"), Lang.T("All") }));
             background.entry = rtBackground;
             background.group = RendererId; background.pathRule = 1;
         }
         if (toneMode != null)
-            Add(Choice("tone_mode", "General", "Mode", "1", "色调映射", new string[] { "0", "1", "2" },
-                new string[] { "关闭", "展示照明时", "全局" })).entry = toneMode;
+            Add(Choice("tone_mode", "General", "Mode", "1", Lang.T("Tone mapping"), new string[] { "0", "1", "2" },
+                new string[] { Lang.T("Off##choice"), Lang.T("With display lighting"), Lang.T("Always") })).entry = toneMode;
         if (toneStyle != null)
         {
-            Item style = Add(Choice("tone_style", "General", "Style", "0", "风格", new string[] { "0", "1" },
-                new string[] { "中性", "胶片" }));
+            Item style = Add(Choice("tone_style", "General", "Style", "0", Lang.T("Style"), new string[] { "0", "1" },
+                new string[] { Lang.T("Neutral"), Lang.T("Film") }));
             style.entry = toneStyle;
             if (toneMode != null) style.group = "tone_mode";
         }
-        AddPage("皮肤");
+        AddPage(Lang.T("Skin"));
         if (normalize != null)
         {
             // v52 (11-10): a row for [Subsurface] Strength, 0-1 (0 off). Both routes:
@@ -592,25 +679,25 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
             ConfigEntryBase subsurface = PluginSetting(SkinPlugin, "Subsurface", "Strength");
             if (subsurface != null)
             {
-                Item sss = Add(Number("skin_sss", "Subsurface", "Strength", "0", "次表面散射", 0, 1));
+                Item sss = Add(Number("skin_sss", "Subsurface", "Strength", "0", Lang.T("Subsurface scattering"), 0, 1));
                 sss.entry = subsurface;
                 sss.fractional = true;
                 sss.step = 0.1f;
             }
-            // v54 (11-10): no 整体透光 row; the skin plugin no longer has
-            // [Diffuse] OverallScattering (v19-v53 had it: 整体散射 0 / 0.5 / 1, v53 renamed 整体透光 and existing lighting only).
-            // v55 (11-10): the 薄处透光 row, on both routes.
+            // v54 (11-10): no overall-translucency row; the skin plugin no longer has
+            // [Diffuse] OverallScattering (v19-v53 had it as three steps, 0 / 0.5 / 1; in v53 for the existing lighting only).
+            // v55 (11-10): the Light through thin skin row, on both routes.
             // [General] Strength, the light through thin skin (ears, nostrils, fingers against a light). Both routes: the
             // existing lighting's transmission pass and the PT's PtThinCandidate (docs/knowledge/skin.md). 0 off, 1 as measured.
             ConfigEntryBase thinLight = PluginSetting(SkinPlugin, "General", "Strength");
             if (thinLight != null)
             {
-                Item thin = Add(Number("skin_thin", "General", "Strength", "1", "薄处透光", 0, 2));
+                Item thin = Add(Number("skin_thin", "General", "Strength", "1", Lang.T("Light through thin skin"), 0, 2));
                 thin.entry = thinLight;
                 thin.fractional = true;
                 thin.step = 0.1f;
             }
-            Add(OnOff(SkinNormalizeId, "Specular", "Normalize", "1", "高光归一化")).entry = normalize;
+            Add(OnOff(SkinNormalizeId, "Specular", "Normalize", "1", Lang.T("Normalize highlights"))).entry = normalize;
             // One row per character, its label the character and its starting level (TakeSkinSteps).
             if (skinTiers != null)
                 for (int k = 0; k < SkinSlots; k++)
@@ -622,11 +709,11 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
                     level.parent = SkinNormalizeId;
                 }
         }
-        AddPage("身体");
+        AddPage(Lang.T("Body"));
         ConfigEntryBase sampling = PluginSetting("local.vam.frameclock", "Timeline", "StepSampling");
         if (sampling != null)
         {
-            Add(OnOff("motion_sampling", "Timeline", "StepSampling", "1", "动作逐步采样")).entry = sampling;
+            Add(OnOff("motion_sampling", "Timeline", "StepSampling", "1", Lang.T("Per-step motion sampling"))).entry = sampling;
             // FrameClock's own report: what it adapts now, the body's rate and the last real frame's steps.
             PluginInfo clock;
             if (Chainloader.PluginInfos.TryGetValue("local.vam.frameclock", out clock) && clock.Instance != null)
@@ -636,7 +723,7 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
             }
         }
         ConfigEntryBase softBody = PluginSetting("local.vam.softbody", "General", "Enabled");
-        if (softBody != null) Add(OnOff("softbody_enabled", "General", "Enabled", "1", "乳房软体")).entry = softBody;
+        if (softBody != null) Add(OnOff("softbody_enabled", "General", "Enabled", "1", Lang.T("Breast soft body"))).entry = softBody;
         foreach (Item i in items) i.value = i.original = Normalize(i, EntryValue(i));
     }
 
@@ -730,7 +817,8 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
             string[] f = i.skinSlot < lines.Length ? lines[i.skinSlot].Split('\t') : null;
             string uid = f != null && f.Length >= 3 ? f[0] : null;
             float start = f != null && f.Length >= 3 ? ParseLevel(f[1]) : -1f, level = f != null && f.Length >= 3 ? ParseLevel(f[2]) : -1f;
-            string label = uid == null ? "" : "光泽 · " + uid + "\n" + (start >= 0f ? "起始 " + start.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) : "起始值计算中");
+            string label = uid == null ? "" : Lang.F("Gloss · {0}", uid) + "\n" +
+                (start >= 0f ? Lang.F("Starts at {0}", start.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)) : Lang.T("Working out the start"));
             string value = level >= 0f ? Normalize(i, level.ToString("R", System.Globalization.CultureInfo.InvariantCulture)) : i.value;
             if (uid == i.skinUid && label == i.skinLabel && value == i.value && start == i.skinStart) continue;
             i.skinUid = uid; i.skinLabel = label; i.value = value; i.skinStart = start;
@@ -795,7 +883,7 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
         Item i = new Item();
         i.id = id; i.section = section; i.key = key; i.fallback = fallback; i.label = label;
         i.kind = Kind.Toggle; i.min = 0; i.max = 1;
-        i.values = new string[] { "0", "1" }; i.names = new string[] { "关", "开" };
+        i.values = new string[] { "0", "1" }; i.names = new string[] { Lang.T("Off"), Lang.T("On") };
         return i;
     }
 
@@ -827,7 +915,19 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
     // reader's range for numbers; choices match without case.
     private static string Normalize(Item item, string raw)
     {
-        if (item.id == PresetId && raw != null && raw.Trim().ToUpperInvariant() == "RR") return "K"; // as the renderer reads it
+        if (item.id == PresetId && raw != null)
+        {
+            // As the renderer reads it (vam_performance_config.h): RR, and any word that is no model, is K; a model this
+            // machine cannot run is the first of XeSS, FSR and K that it can (VamSrChoice); none of them is off.
+            string wanted = raw.Trim();
+            if (Array.FindIndex(new string[] { "Off", "K", "L", "M", "XeSS", "FSR" },
+                    delegate(string v) { return v.Equals(wanted, StringComparison.OrdinalIgnoreCase); }) < 0) wanted = "K";
+            foreach (string v in item.values)
+                if (v.Equals(wanted, StringComparison.OrdinalIgnoreCase)) return v;
+            foreach (string v in fsrFirst ? new string[] { "FSR", "XeSS", "K" } : new string[] { "XeSS", "FSR", "K" })
+                if (Array.IndexOf(item.values, v) >= 0) return v;
+            return "Off";
+        }
         if (raw == null) raw = item.fallback;
         switch (item.kind)
         {
@@ -871,10 +971,10 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
         if (item.pathRule != 0 && (item.pathRule > 0) != PathOn()) return false;
         if (item.skinSlot >= 0 && item.skinUid == null) return false;
         Item other;
-        // PT ignores DLSSPreset, so 关闭 hides nothing while PT is on.
+        // PT ignores DLSSPreset, so Off hides nothing while PT is on.
         if (item.unlessId != null && byId.TryGetValue(item.unlessId, out other) && other.value == item.unlessValue &&
             !(item.unlessId == PresetId && PathOn())) return false;
-        // Every switch above it is on (v29: 处理比例 sits under 降噪位置, which sits under 降噪 NR).
+        // Every switch above it is on (v29: Work scale sits under Where, which sits under Denoise (NR)).
         for (Item i = item; i.parent != null && byId.TryGetValue(i.parent, out other); i = other)
             if (other.value != "1" && (other.id != "nr_after" || !PathOn())) return false;
         return true;
@@ -954,14 +1054,14 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
             store.pending = false;
             if (store.failed) Logger.LogInfo("VaM VR menu: " + store.name + " written again");
             store.failed = false;
-            message = "已写入。";
+            message = Lang.T("Written.");
         }
         catch (Exception e)
         {
             store.nextWrite = now + RetrySeconds;
             if (!store.failed) Logger.LogWarning("VaM VR menu: cannot write " + store.path + ": " + e.Message + " (retrying)");
             store.failed = true;
-            message = "写入失败，正在重试：" + e.Message;
+            message = Lang.F("Writing failed, trying again: {0}", e.Message);
         }
         nextStatus = 0f;
     }
@@ -988,7 +1088,7 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
             }
             if (taken.Count == 0) return;
             Logger.LogInfo("VaM VR menu: " + store.name + " changed outside the menu: " + string.Join(", ", taken.ToArray()));
-            message = (store == layer ? "OFXR 托盘" : "启动器") + "改了设置，已同步到这里。";
+            message = store == layer ? Lang.T("The OFXR tray changed settings; taken over here.") : Lang.T("The launcher changed settings; taken over here.");
             SyncMenu();
         }
         catch (Exception) { }                     // being replaced or briefly locked: the next check
@@ -1037,13 +1137,13 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
                 string r = setSkinTier.Invoke(null, new object[] { item.skinUid, float.Parse(value, System.Globalization.CultureInfo.InvariantCulture) }) as string;
                 if (r != null && r.StartsWith("error")) throw new Exception(r);
                 unlogged["skin level " + item.skinUid] = value;
-                message = "已切换。";
+                message = Lang.T("Switched.");
             }
             catch (Exception e)
             {
                 Exception x = e.InnerException ?? e;
                 Logger.LogWarning("VaM VR menu: cannot set " + item.skinUid + "'s skin level to " + value + ": " + x.Message);
-                message = "切换失败：" + x.Message;
+                message = Lang.F("Switching failed: {0}", x.Message);
                 TakeSkinSteps();
             }
             nextStatus = 0f;
@@ -1057,13 +1157,13 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
             {
                 item.entry.BoxedValue = EntryBoxed(item, value);
                 unlogged[Path.GetFileName(item.entry.ConfigFile.ConfigFilePath) + " " + item.key] = value;
-                message = "已切换。";
+                message = Lang.T("Switched.");
             }
             catch (Exception e)
             {
                 item.value = Normalize(item, EntryValue(item));
                 Logger.LogWarning("VaM VR menu: cannot set " + item.section + "." + item.key + " to " + value + ": " + e.Message);
-                message = "切换失败：" + e.Message;
+                message = Lang.F("Switching failed: {0}", e.Message);
             }
             nextStatus = 0f;
             return;
@@ -1094,7 +1194,7 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
         if (syncing) return;
         foreach (Item i in items)
             if (i.skinSlot < 0 && i.value != i.original) Change(i, i.original);   // the levels are the skins' own
-        message = "已恢复本次启动时的设置。";
+        message = Lang.T("Back to this launch's settings.");
         SyncMenu();
     }
 }
