@@ -1,0 +1,10 @@
+# Fetched SDKs and runtimes (vamkit fetch), never committed.
+/third_party/
+# Everything built, including the shaders generated from the user's own VaM (vamkit build).
+/out/
+# The user's own overlay.
+/local/
+/state/
+__pycache__/
+*.pyc
+.vs/

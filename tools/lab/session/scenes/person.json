@@ -1,0 +1,45 @@
+{
+   "playerNavCollider" : "PlayerNavigationPanel:Floor",
+   "worldScale" : "1",
+   "useSceneLoadPosition" : "false",
+   "atoms" : [
+      {
+         "id" : "CoreControl",
+         "on" : "true",
+         "type" : "CoreControl",
+         "storables" : [ ]
+      },
+      {
+         "id" : "PlayerNavigationPanel",
+         "on" : "true",
+         "type" : "PlayerNavigationPanel",
+         "position" : { "x" : "0", "y" : "0", "z" : "0" },
+         "rotation" : { "x" : "0", "y" : "0", "z" : "0" },
+         "containerPosition" : { "x" : "0", "y" : "0", "z" : "0" },
+         "containerRotation" : { "x" : "0", "y" : "0", "z" : "0" },
+         "storables" : [ ]
+      },
+      {
+         "id" : "KeyLight",
+         "on" : "true",
+         "type" : "InvisibleLight",
+         "position" : { "x" : "0.9", "y" : "1.9", "z" : "1.6" },
+         "rotation" : { "x" : "20", "y" : "210", "z" : "0" },
+         "containerPosition" : { "x" : "0.9", "y" : "1.9", "z" : "1.6" },
+         "containerRotation" : { "x" : "20", "y" : "210", "z" : "0" },
+         "storables" : [
+            { "id" : "Light", "type" : "Point", "intensity" : "1.6", "range" : "8", "shadowsOn" : "true" }
+         ]
+      },
+      {
+         "id" : "Person",
+         "on" : "true",
+         "type" : "Person",
+         "position" : { "x" : "0", "y" : "0", "z" : "0" },
+         "rotation" : { "x" : "0", "y" : "0", "z" : "0" },
+         "containerPosition" : { "x" : "0", "y" : "0", "z" : "0" },
+         "containerRotation" : { "x" : "0", "y" : "0", "z" : "0" },
+         "storables" : [ ]
+      }
+   ]
+}

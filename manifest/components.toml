@@ -1,0 +1,411 @@
+# The one definition of each component: where it lives, how it is built, what it needs, where the result goes.
+# tools/vamkit reads this file; documents and other tools must not keep their own lists. Components are built in the
+# order they appear here.
+#
+# from_vam: the component generates sources from the user's own VaM (VaM_Data/*.assets) at build time. Those files stay
+#           in out/gen/ and are never committed.
+# needs:    ids in manifest/thirdparty.toml (third_party/<id>, from `vamkit fetch`).
+# uses:     other components whose sources or headers it reads.
+# generate: Python scripts run first (`python -I`), in this order; they write to out/gen/.
+# native:   a build.cmd (MSVC, or CMake inside it) that writes to out/<id>/.
+# [component.managed]: a BepInEx plugin compiled with the C# 3.5 compiler (VaM's Mono) into out/<id>/<out>:
+#           sources (from the component's folder), generated (from the repo root), references (from the VaM folder),
+#           resources ([file, name] embedded), unsafe.
+# tests:    command lines `vamkit test` runs, each must exit 0. {repo}, {python} and {csc} are filled in.
+# installs: [built file, path under the VaM folder]. "vamkit/bin" files are swapped in by the launcher only while the
+#           mod runs; "BepInEx/plugins" files stay installed. The render and shading plugins are inert without the
+#           launcher's environment; the runtime plugins work whenever BepInEx loads (vanilla turns BepInEx off).
+# enable:   [cfg, section, key, value] the install writes: plugins whose own default is off.
+# guard:    what the component does on a VaM it was not made for (the project must not depend on one VaM build).
+
+# ---- render: the frame's path from Unity to the display ----
+
+[[component]]
+id = "d3d11-proxy"
+path = "components/render/d3d11-proxy"
+summary = "D3D11On12 proxy beside VaM.exe (Unity's device on a D3D12 queue) and the desktop presenter"
+license = "LGPL-3.0-only"
+needs = ["ngx-sdk"]
+native = "components/render/d3d11-proxy/build.cmd"
+installs = [["out/d3d11-proxy/d3d11.dll", "vamkit/bin/d3d11.dll"]]
+
+[[component]]
+id = "opencomposite"
+path = "components/render/opencomposite"
+summary = "OpenComposite with the VR compositor work: DLSS SR / RR / NR, PT composition, UI and motion guides"
+license = "GPL-3.0-only"
+needs = ["ngx-sdk", "detours", "nis-sdk", "fsr1-sdk", "nvapi", "glm", "openxr-sdk", "vulkan-headers"]
+uses = ["rt-core"]
+native = "components/render/opencomposite/build.cmd"
+installs = [["out/opencomposite/openvr_api.dll", "vamkit/bin/openvr_api.dll"]]
+
+[[component]]
+id = "ofxr-dlssg"
+path = "components/render/ofxr-dlssg"
+summary = "OFXR Bridge OpenXR layer and tray with DLSS Frame Generation 2-4x"
+license = "LGPL-3.0-only"
+needs = ["ngx-sdk", "openvr-headers"]
+native = "components/render/ofxr-dlssg/build.cmd"
+installs = [
+    ["out/ofxr-dlssg/OFXRBridgeTray.exe", "vamkit/bin/ofxr/OFXRBridgeTray.exe"],
+    ["out/ofxr-dlssg/ofxr/ofxr_bridge.ini", "vamkit/bin/ofxr/ofxr/ofxr_bridge.ini"],
+    ["out/ofxr-dlssg/ofxr/OFXR_vulkan_queue_layer.dll", "vamkit/bin/ofxr/ofxr/OFXR_vulkan_queue_layer.dll"],
+    ["out/ofxr-dlssg/ofxr/XR_APILAYER_XRFrameBridge_diagnostic.dll", "vamkit/bin/ofxr/ofxr/XR_APILAYER_XRFrameBridge_diagnostic.dll"]
+]
+
+[[component]]
+id = "dlss-bridge"
+path = "components/render/dlss-bridge"
+summary = "Unity side of the compositor: jitter, depth and motion capture, post-processing hand-over"
+license = "MIT"
+installs = [["out/dlss-bridge/VaMDLSSBridge.dll", "BepInEx/plugins/VaMDLSSBridge.dll"]]
+
+  [component.managed]
+  out = "VaMDLSSBridge.dll"
+  unsafe = true
+  sources = ["VaMDLSSBridge.cs"]
+  references = [
+      "BepInEx/core/BepInEx.dll", "BepInEx/core/0Harmony.dll", "VaM_Data/Managed/UnityEngine.CoreModule.dll",
+      "VaM_Data/Managed/UnityEngine.VRModule.dll", "VaM_Data/Managed/UnityEngine.UIModule.dll",
+      "VaM_Data/Managed/UnityEngine.UI.dll", "VaM_Data/Managed/UnityEngine.dll"
+]
+
+[[component]]
+id = "vr-menu"
+path = "components/render/vr-menu"
+summary = "In-game settings menu: path tracing switch, upscaler model, render scale, NR, frame generation"
+license = "MIT"
+tests = [
+    ["{csc}", "/nologo", "/target:exe", "/codepage:65001", "/out:{repo}/out/vr-menu/VRMenuIniTest.exe",
+     "{repo}/components/render/vr-menu/tests/VRMenuIniTest.cs", "{repo}/components/render/vr-menu/VRMenuIni.cs"],
+    ["{repo}/out/vr-menu/VRMenuIniTest.exe"]
+]
+installs = [["out/vr-menu/VaMVRMenu.dll", "BepInEx/plugins/VaMVRMenu.dll"]]
+
+  [component.managed]
+  out = "VaMVRMenu.dll"
+  sources = ["VaMVRMenu.cs", "VaMVRMenu.Menu.cs", "VaMVRMenu.FrameGen.cs", "VRMenuIni.cs"]
+  references = [
+      "BepInEx/core/BepInEx.dll", "VaM_Data/Managed/Assembly-CSharp.dll",
+      "VaM_Data/Managed/UnityEngine.CoreModule.dll", "VaM_Data/Managed/UnityEngine.dll",
+      "VaM_Data/Managed/UnityEngine.UI.dll", "VaM_Data/Managed/UnityEngine.UIModule.dll",
+      "VaM_Data/Managed/UnityEngine.TextRenderingModule.dll"
+]
+
+[[component]]
+id = "launcher"
+path = "components/render/launcher"
+summary = "Launch panel and launch.py: the mod or vanilla, VR or desktop; puts VaM's own files back on exit"
+license = "MIT"
+installs = [
+    ["components/render/launcher/launch.py", "vamkit/launcher/launch.py"],
+    ["components/render/launcher/LaunchPanel.py", "vamkit/launcher/LaunchPanel.py"],
+    ["components/render/launcher/ModeProfiles.py", "vamkit/launcher/ModeProfiles.py"],
+    ["components/render/launcher/profile-manifest.json", "vamkit/launcher/profile-manifest.json"]
+]
+
+[[component]]
+id = "window-camera"
+path = "components/render/window-camera"
+summary = "Turns off cameras whose image is never seen (MainWindowCamera in VR and desktop mode, MiniCamera)"
+license = "MIT"
+installs = [["out/window-camera/VaMWindowCameraVR.dll", "BepInEx/plugins/VaMWindowCameraVR.dll"]]
+
+  [component.managed]
+  out = "VaMWindowCameraVR.dll"
+  sources = ["VaMWindowCameraVR.cs"]
+  references = [
+      "BepInEx/core/BepInEx.dll", "BepInEx/core/0Harmony.dll", "VaM_Data/Managed/Assembly-CSharp.dll",
+      "VaM_Data/Managed/UnityEngine.CoreModule.dll", "VaM_Data/Managed/UnityEngine.dll",
+      "VaM_Data/Managed/UnityEngine.VRModule.dll"
+]
+
+# ---- shading: skin, hair, clothing, the path tracer, tone mapping ----
+
+[[component]]
+id = "shader-lift"
+path = "components/shared/shader-lift"
+summary = "Reads Unity's shader data from the user's VaM and lifts DXBC to HLSL for the generators"
+license = "MIT"
+
+[[component]]
+id = "rt-core"
+path = "components/shading/rt-core"
+summary = "Path tracing core (DXR 1.1), compiled into the skin's native library"
+license = "MIT"
+needs = ["nvapi"]
+generate = [
+    "components/shading/rt-core/tools/gen_shaders.py", "components/shading/rt-core/tools/build_program_sets.py",
+    "components/shading/rt-core/tools/build_overlay_registry.py",
+    "components/shading/rt-core/tools/shader_contracts.py", "components/shading/rt-core/tools/shadow_casters.py"
+]
+tests = [
+    ["cmd", "/c", "{repo}/components/shading/rt-core/tests/build.cmd"],
+    ["{repo}/out/rt-core-tests/probe.exe", "{repo}/out/rt-core-tests/results"],
+    ["cmd", "/c", "{repo}/components/shading/rt-core/tests/build_shadow_probe.cmd"],
+    ["{repo}/out/rt-core-tests/shadow_probe.exe", "{repo}/out/rt-core-tests/results-shadow"]
+]
+
+[[component]]
+id = "skin"
+path = "components/shading/skin"
+summary = "Skin shading and the path tracer's host (scene records, materials, UI and effects hand-over)"
+license = "MIT"
+from_vam = true
+uses = ["rt-core", "shader-lift"]
+needs = ["nvapi"]
+generate = [
+    "components/shading/skin/tools/gen_sss_shaders.py", "components/shading/skin/tools/gen_mouth.py",
+    "components/shading/skin/tools/gen_skin_table.py", "components/shading/skin/tools/gen_spec_table.py"
+]
+native = "components/shading/skin/native/build.cmd"
+tests = [
+    ["cmd", "/c", "{repo}/components/shading/skin/tests/build_spec_test.cmd"],
+    ["{repo}/out/skin-tests/spec_test.exe", "{repo}/out/gen/skin/spec_cases"],
+    ["cmd", "/c", "{repo}/components/shading/skin/tests/build_sss_test.cmd"],
+    ["{repo}/out/skin-tests/sss_test.exe", "{repo}/out/gen/skin/spec_cases"],
+    ["cmd", "/c", "{repo}/components/shading/skin/tests/build_mouth_test.cmd"],
+    ["{repo}/out/skin-tests/mouth_test.exe"]
+]
+installs = [
+    ["out/skin/VaMSkinTransmission.dll", "BepInEx/plugins/VaMSkinTransmission.dll"],
+    ["out/skin/VaMSkinTransmissionNative.bin", "BepInEx/plugins/VaMSkinTransmissionNative.bin"]
+]
+
+  [component.managed]
+  out = "VaMSkinTransmission.dll"
+  unsafe = true
+  sources = [
+      "VaMSkinTransmission.cs", "TongueSurface.cs", "RegionalSurface.cs", "RtScene.cs", "PathSkinned.cs",
+      "PathSubmitted.cs", "PathCanvasUi.cs"
+]
+  generated = [
+      "out/gen/skin/PathShaderPrograms.cs", "out/gen/skin/PathShaderStates.cs", "out/gen/skin/PathShadowCasters.cs"
+]
+  references = [
+      "BepInEx/core/BepInEx.dll", "BepInEx/core/0Harmony.dll", "VaM_Data/Managed/UnityEngine.dll",
+      "VaM_Data/Managed/UnityEngine.CoreModule.dll", "VaM_Data/Managed/UnityEngine.ImageConversionModule.dll",
+      "VaM_Data/Managed/UnityEngine.UIModule.dll", "VaM_Data/Managed/UnityEngine.UI.dll",
+      "VaM_Data/Managed/Assembly-CSharp.dll"
+]
+
+[[component]]
+id = "hair-strands"
+path = "components/shading/hair-strands"
+summary = "Hair strands rasterizer with a transmission lobe; LSS hair for the path tracer"
+license = "MIT"
+from_vam = true
+uses = ["shader-lift"]
+generate = [
+    "components/shading/hair-strands/tools/gen_programs.py",
+    "components/shading/hair-strands/tools/build_onepass_shaders.py",
+    "components/shading/hair-strands/tools/build_strands_shaders.py"
+]
+native = "components/shading/hair-strands/native/build.cmd"
+installs = [
+    ["out/hair-strands/VaMHairOnePass.dll", "BepInEx/plugins/VaMHairOnePass.dll"],
+    ["out/hair-strands/VaMHairOnePassNative.bin", "BepInEx/plugins/VaMHairOnePassNative.bin"]
+]
+
+  [component.managed]
+  out = "VaMHairOnePass.dll"
+  sources = ["VaMHairOnePass.cs"]
+  references = [
+      "BepInEx/core/BepInEx.dll", "VaM_Data/Managed/UnityEngine.dll", "VaM_Data/Managed/UnityEngine.CoreModule.dll",
+      "VaM_Data/Managed/Assembly-CSharp.dll"
+]
+
+[[component]]
+id = "cloth-shading"
+path = "components/shading/cloth-shading"
+summary = "Clothing pixel programs (sheen, specular anti-aliasing) and clothing materials for the path tracer"
+license = "MIT"
+from_vam = true
+uses = ["shader-lift"]
+generate = ["components/shading/cloth-shading/tools/gen_cloth_programs.py"]
+native = "components/shading/cloth-shading/native/build.cmd"
+tests = [["cmd", "/c", "{repo}/components/shading/cloth-shading/tests/build_test.cmd"]]
+installs = [
+    ["out/cloth-shading/VaMClothShading.dll", "BepInEx/plugins/VaMClothShading.dll"],
+    ["out/cloth-shading/VaMClothShadingNative.bin", "BepInEx/plugins/VaMClothShadingNative.bin"]
+]
+
+  [component.managed]
+  out = "VaMClothShading.dll"
+  sources = ["VaMClothShading.cs"]
+  references = [
+      "BepInEx/core/BepInEx.dll", "BepInEx/core/0Harmony.dll", "VaM_Data/Managed/Assembly-CSharp.dll",
+      "VaM_Data/Managed/UnityEngine.dll", "VaM_Data/Managed/UnityEngine.CoreModule.dll"
+]
+
+[[component]]
+id = "tone-mapping"
+path = "components/shading/tone-mapping"
+summary = "Tone mapping (neutral and film), on the reconstructed image when RR runs"
+license = "MIT"
+generate = ["components/shading/tone-mapping/tools/build_shaders.py"]
+native = "components/shading/tone-mapping/native/build.cmd"
+tests = [["cmd", "/c", "{repo}/components/shading/tone-mapping/tests/build.cmd"]]
+installs = [
+    ["out/tone-mapping/VaMToneMapping.dll", "BepInEx/plugins/VaMToneMapping.dll"],
+    ["out/tone-mapping/VaMToneMappingNative.bin", "BepInEx/plugins/VaMToneMappingNative.bin"]
+]
+
+  [component.managed]
+  out = "VaMToneMapping.dll"
+  sources = ["plugin/VaMToneMapping.cs"]
+  references = [
+      "BepInEx/core/BepInEx.dll", "VaM_Data/Managed/UnityEngine.dll", "VaM_Data/Managed/UnityEngine.CoreModule.dll",
+      "VaM_Data/Managed/Assembly-CSharp.dll"
+]
+
+[[component]]
+id = "display-lighting"
+path = "components/shading/display-lighting"
+summary = "Optional display lighting styles for scenes"
+license = "MIT"
+optional = true
+installs = [["out/display-lighting/VaMDisplayLighting.dll", "BepInEx/plugins/VaMDisplayLighting.dll"]]
+
+  [component.managed]
+  out = "VaMDisplayLighting.dll"
+  sources = ["VaMDisplayLighting.cs", "VaMDisplayLighting.Menu.cs"]
+  references = [
+      "VaM_Data/Managed/UnityEngine.dll", "VaM_Data/Managed/UnityEngine.CoreModule.dll",
+      "VaM_Data/Managed/UnityEngine.UI.dll", "VaM_Data/Managed/UnityEngine.UIModule.dll",
+      "VaM_Data/Managed/UnityEngine.TextRenderingModule.dll", "VaM_Data/Managed/UnityEngine.PhysicsModule.dll",
+      "VaM_Data/Managed/Assembly-CSharp.dll", "BepInEx/core/BepInEx.dll"
+]
+
+# ---- runtime: the same picture and motion for less time per frame. Scene and image loading are not part of this. ----
+
+[[component]]
+id = "cpu-boost"
+path = "components/runtime/cpu-boost"
+summary = "VaM's character hot paths (CPU skinning, morphs, normals, soft vertices) in native code with the same bits, and the worker pool every native plugin shares"
+license = "MIT"
+native = "components/runtime/cpu-boost/native/build.cmd"
+tests = [
+    ["pwsh", "-NoProfile", "-File", "{repo}/components/runtime/cpu-boost/harness/run-skin.ps1"],
+    ["pwsh", "-NoProfile", "-File", "{repo}/components/runtime/cpu-boost/harness/run-paths.ps1"],
+    ["pwsh", "-NoProfile", "-File", "{repo}/components/runtime/cpu-boost/harness/run-patch.ps1"]
+]
+installs = [
+    ["out/cpu-boost/VaMCpuBoost.dll", "BepInEx/plugins/VaMCpuBoost.dll"],
+    ["out/cpu-boost/VaMCpuBoostNative.bin", "BepInEx/plugins/VaMCpuBoostNative.bin"]
+]
+guard = "each method is patched only when its IL fingerprint is the one checked offline; any other is left to VaM (logged). harness/ runs the checks against the user's VaM"
+
+  [component.managed]
+  out = "VaMCpuBoost.dll"
+  unsafe = true
+  sources = ["plugin/VaMCpuBoost.cs", "plugin/CpuBoostSkin.cs", "plugin/CpuBoostPaths.cs"]
+  references = [
+      "BepInEx/core/BepInEx.dll", "BepInEx/core/0Harmony.dll", "VaM_Data/Managed/Assembly-CSharp.dll",
+      "VaM_Data/Managed/UnityEngine.CoreModule.dll", "VaM_Data/Managed/UnityEngine.dll"
+]
+
+[[component]]
+id = "gc-tuning"
+path = "components/runtime/gc-tuning"
+summary = "Mono's collector: collects about half as often, marks on several threads, no collection chains while loading, and a fix for block headers on 4 GB boundaries"
+license = "MIT"
+native = "components/runtime/gc-tuning/native/build.cmd"
+tests = [
+    ["{python}", "-I", "{repo}/components/runtime/gc-tuning/tools/check_layout.py"],
+    ["cmd", "/c", "{repo}/components/runtime/gc-tuning/tools/fo_test.cmd"],
+    ["cmd", "/c", "{repo}/components/runtime/gc-tuning/tools/guard_test.cmd"]
+]
+installs = [
+    ["out/gc-tuning/VaMGcTuning.dll", "BepInEx/plugins/VaMGcTuning.dll"],
+    ["out/gc-tuning/VaMGcTuningNative.bin", "BepInEx/plugins/VaMGcTuningNative.bin"]
+]
+guard = "checks the bytes of the loaded mono.dll at every place it changes; any mismatch leaves the collector as it is (logged)"
+
+  [component.managed]
+  out = "VaMGcTuning.dll"
+  unsafe = true
+  sources = ["VaMGcTuning.cs"]
+  references = [
+      "BepInEx/core/BepInEx.dll", "VaM_Data/Managed/UnityEngine.dll", "VaM_Data/Managed/UnityEngine.CoreModule.dll"
+]
+
+[[component]]
+id = "hair-solver"
+path = "components/runtime/hair-solver"
+summary = "GPUTools' hair physics as one fused compute pass per step (same rules, same order), all hair items of a frame solved side by side"
+license = "MIT"
+native = "components/runtime/hair-solver/plugin/native/build.cmd"
+installs = [
+    ["out/hair-solver/VaMHairSolver.dll", "BepInEx/plugins/VaMHairSolver.dll"],
+    ["out/hair-solver/VaMHairSolverNative.bin", "BepInEx/plugins/VaMHairSolverNative.bin"]
+]
+enable = [["BepInEx/config/local.vam.hairsolver.cfg", "General", "Enabled", "true"]]
+guard = "an item whose joints it cannot take is left to GPUTools; [Diagnostics] VerifyEverySteps compares against GPUTools' own step"
+
+  [component.managed]
+  out = "VaMHairSolver.dll"
+  sources = ["plugin/VaMHairSolver.cs", "plugin/HairSolverData.cs", "plugin/HairBodyContact.cs"]
+  references = [
+      "BepInEx/core/BepInEx.dll", "BepInEx/core/0Harmony.dll", "VaM_Data/Managed/Assembly-CSharp.dll",
+      "VaM_Data/Managed/UnityEngine.CoreModule.dll", "VaM_Data/Managed/UnityEngine.dll"
+]
+
+[[component]]
+id = "hair-budget"
+path = "components/runtime/hair-budget"
+summary = "A cost budget for hair per person and per scene, and hair physics on its own rate; own tab in VaM's menu"
+license = "MIT"
+installs = [["out/hair-budget/VaMHairBudget.dll", "BepInEx/plugins/VaMHairBudget.dll"]]
+
+  [component.managed]
+  out = "VaMHairBudget.dll"
+  sources = ["VaMHairBudget.cs", "VaMHairBudget.Menu.cs", "VaMHairBudget.HairRate.cs", "HairBudgetMath.cs"]
+  resources = [["VaMHairBudget.ini", "VaMHairBudget.ini"]]
+  references = [
+      "BepInEx/core/BepInEx.dll", "BepInEx/core/0Harmony.dll", "VaM_Data/Managed/Assembly-CSharp.dll",
+      "VaM_Data/Managed/UnityEngine.CoreModule.dll", "VaM_Data/Managed/UnityEngine.dll",
+      "VaM_Data/Managed/UnityEngine.UI.dll", "VaM_Data/Managed/UnityEngine.UIModule.dll",
+      "VaM_Data/Managed/UnityEngine.TextRenderingModule.dll", "VaM_Data/Managed/UnityEngine.VRModule.dll"
+]
+
+[[component]]
+id = "cloth-physics"
+path = "components/runtime/cloth-physics"
+summary = "GPUTools' cloth physics in fused compute passes (bit-identical), large items iterated on several thread groups"
+license = "MIT"
+native = "components/runtime/cloth-physics/plugin/native/build.cmd"
+installs = [
+    ["out/cloth-physics/VaMClothPhysics.dll", "BepInEx/plugins/VaMClothPhysics.dll"],
+    ["out/cloth-physics/VaMClothPhysicsNative.bin", "BepInEx/plugins/VaMClothPhysicsNative.bin"]
+]
+enable = [["BepInEx/config/local.vam.clothphysics.cfg", "General", "Enabled", "true"]]
+guard = "items it cannot take stay with GPUTools; [Diagnostics] VerifyEverySteps compares against GPUTools' own step"
+
+  [component.managed]
+  out = "VaMClothPhysics.dll"
+  sources = ["plugin/VaMClothPhysics.cs"]
+  references = [
+      "BepInEx/core/BepInEx.dll", "BepInEx/core/0Harmony.dll", "VaM_Data/Managed/Assembly-CSharp.dll",
+      "VaM_Data/Managed/UnityEngine.CoreModule.dll", "VaM_Data/Managed/UnityEngine.dll"
+]
+
+[[component]]
+id = "wrap-batch"
+path = "components/runtime/wrap-batch"
+summary = "The per-frame compute work of clothing skin wraps recorded and issued side by side (bit-identical)"
+license = "MIT"
+native = "components/runtime/wrap-batch/native/build.cmd"
+installs = [
+    ["out/wrap-batch/VaMWrapBatch.dll", "BepInEx/plugins/VaMWrapBatch.dll"],
+    ["out/wrap-batch/VaMWrapBatchNative.bin", "BepInEx/plugins/VaMWrapBatchNative.bin"]
+]
+guard = "Verify reruns VaM's own LateUpdate on the same inputs and compares every buffer"
+
+  [component.managed]
+  out = "VaMWrapBatch.dll"
+  sources = ["VaMWrapBatch.cs"]
+  references = [
+      "BepInEx/core/BepInEx.dll", "BepInEx/core/0Harmony.dll", "VaM_Data/Managed/Assembly-CSharp.dll",
+      "VaM_Data/Managed/UnityEngine.CoreModule.dll", "VaM_Data/Managed/UnityEngine.dll"
+]

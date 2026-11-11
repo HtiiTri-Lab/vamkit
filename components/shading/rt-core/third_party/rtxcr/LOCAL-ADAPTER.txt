@@ -1,0 +1,8 @@
+Local material adapter extension (2026-11-01)
+HairMaterialInteractionBcsdf has a reflectionTint field, initialized to white
+by the library factory. The far-field R evaluation and its sampling probability
+both apply this bounded tint. TT/TRT absorption is unchanged. The VaM adapter
+converts the author's highlight peak/width into this control; it does not use
+the old raster SpecularColor directly as physical Fresnel F0. Copyright/license
+notices remain in each file. This vendored tree is therefore a local adaptation,
+not an assertion of byte-for-byte identity with the upstream revision.

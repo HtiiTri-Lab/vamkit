@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "performance": [
+    ["NR", "Enabled"], ["NR", "FoveationSize"], ["NR", "Intensity"], ["NR", "LocalStructureStrength"], ["NR", "LocalToneStrength"],
+    ["NR", "RegionShiftY"], ["NR", "RenderPreset"], ["NR", "SkinStructureStrength"], ["NR", "Style"],
+    ["Performance", "DLSSGLite"], ["Performance", "DLSSMenuNative"], ["Performance", "DLSSPreset"], ["Performance", "DLSSSharpenLast"],
+    ["Performance", "DLSSSharpness"], ["Performance", "FrameGeneration"], ["Performance", "NRAfterScale"], ["Performance", "NRAfterUpscale"],
+    ["Performance", "NRFeatherPercent"], ["Performance", "OutputScale"], ["Performance", "RRStereo"], ["Performance", "RenderScale"],
+    ["Performance", "RenderScaleK"], ["Performance", "RenderScaleL"], ["Performance", "RenderScaleM"], ["Performance", "RenderScaleRR"]
+  ],
+  "layer": [["ofxr", "frame_multiplier"], ["overlay", "position"]],
+  "config": {
+    "BepInEx/config/local.vam.skintransmission.cfg": [
+      ["General", "Strength"], ["RayTracing", "PathBackground"], ["RayTracing", "PathBounces"], ["RayTracing", "RRDetail"],
+      ["RayTracing", "Renderer"], ["Specular", "Normalize"], ["Subsurface", "Strength"]
+    ],
+    "BepInEx/config/local.vam.tonemapping.cfg": [["General", "Mode"], ["General", "Style"]]
+  },
+  "whole_files": ["BepInEx/config/local.vam.skintransmission.tiers.txt", "BepInEx/config/VaMHairBudget.ini"]
+}

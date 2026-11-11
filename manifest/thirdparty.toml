@@ -1,0 +1,148 @@
+# Everything `vamkit fetch` puts in third_party/<id>/ (never committed). Nothing of a vendor's is redistributed by
+# this project: SDKs come from the vendor's own repository at a pinned commit, model runtimes from the vendor's public
+# location or from the user.
+#
+# kind = "git":   url + commit. `sparse` limits what is downloaded, `layout` ([from, to]) what is kept and where.
+# kind = "nuget": package + version from nuget.org; `layout` as above.
+# kind = "file":  url + sha256, saved as `name`.
+# kind = "user":  no public download. `vamkit fetch --file <id>=<path>` checks the user's copy by sha256; `find` lists
+#                 places on the user's own machine where the file may already be.
+# terms = "accept": the vendor's licence applies; fetch names it and needs --accept-licenses.
+# suggest: where people usually get a file that has no public download.
+# installs: where `vamkit install` puts a runtime inside the VaM folder.
+
+[[item]]
+id = "ngx-sdk"
+what = "NVIDIA DLSS SDK: NGX headers and static libraries (the build is made against the 310.7.0 SDK)"
+kind = "git"
+url = "https://github.com/NVIDIA/DLSS.git"
+commit = "a291cc7d2cc642a51566f3dfd5376f635cd1b284"
+sparse = ["include/", "lib/Windows_x86_64/x64/", "LICENSE.txt"]
+layout = [["include", "include"], ["lib/Windows_x86_64/x64", "lib/Windows_x86_64/x64"], ["LICENSE.txt", "LICENSE.txt"]]
+terms = "accept"
+license = "NVIDIA RTX SDKs license (LICENSE.txt in the SDK)"
+
+[[item]]
+id = "nvapi"
+what = "NVIDIA NVAPI SDK"
+kind = "git"
+url = "https://github.com/NVIDIA/nvapi.git"
+commit = "70d337db9186e968eab622f7e786de7e437faf3d"
+terms = "accept"
+license = "NVIDIA NVAPI SDK license (License.txt in the SDK)"
+
+[[item]]
+id = "nis-sdk"
+what = "NVIDIA Image Scaling SDK (NVSharpen)"
+kind = "git"
+url = "https://github.com/NVIDIAGameWorks/NVIDIAImageScaling.git"
+commit = "35e13ba316c98eeecf16f37eae70ce88019911f6"
+sparse = ["NIS/", "licence.txt"]
+layout = [["NIS", "NIS"], ["licence.txt", "licence.txt"]]
+license = "MIT"
+
+[[item]]
+id = "fsr1-sdk"
+what = "AMD FidelityFX FSR 1 (the per-frame fallback upscaler): two headers"
+kind = "git"
+url = "https://github.com/GPUOpen-Effects/FidelityFX-FSR.git"
+commit = "a21ffb8f6c13233ba336352bdff293894c706575"
+sparse = ["ffx-fsr/", "license.txt"]
+layout = [["ffx-fsr/ffx_a.h", "ffx_a.h"], ["ffx-fsr/ffx_fsr1.h", "ffx_fsr1.h"], ["license.txt", "license.txt"]]
+license = "MIT"
+
+[[item]]
+id = "detours"
+what = "Microsoft Detours"
+kind = "nuget"
+package = "Detours"
+version = "4.0.1"
+layout = [["lib/native/include", "include"], ["lib/native/libs", "libs"]]
+license = "MIT"
+
+[[item]]
+id = "glm"
+what = "OpenGL Mathematics, an OpenComposite submodule"
+kind = "git"
+url = "https://github.com/g-truc/glm.git"
+commit = "bf71a834948186f4097caa076cd2663c69a10e1e"
+sparse = ["glm/", "copying.txt"]
+layout = [["glm", "glm"], ["copying.txt", "copying.txt"]]
+license = "MIT"
+
+[[item]]
+id = "openxr-sdk"
+what = "Khronos OpenXR SDK, an OpenComposite submodule"
+kind = "git"
+url = "https://github.com/KhronosGroup/OpenXR-SDK.git"
+commit = "91a8a8d9d70f4b469bca0726122c3b5a6096010e"
+license = "Apache-2.0"
+
+[[item]]
+id = "vulkan-headers"
+what = "Khronos Vulkan headers 1.3.250 (OpenComposite compiles its Vulkan compositor too)"
+kind = "git"
+url = "https://github.com/KhronosGroup/Vulkan-Headers.git"
+commit = "bae9700cd9425541a0f6029957f005e5ad3ef660"
+sparse = ["include/", "LICENSE.txt"]
+layout = [["include", "include"], ["LICENSE.txt", "LICENSE.txt"]]
+license = "Apache-2.0 OR MIT"
+
+[[item]]
+id = "openvr-headers"
+what = "Valve OpenVR headers (2.2.3) for the OFXR layer's build"
+kind = "git"
+url = "https://github.com/ValveSoftware/openvr.git"
+commit = "f51d87ecf8f7903e859b0aa4d617ff1e5f33db5a"
+sparse = ["headers/", "LICENSE"]
+layout = [["headers", "headers"], ["LICENSE", "LICENSE"]]
+license = "BSD-3-Clause"
+
+# ---- model runtimes: needed to run, not to build ----
+
+[[item]]
+id = "dlss-sr"
+what = "nvngx_dlss.dll 310.9.16, the DLSS super resolution runtime (models K / L / M)"
+kind = "file"
+name = "nvngx_dlss.dll"
+url = "https://raw.githubusercontent.com/NVIDIA/DLSS/v310.9.16/lib/Windows_x86_64/rel/nvngx_dlss.dll"
+sha256 = "d00b5b0ab29c3ca101b70c3a5ecb3a01b7ef33766a3383a28a18623083e6123e"
+signer = "NVIDIA Corporation"
+terms = "accept"
+license = "NVIDIA RTX SDKs license"
+installs = "vamkit/bin/dlss/sr/nvngx_dlss.dll"
+
+[[item]]
+id = "dlss-rr"
+what = "nvngx_dlssd.dll 310.9.16, the DLSS Ray Reconstruction runtime (preset F)"
+kind = "file"
+name = "nvngx_dlssd.dll"
+url = "https://raw.githubusercontent.com/NVIDIA/DLSS/v310.9.16/lib/Windows_x86_64/rel/nvngx_dlssd.dll"
+sha256 = "b49435ae346f227feafe7bbe937d88277ea0ee7323975ec06488f377fdb46cee"
+signer = "NVIDIA Corporation"
+terms = "accept"
+license = "NVIDIA RTX SDKs license"
+installs = "vamkit/bin/dlss/sr/nvngx_dlssd.dll"
+
+[[item]]
+id = "dlss-nr"
+what = "nvngx_dlssnr.dll 310.9.16, the neural denoiser (optional: without it the denoiser stays off)"
+kind = "user"
+name = "nvngx_dlssnr.dll"
+sha256 = "2bc19bc09a7b89dd44f73e2ac0108fcc586e2154bdd0830f242f4f040e28789f"
+signer = "NVIDIA Corporation"
+optional = true
+suggest = "NVIDIA publishes no SDK or download for it. It reached the public inside game updates: a copy of nvngx_dlssnr.dll 310.9.16 from a game that ships it, with this hash, is accepted."
+installs = "vamkit/bin/dlss/nr/nvngx_dlssnr.dll"
+
+[[item]]
+id = "dlss-fg"
+what = "nvngx_dlssg.dll 310.9.16, DLSS Frame Generation (optional: without it frame generation uses optical flow)"
+kind = "user"
+name = "nvngx_dlssg.dll"
+sha256 = "cadee1aa6db3907babdc3285da2aebc4553d92b89c38ba3eae8abd8bba1bea72"
+signer = "NVIDIA Corporation"
+optional = true
+find = ["C:/ProgramData/NVIDIA/NGX/models/dlssg/versions/*/files/*"]
+suggest = "A current NVIDIA driver downloads it into its model store the first time a DLSS Frame Generation title runs (fetch looks there); a copy of nvngx_dlssg.dll 310.9.16 from a game that ships it is accepted too."
+installs = "vamkit/bin/dlss/fg/nvngx_dlssg.dll"
