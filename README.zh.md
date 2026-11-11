@@ -5,13 +5,53 @@
 
 [English](README.md) · [给 agent 看的：AGENTS.zh.md](AGENTS.zh.md) · [实测数据](docs/benchmarks/README.md) · [更新记录](CHANGELOG.md)
 
-![vamkit 给 VaM 的一帧加了什么](docs/images/pipeline.zh.svg)
+## 怎么用
 
-**状态：开发中。** 仓库已经能自己取第三方依赖、从源码构建全部组件、跑离线测试，并且可逆地装进 VaM 目录；在官方 VaM 1.22.0.13
-加当前的 BepInEx 5 上通过了首次运行检查（桌面模式，以及模拟头显上的 VR）。这份构建还没有在真头显里、非 NVIDIA 显卡上、
-大型真实场景里试过。
+### 推荐：交给你最信赖的 agent
+
+这个项目在好几层上改了 VaM 的渲染：D3D11-on-12 设备、VR 合成器、OpenXR 层、从你自己 VaM 的着色器生成的着色器，外加十六个
+插件。而不同电脑恰恰在这些地方差别很大：显卡的厂商和代际、驱动、头显和它的运行时、VaM 的版本、BepInEx 的版本。要在你的机器
+上落地调好，是一件读日志、量数据、反复调整的活，正是编程 agent 擅长的。仓库就是为它写的：[AGENTS.zh.md](AGENTS.zh.md) 是入口，
+各份指南讲清每个部分怎么工作、出了问题怎么找原因，项目自己用的测试工具也都在里面。
+
+在你的电脑上打开你最信赖的 agent（Claude Code、Codex、Cursor 或别的），对它说类似这样的话：
+
+> 把 vamkit 仓库克隆下来，读 AGENTS.zh.md，然后装进我在 `D:\VaM` 的 VaM。动那个文件夹之前先把计划给我看。跑首次运行检查，
+> 再按我的显卡和头显调好，最后告诉我在这台机器上哪些功能打了折扣、为什么。
+
+它只会向你要几样只有你能给的东西：VaM 在哪、你是否同意各厂商的许可条款（它们的运行库从厂商那里下载，不在本仓库里）、
+你对安装计划的确认，以及你在头显里看到了什么。
+
+### 自己动手
+
+```
+python tools/vamkit doctor --vam "D:/VaM"      # 看现状、缺什么；不改任何东西
+python tools/vamkit fetch --accept-licenses    # 第三方依赖，从各厂商下载
+python tools/vamkit build
+python tools/vamkit test
+python tools/vamkit install                    # 先打印计划；加 --yes 才执行
+```
+
+每一步的说明在 [docs/agent/install.md](docs/agent/install.md)。
+
+### 平时怎么玩
+
+- 双击 VaM 文件夹里的 `vamkit-launcher.bat`，选 mod 或原版、VR 或桌面，点启动。
+- 游戏里打开 VaM 主菜单：**VR 画面**页（桌面是**画面**）里有路径追踪、超分、降噪、插帧和皮肤设置；**头发预算**和**展示照明**
+  各有自己的页。
+- 原版永远只隔一次点击；`python tools/vamkit uninstall` 把 VaM 文件夹恢复成安装前的样子。
+
+## 需要什么
+
+- 你自己的正版 VaM 1.x，里面装好 BepInEx 5
+- Windows 10 或 11，较新的显卡驱动。路径追踪和 DLSS 需要 NVIDIA RTX 显卡（路径追踪需要 DXR 1.1）
+- 构建要用：Visual Studio 2022 Build Tools（C++ 和 Windows SDK）、CMake、Git、Python 3.11 或更新，以及 Windows 功能
+  “.NET Framework 3.5”
+- VR：一台能通过 OpenXR 运行时连上的头显
 
 ## 有什么，能提高什么
+
+![vamkit 给 VaM 的一帧加了什么](docs/images/pipeline.zh.svg)
 
 ### 画面更好
 
@@ -58,6 +98,10 @@
 
 ## 测试用的电脑
 
+**状态：开发中。** 仓库已经能自己取第三方依赖、从源码构建全部组件、跑离线测试，并且可逆地装进 VaM 目录；在官方 VaM 1.22.0.13
+加当前的 BepInEx 5 上通过了首次运行检查（桌面模式，以及模拟头显上的 VR）。这份构建还没有在真头显里、非 NVIDIA 显卡上、
+大型真实场景里试过。
+
 本页所有数字和图片都来自同一台电脑。请把它们读成“这份构建在这台电脑上的表现”，不是你的电脑上会有的表现。
 
 | | |
@@ -73,50 +117,6 @@
 别的硬件都没试过：没有 RTX 40 / 30，没有 AMD 或 Intel 显卡，没有别的头显。显卡小一些，得到的就少一些，路径追踪差得最多；
 渲染比例、路径追踪的反弹次数和背景减负就是给这种情况调的，XeSS、FSR 和 FSR 插帧是给没有 DLSS 的显卡准备的。某个部分在
 你的机器上跑不了时，启动器和日志会明说，不会悄悄降级。
-
-## 需要什么
-
-- 你自己的正版 VaM 1.x，里面装好 BepInEx 5
-- Windows 10 或 11，较新的显卡驱动。路径追踪和 DLSS 需要 NVIDIA RTX 显卡（路径追踪需要 DXR 1.1）
-- 构建要用：Visual Studio 2022 Build Tools（C++ 和 Windows SDK）、CMake、Git、Python 3.11 或更新，以及 Windows 功能
-  “.NET Framework 3.5”
-- VR：一台能通过 OpenXR 运行时连上的头显
-
-## 怎么用
-
-### 推荐：交给你最信赖的 agent
-
-这个项目在好几层上改了 VaM 的渲染：D3D11-on-12 设备、VR 合成器、OpenXR 层、从你自己 VaM 的着色器生成的着色器，外加十六个
-插件。而不同电脑恰恰在这些地方差别很大：显卡的厂商和代际、驱动、头显和它的运行时、VaM 的版本、BepInEx 的版本。要在你的机器
-上落地调好，是一件读日志、量数据、反复调整的活，正是编程 agent 擅长的。仓库就是为它写的：[AGENTS.zh.md](AGENTS.zh.md) 是入口，
-各份指南讲清每个部分怎么工作、出了问题怎么找原因，项目自己用的测试工具也都在里面。
-
-在你的电脑上打开你最信赖的 agent（Claude Code、Codex、Cursor 或别的），对它说类似这样的话：
-
-> 把 vamkit 仓库克隆下来，读 AGENTS.zh.md，然后装进我在 `D:\VaM` 的 VaM。动那个文件夹之前先把计划给我看。跑首次运行检查，
-> 再按我的显卡和头显调好，最后告诉我在这台机器上哪些功能打了折扣、为什么。
-
-它只会向你要几样只有你能给的东西：VaM 在哪、你是否同意各厂商的许可条款（它们的运行库从厂商那里下载，不在本仓库里）、
-你对安装计划的确认，以及你在头显里看到了什么。
-
-### 自己动手
-
-```
-python tools/vamkit doctor --vam "D:/VaM"      # 看现状、缺什么；不改任何东西
-python tools/vamkit fetch --accept-licenses    # 第三方依赖，从各厂商下载
-python tools/vamkit build
-python tools/vamkit test
-python tools/vamkit install                    # 先打印计划；加 --yes 才执行
-```
-
-每一步的说明在 [docs/agent/install.md](docs/agent/install.md)。
-
-### 平时怎么玩
-
-- 双击 VaM 文件夹里的 `vamkit-launcher.bat`，选 mod 或原版、VR 或桌面，点启动。
-- 游戏里打开 VaM 主菜单：**VR 画面**页（桌面是**画面**）里有路径追踪、超分、降噪、插帧和皮肤设置；**头发预算**和**展示照明**
-  各有自己的页。
-- 原版永远只隔一次点击；`python tools/vamkit uninstall` 把 VaM 文件夹恢复成安装前的样子。
 
 ## 一览
 

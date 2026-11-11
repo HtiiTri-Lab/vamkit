@@ -6,14 +6,58 @@ copy of VaM, and it is written to be installed, tuned and extended by a coding a
 
 [中文说明](README.zh.md) · [For your agent: AGENTS.md](AGENTS.md) · [Measurements](docs/benchmarks/README.md) · [Changes](CHANGELOG.md)
 
-![What vamkit adds to a frame of VaM](docs/images/pipeline.svg)
+## How to use it
 
-**Status: work in progress.** The repository fetches its third-party parts, builds every component from source, runs
-its offline tests and installs into a VaM folder reversibly. Its first run has passed on an official VaM 1.22.0.13 with
-the current BepInEx 5, on the desktop and in VR on a simulated headset. This repository's build has not been tried in a
-real headset, on a card that is not NVIDIA's, or with large real scenes yet.
+### Recommended: give it to the agent you trust most
+
+This project changes how VaM renders at several levels: a D3D11-on-12 device, the VR compositor, an OpenXR layer,
+shaders generated from your own VaM's shaders, and sixteen plugins. Machines differ a lot in exactly those
+places: the card's vendor and generation, the driver, the headset and its runtime, the VaM build, the BepInEx
+version. Getting it right on your machine is a job of reading logs, measuring and adjusting, and that is what a coding
+agent is good at. The repository is written for it: [AGENTS.md](AGENTS.md) is the entry, the guides say how each part
+works and how to find the cause of a problem, and the test tools the project was built with are included.
+
+Open the agent you trust most (Claude Code, Codex, Cursor or another one) on your PC and tell it something like:
+
+> Clone the vamkit repository, read AGENTS.md, and install it into my VaM at `D:\VaM`. Show me the plan before you
+> change anything in that folder. Run the first-run check, then tune it for my graphics card and my headset, and tell
+> me what I get less of on this machine and why.
+
+It will ask you for a few things only you can give: where your VaM is, your agreement to the vendors' licence terms
+(their run-time files are downloaded from them, not from here), your go-ahead for the install plan, and what you see
+in the headset.
+
+### By hand
+
+```
+python tools/vamkit doctor --vam "D:/VaM"      # what is there, what is missing; changes nothing
+python tools/vamkit fetch --accept-licenses    # third-party parts, from their vendors
+python tools/vamkit build
+python tools/vamkit test
+python tools/vamkit install                    # prints the plan; --yes does it
+```
+
+[docs/agent/install.md](docs/agent/install.md) goes through each step.
+
+### Day to day
+
+- Double-click `vamkit-launcher.bat` in your VaM folder, choose the mod or vanilla, VR or desktop, and launch.
+- In game, open VaM's main menu: the **VR Graphics** tab (**Graphics** on the desktop) has path tracing, the upscaler,
+  the denoiser, frame generation and the skin settings; **Hair Budget** and **Display Lighting** have their own tabs.
+- Vanilla is always one click away, and `python tools/vamkit uninstall` leaves the VaM folder as it was.
+
+## What it needs
+
+- Your own licensed copy of VaM 1.x, with BepInEx 5 installed in it
+- Windows 10 or 11 and a current graphics driver. Path tracing and DLSS need an NVIDIA RTX card (path tracing needs
+  DXR 1.1)
+- To build: Visual Studio 2022 Build Tools (C++ and a Windows SDK), CMake, Git, Python 3.11 or later, and the Windows
+  feature ".NET Framework 3.5"
+- For VR: a headset reached through an OpenXR runtime
 
 ## What you get
+
+![What vamkit adds to a frame of VaM](docs/images/pipeline.svg)
 
 ### A better picture
 
@@ -68,6 +112,11 @@ table of texts ([components/shared/lang](components/shared/lang/README.md)).
 
 ## The test machine
 
+**Status: work in progress.** The repository fetches its third-party parts, builds every component from source, runs
+its offline tests and installs into a VaM folder reversibly. Its first run has passed on an official VaM 1.22.0.13 with
+the current BepInEx 5, on the desktop and in VR on a simulated headset. This repository's build has not been tried in a
+real headset, on a card that is not NVIDIA's, or with large real scenes yet.
+
 Every number and picture on this page comes from one PC. Read them as what this build does on that PC, not as what
 it will do on yours.
 
@@ -85,55 +134,6 @@ Nothing else has been tried: no RTX 40 or 30 card, no AMD or Intel card, no othe
 path tracing most of all; the render scales, the path tracer's bounces and its background savings are there to be
 set for it, and XeSS, FSR and FSR frame generation are there for cards without DLSS. What a part does when the
 machine cannot run it is said in the launcher and in the logs, not hidden.
-
-## What it needs
-
-- Your own licensed copy of VaM 1.x, with BepInEx 5 installed in it
-- Windows 10 or 11 and a current graphics driver. Path tracing and DLSS need an NVIDIA RTX card (path tracing needs
-  DXR 1.1)
-- To build: Visual Studio 2022 Build Tools (C++ and a Windows SDK), CMake, Git, Python 3.11 or later, and the Windows
-  feature ".NET Framework 3.5"
-- For VR: a headset reached through an OpenXR runtime
-
-## How to use it
-
-### Recommended: give it to the agent you trust most
-
-This project changes how VaM renders at several levels: a D3D11-on-12 device, the VR compositor, an OpenXR layer,
-shaders generated from your own VaM's shaders, and sixteen plugins. Machines differ a lot in exactly those
-places: the card's vendor and generation, the driver, the headset and its runtime, the VaM build, the BepInEx
-version. Getting it right on your machine is a job of reading logs, measuring and adjusting, and that is what a coding
-agent is good at. The repository is written for it: [AGENTS.md](AGENTS.md) is the entry, the guides say how each part
-works and how to find the cause of a problem, and the test tools the project was built with are included.
-
-Open the agent you trust most (Claude Code, Codex, Cursor or another one) on your PC and tell it something like:
-
-> Clone the vamkit repository, read AGENTS.md, and install it into my VaM at `D:\VaM`. Show me the plan before you
-> change anything in that folder. Run the first-run check, then tune it for my graphics card and my headset, and tell
-> me what I get less of on this machine and why.
-
-It will ask you for a few things only you can give: where your VaM is, your agreement to the vendors' licence terms
-(their run-time files are downloaded from them, not from here), your go-ahead for the install plan, and what you see
-in the headset.
-
-### By hand
-
-```
-python tools/vamkit doctor --vam "D:/VaM"      # what is there, what is missing; changes nothing
-python tools/vamkit fetch --accept-licenses    # third-party parts, from their vendors
-python tools/vamkit build
-python tools/vamkit test
-python tools/vamkit install                    # prints the plan; --yes does it
-```
-
-[docs/agent/install.md](docs/agent/install.md) goes through each step.
-
-### Day to day
-
-- Double-click `vamkit-launcher.bat` in your VaM folder, choose the mod or vanilla, VR or desktop, and launch.
-- In game, open VaM's main menu: the **VR Graphics** tab (**Graphics** on the desktop) has path tracing, the upscaler,
-  the denoiser, frame generation and the skin settings; **Hair Budget** and **Display Lighting** have their own tabs.
-- Vanilla is always one click away, and `python tools/vamkit uninstall` leaves the VaM folder as it was.
 
 ## At a glance
 
