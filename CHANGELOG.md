@@ -101,6 +101,9 @@
   panel has a Language row and the in-game menus follow it at the next start. `vamkit-launcher.bat` in the VaM folder
   opens the panel. The READMEs say what the kit gives and what it was measured on, with pictures.
 
+- `vamkit bepinex`: BepInEx 5 is fetched from its release page and put into a VaM folder that has none (a clean VaM),
+  recorded and removable; the READMEs open with the advice to try the kit on a separate, clean copy of VaM.
+
 Not done yet: a real headset and scenes with real content from this repository's build, VaM's own `-benchmark`
 scenes in the benchmark (written, not run), a card that is not NVIDIA's, a real download test of `vamkit fetch` for
 the NVIDIA items.

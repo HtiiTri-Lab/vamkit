@@ -129,6 +129,16 @@ license = "MIT (license.md in the SDK lists these paths)"
 # ---- model runtimes: needed to run, not to build ----
 
 [[item]]
+id = "bepinex"
+what = "BepInEx 5.4.23.6 for Windows x64, the plugin loader the kit's plugins run in; `vamkit bepinex` puts it into a VaM folder that has none"
+kind = "file"
+name = "BepInEx_win_x64_5.4.23.6.zip"
+version = "5.4.23.6"
+url = "https://github.com/BepInEx/BepInEx/releases/download/v5.4.23.6/BepInEx_win_x64_5.4.23.6.zip"
+sha256 = "6c57a714a892efb4e9e1fef63d608a3391f30ec984031c465404e4ee381a0755"
+license = "LGPL-2.1"
+
+[[item]]
 id = "dlss-sr"
 what = "nvngx_dlss.dll 310.9.16, the DLSS super resolution runtime (models K / L / M)"
 without = "DLSS super resolution (models K / L / M). XeSS or FSR upscale in its place when their files are installed; with none of them VaM renders at full size"

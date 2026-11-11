@@ -186,7 +186,8 @@ def make_plan(kit, vam):
         recorded = (vam / ORIGINAL / name).is_file() or (vam / ORIGINAL / (name + ".absent")).is_file()
         live.append(dict(name=name, path=path, there=(vam / path).is_file(), recorded=recorded))
     if not (vam / "BepInEx" / "core" / "BepInEx.dll").is_file():
-        problems.append("BepInEx 5 is not in this VaM folder (BepInEx/core/BepInEx.dll): the plugins would never load")
+        problems.append("BepInEx 5 is not in this VaM folder (BepInEx/core/BepInEx.dll): the plugins would never load. "
+                        "python tools/vamkit bepinex --yes puts it in; the plugins are built against it, so build after that")
     if (vam / "d3d11.dll").is_file() and not any(l["recorded"] for l in live if l["name"] == "d3d11.dll"):
         notes.append("a d3d11.dll is beside VaM.exe now: it is recorded as VaM's own and comes back in vanilla runs. "
                      "If it belongs to another injector or an earlier copy of this project, remove it first")
@@ -473,6 +474,11 @@ def uninstall(vam, yes, purge=False):
     for path in MADE:
         if (vam / path).exists():
             print(f"  remove   {path}  (made by the mod while it ran; it can make it again)")
+    import bepinex   # a BepInEx that `vamkit bepinex` put in: other plugins may use it by now, so it stays unless --purge
+    loader = bepinex.remove_plan(vam)
+    if loader is not None:
+        print(f"  {'remove  ' if purge else 'left    '} BepInEx {loader[0].get('version', '')}  (put in by vamkit bepinex"
+              f"{'' if purge else '; --purge, or python tools/vamkit bepinex --remove --yes, takes it out'})")
     if not yes:
         print("nothing was changed. Run again with --yes.")
         return 0
@@ -525,6 +531,11 @@ def uninstall(vam, yes, purge=False):
                 shutil.rmtree(vam / path, ignore_errors=True)
             else:
                 left.append(path)
+    if loader is not None:
+        if purge:
+            bepinex.remove(vam, True, quiet=True)
+        else:
+            left.append("BepInEx")
     prune(vam, record.get("dirs", []))
     print("uninstalled" + (": what is listed as left stays in the VaM folder" if left else ": the VaM folder is as it was before the install"))
     return 0

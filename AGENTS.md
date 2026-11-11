@@ -15,6 +15,7 @@ only when the user says so; before that, back up what they cannot replace.
 git clone <this repository> && cd vamkit
 python tools/vamkit doctor --vam "<the user's VaM folder>"    # what is there and what is missing; changes nothing
 python tools/vamkit fetch --accept-licenses                   # after the user agreed to the vendors' licence terms
+python tools/vamkit bepinex --vam "<VaM>"                     # BepInEx 5 for a VaM folder without one: the plan, then --yes
 python tools/vamkit build
 python tools/vamkit test
 python tools/vamkit install --vam "<VaM>"                     # prints the plan: show it to the user, then add --yes

@@ -27,6 +27,7 @@
 git clone <本仓库> && cd vamkit
 python tools/vamkit doctor --vam "<用户的 VaM 文件夹>"         # 看现状、缺什么；不改任何东西
 python tools/vamkit fetch --accept-licenses                   # 用户同意各厂商许可条款之后再跑
+python tools/vamkit bepinex --vam "<VaM>"                     # VaM 里没有 BepInEx 5 时装它：先看计划，再加 --yes
 python tools/vamkit build
 python tools/vamkit test
 python tools/vamkit install --vam "<VaM>"                     # 只打印计划：给用户看过，再加 --yes

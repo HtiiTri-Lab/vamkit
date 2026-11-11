@@ -34,6 +34,7 @@
 ```
 python tools/vamkit doctor --vam "D:/VaM-test" # 指向那份纯净 VaM；看现状、缺什么，不改任何东西
 python tools/vamkit fetch --accept-licenses    # 第三方依赖，从各厂商下载
+python tools/vamkit bepinex --yes              # VaM 里没有 BepInEx 5 时把它装进去
 python tools/vamkit build
 python tools/vamkit test
 python tools/vamkit install                    # 先打印计划；加 --yes 才执行
@@ -50,7 +51,7 @@ python tools/vamkit install                    # 先打印计划；加 --yes 才
 
 ## 需要什么
 
-- 你自己的正版 VaM 1.x，里面装好 BepInEx 5
+- 你自己的正版 VaM 1.x。它需要 BepInEx 5（插件加载器）：文件夹里没有时，`vamkit bepinex` 会替你装好
 - Windows 10 或 11，较新的显卡驱动。路径追踪和 DLSS 需要 NVIDIA RTX 显卡（路径追踪需要 DXR 1.1）
 - 构建要用：Visual Studio 2022 Build Tools（C++ 和 Windows SDK）、CMake、Git、Python 3.11 或更新，以及 Windows 功能
   “.NET Framework 3.5”

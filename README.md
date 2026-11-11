@@ -39,6 +39,7 @@ in the headset.
 ```
 python tools/vamkit doctor --vam "D:/VaM-test" # a clean copy of VaM; what is there, what is missing; changes nothing
 python tools/vamkit fetch --accept-licenses    # third-party parts, from their vendors
+python tools/vamkit bepinex --yes              # puts BepInEx 5 into the VaM folder when it has none
 python tools/vamkit build
 python tools/vamkit test
 python tools/vamkit install                    # prints the plan; --yes does it
@@ -55,7 +56,7 @@ python tools/vamkit install                    # prints the plan; --yes does it
 
 ## What it needs
 
-- Your own licensed copy of VaM 1.x, with BepInEx 5 installed in it
+- Your own licensed copy of VaM 1.x. It needs BepInEx 5 (the plugin loader): `vamkit bepinex` installs it when the folder has none
 - Windows 10 or 11 and a current graphics driver. Path tracing and DLSS need an NVIDIA RTX card (path tracing needs
   DXR 1.1)
 - To build: Visual Studio 2022 Build Tools (C++ and a Windows SDK), CMake, Git, Python 3.11 or later, and the Windows

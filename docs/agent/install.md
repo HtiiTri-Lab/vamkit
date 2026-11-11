@@ -26,8 +26,8 @@ been run on one PC; what it does to a large library of scenes, plugins and saves
 foreseen. Install into the installation the user plays in only after the kit has proved itself on this machine, when
 the user asks for it, and after backing up what they cannot replace.
 
-- Their own licensed VaM 1.x with BepInEx 5 installed in it (`BepInEx/core/BepInEx.dll`, `winhttp.dll` beside
-  `VaM.exe`). Built and run with BepInEx 5.0.1 and 5.4.23.6; the plugins are compiled against the one that is there.
+- Their own licensed VaM 1.x. It needs BepInEx 5 (`BepInEx/core/BepInEx.dll`, `winhttp.dll` beside
+  `VaM.exe`); `vamkit bepinex` puts it in when the folder has none (step 2b). Built and run with BepInEx 5.0.1 and 5.4.23.6; the plugins are compiled against the one that is there.
 - Windows 10 or 11, an NVIDIA RTX GPU with a current driver. Path tracing needs DXR 1.1; hair in the path tracer uses
   linear swept spheres, which older RTX generations lack (everything else traces).
 - Visual Studio 2022 Build Tools with the C++ workload, the ATL component (OpenComposite uses it) and a Windows SDK
@@ -46,6 +46,7 @@ in `local/vam.txt` (git-ignored).
 |---|---|---|
 | 1 Check | `python tools/vamkit doctor` | VaM, BepInEx, GPU, build tools, what is already fetched |
 | 2 Fetch | `python tools/vamkit fetch --accept-licenses` | third-party SDKs and the DLSS runtimes into `third_party/` |
+| 2b BepInEx | `python tools/vamkit bepinex`, then again with `--yes` | only when the VaM folder has no BepInEx (a clean VaM has none): puts BepInEx 5.4.23.6 from its own release page in, recorded so that `bepinex --remove` or `uninstall --purge` takes it out. A BepInEx that is there is never touched. Before `build`: the plugins are compiled against it |
 | 3 Build | `python tools/vamkit build` | generators, native libraries and plugins of every component into `out/` |
 | 4 Test | `python tools/vamkit test` | the offline tests against this VaM |
 | 5 Install | `python tools/vamkit install`, then again with `--yes` | the plan first; then copies the build into the VaM folder, records what was there, writes two settings |

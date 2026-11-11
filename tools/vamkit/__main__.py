@@ -170,9 +170,10 @@ def doctor(vam):
         check("VaM shader data (for the generators)", all(p.is_file() for p in assets), ", ".join(p.name for p in assets))
         bepinex = vam / "BepInEx" / "core" / "BepInEx.dll"
         version = file_version(bepinex) if bepinex.is_file() else None
-        check("BepInEx 5", version is not None and version.startswith("5."), f"BepInEx {version}" if version else "BepInEx/core/BepInEx.dll missing")
+        how = "python tools/vamkit fetch bepinex, then python tools/vamkit bepinex --yes puts it in (or install BepInEx 5 x64 yourself)"
+        check("BepInEx 5", version is not None and version.startswith("5."), f"BepInEx {version}" if version else f"BepInEx/core/BepInEx.dll missing: {how}")
         doorstop = vam / "winhttp.dll"
-        check("UnityDoorstop", doorstop.is_file(), f"winhttp.dll {file_version(doorstop)}" if doorstop.is_file() else "winhttp.dll missing (BepInEx's loader)")
+        check("UnityDoorstop", doorstop.is_file(), f"winhttp.dll {file_version(doorstop)}" if doorstop.is_file() else "winhttp.dll missing (BepInEx's loader; it comes with BepInEx)")
         openvr = vam / "VaM_Data" / "Plugins" / "openvr_api.dll"
         original = vam / "vamkit" / "original" / "openvr_api.dll"
         if original.is_file() and openvr.is_file():
@@ -611,7 +612,7 @@ def main():
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(errors="replace")
     ap = argparse.ArgumentParser(prog="vamkit", description=__doc__.split("\n")[0])
-    ap.add_argument("command", choices=("doctor", "status", "fetch", "build", "test", "install", "verify", "uninstall", "rollback"))
+    ap.add_argument("command", choices=("doctor", "status", "fetch", "bepinex", "build", "test", "install", "verify", "uninstall", "rollback"))
     ap.add_argument("ids", nargs="*", help="component ids (build, test) or third-party ids (fetch); all when omitted")
     ap.add_argument("--vam")
     ap.add_argument("--json", action="store_true")
@@ -623,15 +624,22 @@ def main():
     ap.add_argument("--file", action="append", metavar="ID=PATH", help="fetch: your own copy of a runtime that has no download")
     ap.add_argument("--yes", action="store_true", help="install, uninstall, rollback: do it (without it the plan is printed and nothing changes)")
     ap.add_argument("--replace", action="store_true", help="install: also over files of the same names that vamkit did not install (they are kept)")
-    ap.add_argument("--purge", action="store_true", help="uninstall: also remove the runs' logs, the launch presets and the plugins' settings")
+    ap.add_argument("--purge", action="store_true", help="uninstall: also remove the runs' logs, the launch presets, the plugins' settings and a BepInEx that `vamkit bepinex` put in")
+    ap.add_argument("--remove", action="store_true", help="bepinex: take out the BepInEx that `vamkit bepinex` put in")
     args = ap.parse_args()
     vam = vam_folder(args.vam)
-    if args.command in ("install", "verify", "uninstall", "rollback"):
+    if args.command in ("bepinex", "install", "verify", "uninstall", "rollback"):
         if vam is None:
             print("which VaM folder? --vam <folder>, VAMKIT_VAM, or one line in local/vam.txt", file=sys.stderr)
             return 1
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         import install as kit_install
+        if args.command == "bepinex":   # the loader the plugins run in, for a VaM folder that has none; before `build`
+            import bepinex
+            if args.remove:
+                return bepinex.remove(vam, args.yes)
+            item = next(i for i in third_party() if i["id"] == "bepinex")
+            return bepinex.put(vam, THIRD / "bepinex" / item["name"] if fetched(item) else None, item["version"], args.yes)
         if args.command == "uninstall":
             return kit_install.uninstall(vam, args.yes, args.purge)
         if args.command == "rollback":
