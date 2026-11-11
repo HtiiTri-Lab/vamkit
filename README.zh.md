@@ -7,6 +7,12 @@
 
 ## 怎么用
 
+> [!IMPORTANT]
+> **请先在一份独立、纯净的 VaM 上试用，不要直接装进你平时玩的那份。** 本项目运行时会替换 VaM 的文件，并加入会改变场景载入、
+> 渲染和物理的插件，而且目前只在一台电脑上跑过。请另开一个文件夹放一份全新的 VaM，单独装 BepInEx，只拷入想测试的内容，
+> 装到那里面；在你的机器上确认没问题之后，再考虑装进主力安装。安装是可逆的，但场景、存档和插件要靠你自己保护：
+> 无法重来的东西请先备份。
+
 ### 推荐：交给你最信赖的 agent
 
 这个项目在好几层上改了 VaM 的渲染：D3D11-on-12 设备、VR 合成器、OpenXR 层、从你自己 VaM 的着色器生成的着色器，外加十六个
@@ -16,7 +22,8 @@
 
 在你的电脑上打开你最信赖的 agent（Claude Code、Codex、Cursor 或别的），对它说类似这样的话：
 
-> 把 vamkit 仓库克隆下来，读 AGENTS.zh.md，然后装进我在 `D:\VaM` 的 VaM。动那个文件夹之前先把计划给我看。跑首次运行检查，
+> 把 vamkit 仓库克隆下来，读 AGENTS.zh.md，然后装进我专门用来测试的那份纯净 VaM（在 `D:\VaM-test`，不是我平时玩的那份）。
+> 动那个文件夹之前先把计划给我看。跑首次运行检查，
 > 再按我的显卡和头显调好，最后告诉我在这台机器上哪些功能打了折扣、为什么。
 
 它只会向你要几样只有你能给的东西：VaM 在哪、你是否同意各厂商的许可条款（它们的运行库从厂商那里下载，不在本仓库里）、
@@ -25,7 +32,7 @@
 ### 自己动手
 
 ```
-python tools/vamkit doctor --vam "D:/VaM"      # 看现状、缺什么；不改任何东西
+python tools/vamkit doctor --vam "D:/VaM-test" # 指向那份纯净 VaM；看现状、缺什么，不改任何东西
 python tools/vamkit fetch --accept-licenses    # 第三方依赖，从各厂商下载
 python tools/vamkit build
 python tools/vamkit test

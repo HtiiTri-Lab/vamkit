@@ -18,6 +18,11 @@
 
 ## 怎么拉、怎么用
 
+**先装进一份独立、纯净的 VaM。** 动手之前先把这一点告诉用户：另开一个文件夹放一份全新的 VaM，单独装 BepInEx，只放测试要用的
+内容（[docs/agent/open-items.md](docs/agent/open-items.md) 的 “A clean VaM to test on”）。这个套件运行时会替换 VaM 的文件，
+会改变场景的载入、渲染和物理，而且只在一台电脑上跑过。用户平时玩的那份安装，要等套件在这台机器上确认没问题、并且用户明确
+同意之后再装；在那之前，先帮用户备份无法重来的东西。
+
 ```
 git clone <本仓库> && cd vamkit
 python tools/vamkit doctor --vam "<用户的 VaM 文件夹>"         # 看现状、缺什么；不改任何东西

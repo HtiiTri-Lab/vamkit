@@ -5,6 +5,12 @@ then `manifest/components.toml` (what each component is and where it goes).
 
 ## Quick start: pull it and use it
 
+**Install into a separate, clean copy of VaM first.** Say so to the user before anything else: a fresh VaM in a
+folder of its own, with its own BepInEx and only the content needed for testing (`docs/agent/open-items.md`, "A clean
+VaM to test on"). The kit replaces files of VaM while it runs and changes how scenes load, render and simulate, and it
+has been run on one PC. The installation the user plays in comes after the kit has proved itself on this machine, and
+only when the user says so; before that, back up what they cannot replace.
+
 ```
 git clone <this repository> && cd vamkit
 python tools/vamkit doctor --vam "<the user's VaM folder>"    # what is there and what is missing; changes nothing

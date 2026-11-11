@@ -8,6 +8,13 @@ copy of VaM, and it is written to be installed, tuned and extended by a coding a
 
 ## How to use it
 
+> [!IMPORTANT]
+> **Try it on a separate, clean copy of VaM first, not on the installation you play in.** While it runs, this project
+> replaces files of VaM and adds plugins that change how scenes load, render and simulate, and it has been run on one
+> PC only. Put a fresh copy of VaM in a folder of its own, with its own BepInEx and only the content you want to test,
+> install into that, and move to your main installation only after it has proved itself on your machine. The install
+> is reversible, but your scenes, saves and plugins are yours to protect: back up what you cannot replace.
+
 ### Recommended: give it to the agent you trust most
 
 This project changes how VaM renders at several levels: a D3D11-on-12 device, the VR compositor, an OpenXR layer,
@@ -19,8 +26,8 @@ works and how to find the cause of a problem, and the test tools the project was
 
 Open the agent you trust most (Claude Code, Codex, Cursor or another one) on your PC and tell it something like:
 
-> Clone the vamkit repository, read AGENTS.md, and install it into my VaM at `D:\VaM`. Show me the plan before you
-> change anything in that folder. Run the first-run check, then tune it for my graphics card and my headset, and tell
+> Clone the vamkit repository, read AGENTS.md, and install it into the clean copy of VaM I keep for testing at
+> `D:\VaM-test` (not the one I play in). Show me the plan before you change anything in that folder. Run the first-run check, then tune it for my graphics card and my headset, and tell
 > me what I get less of on this machine and why.
 
 It will ask you for a few things only you can give: where your VaM is, your agreement to the vendors' licence terms
@@ -30,7 +37,7 @@ in the headset.
 ### By hand
 
 ```
-python tools/vamkit doctor --vam "D:/VaM"      # what is there, what is missing; changes nothing
+python tools/vamkit doctor --vam "D:/VaM-test" # a clean copy of VaM; what is there, what is missing; changes nothing
 python tools/vamkit fetch --accept-licenses    # third-party parts, from their vendors
 python tools/vamkit build
 python tools/vamkit test

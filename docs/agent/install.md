@@ -19,6 +19,13 @@ describe a step as run when it was not.
 
 ## What the user must bring
 
+**A separate, clean copy of VaM to install into first.** Recommend it before anything else: a fresh VaM in a folder of
+its own, with its own BepInEx and only the content needed for testing ([open-items.md](open-items.md), "A clean VaM to
+test on"). The kit replaces files of VaM while it runs and changes how scenes load, render and simulate, and it has
+been run on one PC; what it does to a large library of scenes, plugins and saves that nobody here has seen cannot be
+foreseen. Install into the installation the user plays in only after the kit has proved itself on this machine, when
+the user asks for it, and after backing up what they cannot replace.
+
 - Their own licensed VaM 1.x with BepInEx 5 installed in it (`BepInEx/core/BepInEx.dll`, `winhttp.dll` beside
   `VaM.exe`). Built and run with BepInEx 5.0.1 and 5.4.23.6; the plugins are compiled against the one that is there.
 - Windows 10 or 11, an NVIDIA RTX GPU with a current driver. Path tracing needs DXR 1.1; hair in the path tracer uses
