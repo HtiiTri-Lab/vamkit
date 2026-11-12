@@ -45,7 +45,7 @@ namespace {
         "dir, name}  eye images of the next submitted frames -> PNG or raw RGBA8 + capture.jsonl\n"
         " capture_status\n"
         " mark {label}  a line in simxr-markers.csv (vsync, submitted count)\n"
-        " session {hmd_mounted, should_quit, visible, input_focus}  OVR session status flags\n";
+        " session {hmd_mounted, should_quit, visible, input_focus, should_recenter}  OVR session status flags (should_recenter: one system recenter, like the headset's button)\n";
 
     // ---------------------------------------------------------------- parsing
 
@@ -446,6 +446,9 @@ namespace {
                     }
                     if (auto v = Bool(request, "input_focus")) {
                         flags.inputFocus = *v;
+                    }
+                    if (auto v = Bool(request, "should_recenter")) {
+                        flags.shouldRecenter = *v;
                     }
                 });
                 Log("Session flags changed: %s\n", line.c_str());

@@ -140,7 +140,9 @@ resumes on the next frame. The cached settings are re-parsed only when the file'
    - **early** (frame flag 16): `HandoffPathTarget` writes PT's real depth into Unity's depth so raster effects and editor UI
      test against hair and alpha geometry too; the RR output stays unpublished until event 3, where `FinishPathFrame`
      composites the UI overlays (`ST_GetPathOverlayV1`: a black and a white replay, so translucent UI blends correctly)
-     into RR's output, or
+     into RR's output. The early capture itself never takes the UI layer: no UI is drawn yet, and taking a layer marks it
+     read, which sends every later UI draw of that frame to the output stage layer (below). On a headset Unity draws its
+     hidden-area mesh first, with a pixel program the UI catalog lists, so the layer already exists that early; or
    - **late** (warm-up and fallback): the composite compute shader writes `rrScene` at once.
 
 `rrScene` is the full-size output. A failure keeps the previous coherent stereo image for that frame only and falls back.
@@ -152,6 +154,10 @@ result into the camera target so Unity's remaining draws see it. When the camera
 state bit 16384 in `VaMDLSS_GetState()`, which the tone-mapping plugin reads (it keeps `allowHDR` on).
 UI drawn after tone mapping (desktop UI cameras, the world canvases of a third-party stage) goes through the
 "output stage layers" of the path-tracing overlay (`ST_GetPathOverlayV1` stages 1 and 3) and is composited by `SubmitRr`.
+These layers are taken when the frame is presented. The skin plugin's frame number advances at `WaitForEndOfFrame`; the
+desktop presents before that, a VR runtime takes the eyes after it. So a late layer of the frame that just ended still
+counts, unless a read during an earlier frame took it (`PathOverlayCurrent` in `path_overlay.inl`); without that rule every
+UI drawn by a second UI camera (and VaM's main menu inside such a stage) was lost in VR while the desktop showed it.
 
 ### Stage 5: frame generation (VR)
 
@@ -222,6 +228,7 @@ menu, not only a live cfg. A test launch (`--test`) restores the user's files in
 | Crash in `VamOn12Commands::Begin` at startup | RR assumed another stage had created the command queue | `EnsureRr` initialises it itself; new consumers must too |
 | Access violation after path tracing hands motion back, only in scenes with animated props | the bone-row buffer for skinned props was released with the raster motion history; it is created once at startup and rewritten every frame | `objects.boneRows` must survive the hand-off; anything created once must not be in the "rebuild on switch" set |
 | Menu or desktop UI missing in a path-traced frame | UI drawn after the early composition does not reach event 3; or a ZTest Always UI is treated as depth tested and removed where a nearer surface exists | UI shader names in `UiAlwaysOnTop`; output-stage layers; see Verify |
+| Path-traced VR menus missing only on a real headset, fine in the simulated one | a UI layer was marked read before the UI was drawn (the hidden-area mesh counts as UI), so the menu went to the output stage layer; or that layer's frame number no longer matched when the VR runtime took the eyes | run the simulated headset with `SIMXR_HIDDEN_MASK=1.15`; dump the replay layers (`PathCanvasUi.Dump`) and check which stage the menu went to and whether it was taken |
 | Input resize crashes in desktop mode with a post-processing UI camera | a second camera made with `Camera.CopyFrom(main)` kept the bridge's old target | the bridge re-points every scene camera still using its own target before it destroys it |
 | Input resize wipes the path-traced scene | `InvalidatePathConsumer` clears materials, textures, hair | do not call it for a size change; `EnsureRr` rebuilds per size inside the same render event, after a D3D11 `Flush` then a queue drain |
 | Settings polled every 250 ms cost ~6 ms | each key reparses the file | use the stamp |
@@ -246,8 +253,10 @@ menu, not only a live cfg. A test launch (`--test`) restores the user's files in
 
 - Menu text on the raster route can still swim (menus carry the motion of what is behind them). A design exists
   (send root-canvas corners, read them in the compositor); not built.
-- VR + path tracing entry menu: all collected world UI rectangles are sent as "on top". It works in the simulated headset;
-  the root cause of the original regression was not found, so "on top" is a working fix, not a proven cause.
+- VR + path tracing: all collected world UI rectangles are still sent as "on top". That rule was added before the menu
+  regression's causes were found (the early capture taking the UI layer, and late layers missing the VR frame number, both
+  described above); it is not needed for either and makes depth-tested world UI cover nearer objects. Whether to drop it
+  needs a real headset.
 - Translation of every VaM UI shader family into the path-traced composition is by name for the four known on-top shaders.
 
 ## Verify

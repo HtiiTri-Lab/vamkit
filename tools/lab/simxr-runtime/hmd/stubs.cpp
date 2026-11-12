@@ -23,6 +23,7 @@
 #include "pch.h"
 
 #include "log.h"
+#include "sim.h"
 
 using namespace ovrnull::log;
 
@@ -78,7 +79,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovr
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_ClearShouldRecenterFlag(ovrSession session) {
-    TraceLoggingWrite(g_traceProvider, "OVR_ClearShouldRecenterFlag_Unsupported");
+    simxr::State::Get().SetFlags([](simxr::SessionFlags& flags) { flags.shouldRecenter = false; });
 }
 
 OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsigned int trackerPoseIndex) {

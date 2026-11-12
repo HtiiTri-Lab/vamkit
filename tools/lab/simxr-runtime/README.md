@@ -88,6 +88,7 @@ Read by the stand-in headset when it loads:
 | `SIMXR_VSYNC_LOG` | 1 | 0 turns the per-vsync CSV off |
 | `SIMXR_CAPTURE_MB` | 1536 | memory for captured frames waiting to be written |
 | `SIMXR_LOG_DIR` | `%LOCALAPPDATA%\SimXR` | where the logs, CSV files and captures go |
+| `SIMXR_HIDDEN_MASK` | 0 | a hidden-area mesh like a real headset's (0-4): the visible ellipse's radius in half-image units, 1.15 hides the corners; 0 = none |
 
 Read by the runtime: `SIMXR_LOG_DIR` (its `OpenXR.log`) and `SIMXR_<setting>` for each of VirtualDesktop-OpenXR's
 registry settings, as an integer (for example `SIMXR_mirror_window=1`). None is needed; unset means the default.
@@ -109,7 +110,7 @@ Newline-delimited JSON over TCP on 127.0.0.1 only: one request per line, one res
 | `capture` | `frames`, `every`, `delay_ms`, `eyes` both / left / right, `scale`, `crop:[x,y,w,h]`, `format` png / raw, `dir`, `name` | the eye images of the next submitted frames as PNG or raw RGBA8, with `capture.jsonl` |
 | `capture_status` | | whether a capture is still being written |
 | `mark` | `label` | a line in `simxr-markers.csv` (vsync, submitted count) |
-| `session` | `hmd_mounted`, `should_quit`, `visible`, `input_focus` | the session status flags the runtime sees |
+| `session` | `hmd_mounted`, `should_quit`, `visible`, `input_focus`, `should_recenter` | the session status flags the runtime sees; `should_recenter` is one system recenter request (the headset's button), cleared when the application acknowledges it |
 
 Example: `{"cmd":"motion","target":"head","type":"sine","axis":"yaw","amplitude":30,"period_s":2,"duration_s":8}`.
 

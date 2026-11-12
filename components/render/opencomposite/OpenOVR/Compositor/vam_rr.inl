@@ -736,7 +736,12 @@ bool Reconstruct(ID3D11Resource* color,ID3D11Resource* albedo,ID3D11Resource* no
         if(opaque) Check(device->CreateShaderResourceView(opaque,nullptr,&op),"RR before transparency view");
         const bool diagnostic=PathDiagnosticRequested();
         Ptr<ID3D11ShaderResourceView> overlayBlack,overlayWhite;
-        GetPathOverlay(0,td.Width,td.Height,overlayBlack,overlayWhite);
+        // 11-12: the early PT capture (before the transparents) never takes the UI layer. No UI is drawn yet; the deferred
+        // composite (FinishPathFrame) takes it, and taking it here marks it read, which sends every later UI draw of this
+        // frame to the late after-tone layer. On a headset Unity draws its hidden-area mesh first, with a pixel program the
+        // UI catalog lists (the same bytes as Battlehub VertexColorBillboard): the layer existed this early, the VR+PT
+        // entry menu went to the late layer and was never composited (SimXR with SIMXR_HIDDEN_MASK reproduces it).
+        if(!(pathTracing && (info.flags&16)!=0))GetPathOverlay(0,td.Width,td.Height,overlayBlack,overlayWhite);
         RrConstants compositeConstants[2]{};
         Ptr<ID3D11ShaderResourceView> compositeDepth[2],compositeUi[2];
         for(unsigned i=0;i<viewCount;i++) {

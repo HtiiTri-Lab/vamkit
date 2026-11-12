@@ -9,6 +9,7 @@ struct PathOverlayLayer {
     ID3D11DepthStencilView *dsv[2]={};
     UINT width=0,height=0,stage=0;int frame=-1;uint64_t draws=0,bytes=0;
     uint64_t readDraws=0;int readFrame=-1; // test record: draws replayed when the composite last took this layer
+    int readAt=-1;                         // gFrames when the composite last took it (11-12, late layers in VR)
     uint64_t seq[32]={};int seqN=0;          // test record: this frame's replayed pixel programs, in order
     void Release() {
         for(int k=0;k<2;k++) {
@@ -365,11 +366,19 @@ template<class Draw>static bool PathOverlayDraw(ID3D11DeviceContext* c,int known
     if(depth)ID3D11DepthStencilView_Release(depth);
     return layer!=nullptr;
 }
-// Borrowed on the same render thread/queue. Only this frame's capture is valid.
+// 11-12: the late (after-tone) layers are taken when the frame is presented. The desktop presents before the frame's
+// OP_FRAME (WaitForEndOfFrame); a VR runtime takes the eyes after it, when gFrames already names the next frame, so the
+// late layer never matched and UI drawn after the PT composite (a stage's own UI camera, VaM's main menu there) was lost in VR.
+// The frame just ended still counts for a late layer, unless a read during an earlier frame took it (no stale UI).
+static bool PathOverlayCurrent(const PathOverlayLayer& layer) {
+    if(layer.frame==gFrames)return true;
+    return (layer.stage&1) && layer.frame>=0 && layer.frame==gFrames-1 && (layer.readFrame!=layer.frame || layer.readAt==gFrames);
+}
+// Borrowed on the same render thread/queue. Only this frame's capture is valid (a late layer: see PathOverlayCurrent).
 EXPORT int ST_GetPathOverlayV1(UINT stage,UINT width,UINT height,ID3D11Resource** black,ID3D11Resource** white) {
     if(!black||!white)return 0;*black=*white=nullptr;
-    for(auto& layer:gPathOverlays)if(layer.frame==gFrames && layer.stage==stage && layer.width==width && layer.height==height && layer.draws) {
-        layer.readDraws=layer.draws;layer.readFrame=layer.frame;
+    for(auto& layer:gPathOverlays)if(PathOverlayCurrent(layer) && layer.stage==stage && layer.width==width && layer.height==height && layer.draws) {
+        layer.readDraws=layer.draws;layer.readFrame=layer.frame;layer.readAt=gFrames;
         *black=(ID3D11Resource*)layer.color[0];*white=(ID3D11Resource*)layer.color[1];return 1;
     }
     return 0;

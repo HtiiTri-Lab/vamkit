@@ -54,6 +54,9 @@ namespace simxr {
             if (auto v = EnvNumber(L"SIMXR_MAX_QUEUED_FRAMES"); v && *v >= -1 && *v <= 16) {
                 config.maxQueuedFrames = std::max(0, (int)*v);
             }
+            if (auto v = EnvNumber(L"SIMXR_HIDDEN_MASK"); v && *v >= 0 && *v <= 4) {
+                config.hiddenMask = (float)*v;
+            }
             if (auto v = EnvNumber(L"SIMXR_PORT"); v && *v >= 0 && *v <= 65535) {
                 config.port = (int)*v;
             }

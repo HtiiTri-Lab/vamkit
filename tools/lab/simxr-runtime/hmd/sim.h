@@ -32,6 +32,8 @@ namespace simxr {
         int port = 37601;               // SIMXR_PORT (0 = no control port)
         bool vsyncLog = true;           // SIMXR_VSYNC_LOG=0 turns the per-vsync CSV off
         size_t captureMemoryMB = 1536;  // SIMXR_CAPTURE_MB: frames waiting to be written
+        float hiddenMask = 0.f;         // SIMXR_HIDDEN_MASK: hidden-area mesh like a real headset's; the visible
+                                        // ellipse radius in half-image units (0 = none; 1.15 hides the corners)
         std::filesystem::path logDir;   // SIMXR_LOG_DIR (else %LOCALAPPDATA%\SimXR)
         ovrFovPort fov[2]{};
     };
@@ -114,6 +116,7 @@ namespace simxr {
         bool shouldQuit{false};
         bool visible{true};
         bool inputFocus{true};
+        bool shouldRecenter{false}; // one system recenter request, cleared by ovr_ClearShouldRecenterFlag
     };
 
     class State {

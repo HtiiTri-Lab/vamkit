@@ -143,6 +143,30 @@ OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_GetFovStencil(ovrSession session, const ovrFovStencilDesc* fovStencilDesc, ovrFovStencilMeshBuffer* meshBuffer) {
     DECLARE_INTEROP(interop);
     meshBuffer->UsedVertexCount = meshBuffer->UsedIndexCount = 0;
+    const float radius = simxr::GetConfig().hiddenMask;
+    if (radius <= 0.f || fovStencilDesc->StencilType != ovrFovStencil_HiddenArea) {
+        return OvrResultWrapper(ovrSuccess);
+    }
+    // Hidden area = outside an ellipse, in screen UV (0..1, y down) like Virtual Desktop's: for each of N rays
+    // from the centre, a quad from the ellipse to the image edge (N is a multiple of 8, so the corners lie on rays).
+    constexpr int N = 64;
+    meshBuffer->UsedVertexCount = 2 * N;
+    meshBuffer->UsedIndexCount = 6 * N;
+    if (!meshBuffer->VertexBuffer || !meshBuffer->IndexBuffer || meshBuffer->AllocVertexCount < 2 * N ||
+        meshBuffer->AllocIndexCount < 6 * N) {
+        return OvrResultWrapper(ovrSuccess);
+    }
+    for (int k = 0; k < N; k++) {
+        const float a = 6.2831853f * k / N;
+        const float dx = std::cos(a), dy = std::sin(a);
+        const float edge = 0.5f / std::max(std::abs(dx), std::abs(dy));
+        const float inner = std::min(0.5f * radius, edge);
+        meshBuffer->VertexBuffer[2 * k] = ovrVector2f{0.5f + inner * dx, 0.5f + inner * dy};
+        meshBuffer->VertexBuffer[2 * k + 1] = ovrVector2f{0.5f + edge * dx, 0.5f + edge * dy};
+        const uint16_t e0 = (uint16_t)(2 * k), b0 = e0 + 1, e1 = (uint16_t)(2 * ((k + 1) % N)), b1 = e1 + 1;
+        const uint16_t tri[6] = {e0, b0, b1, e0, b1, e1};
+        for (int i = 0; i < 6; i++) meshBuffer->IndexBuffer[6 * k + i] = tri[i];
+    }
     return OvrResultWrapper(ovrSuccess);
 }
 
@@ -155,7 +179,7 @@ ovr_GetSessionStatus(ovrSession session, ovrSessionStatus* sessionStatus) {
     sessionStatus->HmdMounted = flags.hmdMounted;
     sessionStatus->DisplayLost = false;
     sessionStatus->ShouldQuit = flags.shouldQuit;
-    sessionStatus->ShouldRecenter = false;
+    sessionStatus->ShouldRecenter = flags.shouldRecenter;
     sessionStatus->HasInputFocus = flags.inputFocus;
     sessionStatus->OverlayPresent = false;
     sessionStatus->DepthRequested = true;

@@ -173,9 +173,9 @@ pass and every shadow-casting light redraws it.
 
 The simulated headset replaces only the last link (the streaming runtime and the headset); VaM, the compositor, the frame
 generation layer and the DLSS runtimes are the real ones. It does not model: video encoding, the Wi-Fi link, timewarp or
-space warp, Virtual Desktop's own GPU use (about .7-1 ms per displayed frame, 3-4 ms per real frame at 4x), or the headset's
-hidden-area stencil (bugs that depend on it show only on a real headset; an example is a black band on pan with frame
-generation). On a real headset the same scene took about 30 ms per real frame against about 19.5 ms simulated (144 Hz, 4x,
+space warp, or Virtual Desktop's own GPU use (about .7-1 ms per displayed frame, 3-4 ms per real frame at 4x). The
+headset's hidden-area mesh is off by default and given with `SIMXR_HIDDEN_MASK` (bugs that depend on it otherwise show
+only on a real headset: a black band on pan with frame generation, path-traced menus that went missing). On a real headset the same scene took about 30 ms per real frame against about 19.5 ms simulated (144 Hz, 4x,
 model M at 70%); with Virtual Desktop streaming, the quality frame-generation model went from 2.1-2.6 to 4.4 ms per eye
 (conjecture: the layer's high-priority queue and the streamer time-slice the GPU), and about 4.5 ms is unexplained. To
 estimate headset headroom from a simulated run, add 3-4 ms and count the quality frame-generation model at about double.
