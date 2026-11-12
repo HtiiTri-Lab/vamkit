@@ -29,7 +29,7 @@ recognise code by content, and leave a part off when its code really changed unt
 `python tools/vamkit doctor` and `verify` list every run-time file by name: its version, or that it is missing, what
 the user does not get and the command that adds it. The first-run check ends with one of three verdicts; "works, with
 less" (exit code 2) lists each thing the user is not getting. Mend those before calling an install done. Known cases:
-`nvngx_dlssnr.dll` has no public download (the user supplies a copy, or lives without the denoiser);
+`nvngx_dlssnr.dll` has no public download (the user supplies a copy, or lives without neural rendering);
 `nvngx_dlssg.dll` is in the NVIDIA driver's model store once a title with DLSS Frame Generation has run on the machine
 (if it never has, the store is empty: say so, and FSR generates 2x meanwhile).
 

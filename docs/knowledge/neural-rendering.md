@@ -1,12 +1,12 @@
-# The neural denoiser (NR)
+# Neural rendering (NR)
 
-After the upscaler has produced the full-size eye image, NVIDIA's neural denoiser (the "DLSS NR" model,
+After the upscaler has produced the full-size eye image, NVIDIA's neural rendering model (the "DLSS NR" model,
 `nvngx_dlssnr.dll`, version 310.9.16) can be run over a part of it. In this project it is an image-quality pass for
-skin: it removes remaining noise and shimmer and sharpens local tone and structure (pores, lines, shading), at the
-cost of a few percent of the frame. It is not the path tracer's denoiser; that is RR ([upscaling.md](upscaling.md)).
-NR runs after RR on the path-tracing route, and before or after SR on the raster route. A player sees a "noise
-reduction" page in the menu with strengths, a region size and a position; without the runtime file the page does
-nothing and the rest of the mod works.
+skin: it re-renders local tone and structure (pores, lines, shading) and calms remaining shimmer, at the cost of a few
+percent of the frame. It is neural rendering, not a denoiser; the path tracer's denoiser is RR
+([upscaling.md](upscaling.md)). NR runs after RR on the path-tracing route, and before or after SR on the raster
+route. A player sees a "neural rendering" page in the menu with strengths, a region size and a position; without the
+runtime file the page does nothing and the rest of the mod works.
 
 ## How it works
 
@@ -70,7 +70,7 @@ cost). Changing it recreates the feature.
 
 ## Settings
 
-All in the run's `performance.ini`; the menu's "noise reduction" page writes them live (see
+All in the run's `performance.ini`; the menu's "neural rendering" page writes them live (see
 [settings-and-menu.md](settings-and-menu.md)).
 
 | Key | Range | Code default (launcher seed) | Meaning |
@@ -171,7 +171,7 @@ multiplying tone, structure and skin strengths by 0.4.
 - Simulated headset: grep the OpenComposite log for `NR prepass packed evaluation submitted successfully`, `NR prepass:
   both eyes packed`, `NR prepass not packed`, `VAM NR after the upscaler eye=... on the output reduced to N%`, `VAM NR
   eye=1: image from eye 0's packed NR evaluation (PackEyes)`, and the per-stage `VAM GPU timing eye submission eye=N ...
-  nr ... denoise ...`. A `failure.txt` in the NR log folder means NR is off.
+  nr ... denoise ...` (`denoise` is the log's name for NR after the upscaler). A `failure.txt` in the NR log folder means NR is off.
 - Offline: the original investigation used a standalone NR harness with canvas-width sweeps; it is not in this repository.
   To re-measure a seam, evaluate the same pair of crops at several canvas widths and compare skin pixels with a signed
   difference ([../protocol/testing.md](../protocol/testing.md)).

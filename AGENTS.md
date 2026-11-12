@@ -47,7 +47,7 @@ English or Chinese (`components/shared/lang`: another language is one table).
 It is a base, not a finished product with a fence around it. You are as capable as whoever wrote it. With its
 architecture, sources, measurements, guides and tools you are expected to get the user whatever can be got on their
 machine, including things this project never implemented: another upscaler or frame generator, a higher multiplier,
-a denoiser for cards without RTX, another VaM build, another headset. Nothing here sets a limit on purpose.
+a path-tracing denoiser or neural rendering for cards without RTX, another VaM build, another headset. Nothing here sets a limit on purpose.
 
 Read the documents accordingly. "Not taken", "tried and dropped", "do not" and every default record what was chosen,
 measured or got wrong, on one machine and for one person: they save you from repeating a dead end and tell you what
@@ -159,7 +159,7 @@ The ones most often changed for a user. Every other setting is as open to you: `
 | Path tracing bounces, background savings | `[RayTracing] PathBounces` 0-3, `PathBackground` Off / Far / All |
 | Upscaler model and scale | the run's `performance.ini` `[Performance]` `DLSSPreset` (`Off`, `K`, `L`, `M`, `XeSS`, `FSR`), `RenderScaleK/L/M/RR/XeSS/FSR`, `OutputScale` |
 | Frame generation model | `[Performance] FrameGenModel` `DLSS` / `FSR` (FSR is 2x; DLSS needs RTX 40 for 2x, RTX 50 for more) |
-| Denoiser | `[NR]` keys in the same file |
+| Neural rendering (NR) | `[NR]` keys in the same file |
 | Skin scattering, light through thin parts | skin cfg `[Subsurface] Strength` 0-1, `[General] Strength` 0-2 (menu: skin page) |
 | Turn a shading part off | skin `[General] Enabled`, hair `Enabled`, clothing `Mode = 0`, tone mapping `Mode = 0` |
 | Turn a runtime part off | `Enabled = false` in `local.vam.cpuboost.cfg`, `.hairsolver.cfg`, `.clothphysics.cfg`, `.wrapbatch.cfg`; GC: `FreeSpaceDivisor = 3`, `MarkThreads = 0`, `AllocatedBytesPerFinalizer = 0` in `.gctuning.cfg`; hair budget: `Profile=Off` in `VaMHairBudget.ini`; loading: the keys of `local.vam.sceneload.cfg` and `local.vam.imageloadpipeline.cfg` (each stage has its own, `docs/knowledge/loading.md`) |

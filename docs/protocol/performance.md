@@ -9,7 +9,7 @@ The person plays in a headset or at a monitor. They care about the frame rate an
 figures are not goals.
 
 1. **An extra cost is acceptable when the frame rate of normal rendering (menus closed) does not drop.** A short pause
-   when a menu opens, a denoiser that runs at full size while the menu is up, memory that stays allocated after a
+   when a menu opens, neural rendering that runs at full size while the menu is up, memory that stays allocated after a
    switch: none of these justify redesigning or removing a feature. When asked "does it cost much", answer with the
    frame rate in normal play, briefly, and keep the feature.
 2. **A saving goes to frame rate.** When something becomes cheaper, existing settings and presets keep the same picture

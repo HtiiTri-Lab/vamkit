@@ -64,9 +64,9 @@ in `local/vam.txt` (git-ignored).
   to the user: the acceptance is theirs.
 - The DLSS runtimes for super resolution and ray reconstruction are downloaded from NVIDIA's repository and checked by
   hash.
-- Two runtimes have no public download and are optional: the neural denoiser and frame generation. `fetch` looks for
+- Two runtimes have no public download and are optional: neural rendering (NR) and frame generation. `fetch` looks for
   the frame generation runtime in the driver's own model store; for either one the user can point at their own copy:
-  `python tools/vamkit fetch --file dlss-nr=<path to nvngx_dlssnr.dll>`. Without them the denoiser stays off and frame
+  `python tools/vamkit fetch --file dlss-nr=<path to nvngx_dlssnr.dll>`. Without them NR stays off and frame
   generation uses optical flow.
 - `--mirror <folder>` takes everything from a folder laid out as `third_party/` (`<folder>/<id>/...`) instead of the
   network: for an offline machine or a second checkout.

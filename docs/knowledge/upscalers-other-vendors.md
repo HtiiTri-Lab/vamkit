@@ -94,11 +94,11 @@ Frame generation by FSR makes one frame per pair. The dispatch structure has roo
 only the first and the 2.4.0 documents speak of one intermediate frame. So 3x and 4x remain DLSS-G on RTX 50 (and XeSS on
 Arc, on a flat screen).
 
-### What path tracing and the denoiser mean for a card without RTX
+### What path tracing and neural rendering mean for a card without RTX
 
 Path tracing shows its result through Ray Reconstruction, which is an NGX feature: without an RTX card the tracer has no
 reconstruction and the compositor switches path tracing off again on the first failed frame (`ST_SetPathTracingV1(0)`,
-[upscaling.md](upscaling.md)). The neural denoiser (NR) is NGX too. A card without RTX therefore gets the raster route
+[upscaling.md](upscaling.md)). Neural rendering (NR) is NGX too. A card without RTX therefore gets the raster route
 with XeSS or FSR, NVSharpen (a plain shader), and FSR frame generation; not path tracing, not NR.
 
 ### Community projects and what they show
@@ -204,7 +204,7 @@ Two contexts (one per eye) double the per-context memory. What the backends cost
   the feature being created per eye and the evaluations counted, in the compositor's log
   ([../protocol/testing.md](../protocol/testing.md)).
 - The path a card without RTX takes, on a card that has it: `VAMKIT_NO_DLSS=1` in the environment of the script that
-  starts the session makes NGX refuse in the compositor, the denoiser and the frame generation layer. Expect in the
+  starts the session makes NGX refuse in the compositor, the NR pass and the frame generation layer. Expect in the
   logs: the run still holds `DLSSPreset=K` and `FrameGenModel=DLSS` (the launcher replaces nothing),
   `VAM upscalers: DLSS SR cannot run here`, `VAM upscaler: XeSS (the one chosen cannot run here)`,
   `DLSS frame generation cannot be made here ...; trying the other generator`, `Frame generation model: FSR`, the

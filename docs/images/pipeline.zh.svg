@@ -19,7 +19,7 @@
 <text x="500.0" y="129.0" font-size="11" fill="#8f9bb0" font-weight="normal" text-anchor="middle">DLSS · XeSS · FSR</text>
 <text x="500.0" y="147.0" font-size="11" fill="#8f9bb0" font-weight="normal" text-anchor="middle">路径追踪时用 RR</text>
 <rect x="576" y="86" width="124" height="78" rx="8" fill="#1d4d39" stroke="#3ecf8e"/>
-<text x="638.0" y="120.0" font-size="13" fill="#e7ecf3" font-weight="bold" text-anchor="middle">降噪</text>
+<text x="638.0" y="120.0" font-size="13" fill="#e7ecf3" font-weight="bold" text-anchor="middle">神经渲染</text>
 <text x="638.0" y="138.0" font-size="11" fill="#8f9bb0" font-weight="normal" text-anchor="middle">DLSS NR</text>
 <rect x="714" y="86" width="124" height="78" rx="8" fill="#1d4d39" stroke="#3ecf8e"/>
 <text x="776.0" y="120.0" font-size="13" fill="#e7ecf3" font-weight="bold" text-anchor="middle">插帧</text>

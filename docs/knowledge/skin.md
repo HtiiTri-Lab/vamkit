@@ -250,7 +250,7 @@ machine ([frame-budget.md](frame-budget.md)).
   broke the highlight without giving tissue texture.
 - Taking a minimum, a plane test, an N.L ramp or a horizon factor on shadow filters to cure the chin line: all kept the light that
   caused it.
-- The Burley term and the sheen were judged by simulated-headset side-by-side stills with the denoiser on; the grazing
+- The Burley term and the sheen were judged by simulated-headset side-by-side stills with neural rendering (NR) on; the grazing
   direction (brighter retroreflection or darker Fresnel) cannot be derived from theory for skin, which is why the sheen
   is a separate, explicit term rather than an automatic roughness rule.
 
@@ -285,7 +285,7 @@ machine ([frame-budget.md](frame-budget.md)).
 
 ## Verify
 
-How the look is judged: by a person, on side-by-side stills with the denoiser on, ideally in the headset. Whole-crop
+How the look is judged: by a person, on side-by-side stills with neural rendering (NR) on, ideally in the headset. Whole-crop
 statistics ("p99 of 5 to 8 levels, barely visible") were wrong more than once: lips, nostrils and mouth corners were
 visibly redder and softer. Measure highlights against highlights; decide on pictures. Flicker and cost are guards, not
 goals.

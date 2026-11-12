@@ -1,7 +1,7 @@
 # Settings and the in-game menu
 
 Everything an agent may tune lives in one of four places, and each setting lives in exactly one of them: the run's
-`performance.ini` (render, upscaler, denoiser, frame generation), the plugins' BepInEx cfg files (shading, tone mapping,
+`performance.ini` (render, upscaler, neural rendering, frame generation), the plugins' BepInEx cfg files (shading, tone mapping,
 runtime parts), the per-display-mode presets that carry both from one launch to the next, and the in-game menu that edits
 the first two while the game runs. A player sees a "VR Graphics" tab (desktop: "Graphics"; in Chinese "VR 画面" / "画面") inside VaM's main menu with pages and
 big buttons; an agent tuning for another machine edits the same files or changes the preset so it survives the launch.
@@ -36,13 +36,13 @@ edit it while the game runs and the compositor follows within about 250 ms. Writ
 | `Enabled=1`, `Upscaler=DLSS` | fixed | `Upscaler` is forced by `FIXED`; it means the temporal upscaler fed by the bridge, DLSS SR, XeSS or FSR |
 | `RenderScale`, `DLSSPreset`, `RenderScaleK/L/M/XeSS/FSR/RR`, `OutputScale` | menu | `DLSSPreset` is `Off`, `K`, `L`, `M`, `XeSS` or `FSR`; semantics in [upscaling.md](upscaling.md) |
 | `DLSSSharpness`, `DLSSSharpenLast`, `RRStereo` | menu | |
-| `NRAfterUpscale`, `NRAfterScale`, `NRFeatherPercent` | menu | [denoiser.md](denoiser.md) |
+| `NRAfterUpscale`, `NRAfterScale`, `NRFeatherPercent` | menu | [neural-rendering.md](neural-rendering.md) |
 | `FrameGeneration`, `FrameGenModel`, `DLSSGLite`, `DLSSMenuNative` | menu | `FrameGenModel` is `DLSS` or `FSR`; [frame-generation.md](frame-generation.md) |
 | `DLSSObjectMotion`, `DLSSHairMotion`, `DLSSHairBias`, `DLSSJitterFlipX/Y`, `NRUseDepth`, `NRUseMotion`, `DLSSFGEyes`, `DLSSSREyes`, `FFREnabled`, `FFRFullRateRadius`, `FFRHalfRateRadius`, `FSRSharpness` | fixed (`FIXED`) | Motion sources and diagnostics; do not tune ([motion-vectors.md](motion-vectors.md)) |
 | `DLSSMipBias`, `DLSSRigidMotion`, `RRTransparentGuides`, `PTReference`, `NISSharpness` | code defaults only | The launcher does not write them; add the line to the run file to change them |
 
 `[NR]` keys: `Enabled`, `Style`, `Intensity`, `LocalToneStrength`, `LocalStructureStrength`, `SkinStructureStrength`,
-`FoveationSize`, `RenderPreset`, `RegionShiftY` (and `PackEyes`, code only). Ranges are in [denoiser.md](denoiser.md).
+`FoveationSize`, `RenderPreset`, `RegionShiftY` (and `PackEyes`, code only). Ranges are in [neural-rendering.md](neural-rendering.md).
 `[ofxr] frame_multiplier` (2-4) is not in `performance.ini`: it is in the OFXR layer's `ofxr_bridge.ini`
 (`%LOCALAPPDATA%\OFXR Bridge\RuntimeLayer\v7443\`) in VR and in `desktop-presenter.ini` in the run folder on the desktop;
 `[overlay] position` (frame-rate display corner) is in the same file.
@@ -135,7 +135,7 @@ their plugin is missing or off, when a parent switch is off, or by route (`pathR
 |---|---|
 | Frame gen (插帧) | on/off (`[Performance] FrameGeneration`, implemented by pausing the OFXR layer through its tray pause event, also paused while VaM menus are open with `DLSSMenuNative`); generator model DLSS / FSR (`FrameGenModel`, shown only when both can run); multiplier 2x-4x (`[ofxr] frame_multiplier`, choices from the layer's `OFXR_GetFrameMultiplierV1`), replaced by a status line "2x" while FSR generates; mode quality / performance Preset C (`DLSSGLite`, DLSS-G only, shown only if the layer reports it follows live); frame-rate display corner (`[overlay] position`); "when VaM menu is open" normal / pause SR and generation (`DLSSMenuNative`) |
 | Clarity (清晰度) | raster route: model Off / K / L / M / XeSS / FSR (`DLSSPreset`; only those the compositor reports it can run) and render scale (`RenderScale`, hidden when Off; each model keeps its own in `RenderScaleK/L/M/XeSS/FSR`); path tracing: a fixed status row "reconstruction model RR F", render scale (`RenderScaleRR`), detail preservation (`RRDetail`, step 5), cross-eye consistency (`RRStereo`, VR only, step 10); both: sharpen (`DLSSSharpness`), position after SR / last (`DLSSSharpenLast`); VR: output resolution (`OutputScale`), desktop: a status row with the window size |
-| Denoise (降噪) | sub-page "basic": NR on/off, model new/old (`RenderPreset` 2/1), position before/after upscale (raster route only), reduced-size percent (`NRAfterScale`), style, region (`FoveationSize`), region shift (`RegionShiftY`), feather (`NRFeatherPercent`); sub-page "strength": overall, local tone, local structure, skin structure (all under NR on) |
+| Neural rendering (神经渲染) | sub-page "basic": NR on/off, model new/old (`RenderPreset` 2/1), position before/after upscale (raster route only), reduced-size percent (`NRAfterScale`), style, region (`FoveationSize`), region shift (`RegionShiftY`), feather (`NRFeatherPercent`); sub-page "strength": overall, local tone, local structure, skin structure (all under NR on) |
 | Lighting (光影) | path tracing off/on (`[RayTracing] Renderer`) plus a live status line; bounces 0-3 (`PathBounces`) and background savings no/far/all (`PathBackground`), path tracing only; tone mapping off / with display lighting / always (`Mode`) with style neutral / film |
 | Skin (皮肤) | subsurface scattering 0-1 (`[Subsurface] Strength`, step .1); thin-part light 0-2 (`[General] Strength`, step .1); highlight normalisation (`[Specular] Normalize`); one gloss row per character, 0-4 step .25, kept per skin by the skin plugin |
 | Body (身体) | rows for the animation clock and soft body plugins, which are not in this repository: the page does not appear |

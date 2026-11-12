@@ -4,7 +4,7 @@
 compositor work inside OpenComposite's DX11 compositor. Built as `vrclient_x64.dll` and installed as `vamkit/bin/openvr_api.dll`
 (VaM loads it as `VaM_Data/Plugins/openvr_api.dll` while the mod runs; the launcher swaps it in and puts VaM's own back). It renders VR
 frames for VaM through a temporal upscaler: DLSS super resolution (K / L / M), Intel XeSS or AMD FSR on the raster route, Ray
-Reconstruction (preset F) with path tracing; then the neural denoiser (NR) before or after the upscaler, NVSharpen, FSR 1 fallback,
+Reconstruction (preset F) with path tracing; then neural rendering (NR) before or after the upscaler, NVSharpen, FSR 1 fallback,
 UI handling, and hands finished frames and guides on to OFXR's frame generation. Depends on NVIDIA NGX (`ngx-sdk`), Detours, NIS and
 FSR 1 SDK headers, NVAPI, glm, the OpenXR SDK and the headers of XeSS (`xess-sdk`) and of AMD's FSR API (`fsr-sdk`) (see
 `manifest/thirdparty.toml`); uses `components/shading/rt-core/include` headers only (not linked). XeSS's and FSR's libraries are
@@ -22,7 +22,7 @@ All additions live in `OpenOVR/Compositor/` (upstream files are otherwise untouc
 | `vam_sr_backends.h` | Run-time bindings to Intel XeSS (`libxess.dll`) and AMD's FSR API (`amd_fidelityfx_loader_dx12.dll`): loading from `VAM_XESS_RUNTIME_PATH` / `VAM_FSR_RUNTIME_PATH`, version queries, error text, XeSS's quality setting for a ratio. Their use is in `dx11_vam_dlss.cpp`: `ProbeUpscalers`, `CreateXess` / `CreateFsr`, `EvaluateXess` / `EvaluateFsr`, `DropUpscaler` |
 | `vam_on12.h` | D3D11On12 helpers: handing textures to D3D12 (`UnwrapUnderlyingResource` naming the queue `VamOn12UnwrapTarget` picks: 11on12's own once the proxy's probe cleared the `d3d11on12.dll`, `VamOn12UnwrapQueue` otherwise / wrapped resources), `VamWriteConstants` (DYNAMIC buffers with `WRITE_DISCARD`) |
 | `vam_performance_config.h` | `[Performance]` / `[NR]` ini reading (`ReadVamPerformanceSettings`, re-read when the file changes), `VamPathRequested()` (the in-game path tracing switch read from the skin native module), the upscaler choice (`kVamSr*`, `VamSrChoice`: the chosen one or the one that stands in, `VamSrAvailable`) |
-| `dx11_nr_prepass.cpp/.h` | Neural denoiser pre-pass (adapted from an MIT-licensed project, notice kept in the file) |
+| `dx11_nr_prepass.cpp/.h` | Neural rendering (NR) pre-pass (adapted from an MIT-licensed project, notice kept in the file) |
 | `dx11_vam_nis.cpp/.h`, `vam_fsr1.hlsl`, `dx11_vam_mip_bias.cpp/.h`, `dx11_vam_ffr.cpp/.h` | NVSharpen, the FSR 1 passes (EASU, RCAS, UI bypass), texture mip bias while DLSS upscales, fixed-foveated rendering (kept off under 11on12) |
 | `vam_nr_region.h`, `vam_render_host.h`, `dx11_eye_blit.h`, `dx11_gpu_stage_timer.h`, `dx12_rr_stage_timer.h` | NR region geometry, host start-up order, eye blit, GPU stage timers |
 | `../../vam_eye_blit_test.cpp`, `../../tests/vam_nr_region_test.cpp` | Offline tests |
@@ -55,11 +55,11 @@ Run's `performance.ini` (path in `VAM_PERFORMANCE_CONFIG`; re-read when the file
 | `DLSSSharpness`, `DLSSSharpenLast` | 25, 1 | NVSharpen strength; position after SR or after post-SR NR |
 | `DLSSMipBias` | 50 | Percent of the DLSS-guide texture mip bias (100 made thin seams shimmer) |
 | `DLSSMenuNative` | 1 | Native-resolution, no-SR frames while VaM's own menus are open |
-| `NRAfterUpscale`, `NRAfterScale` | 0, 100 | Run the denoiser after the upscaler, and at what share of the output |
+| `NRAfterUpscale`, `NRAfterScale` | 0, 100 | Run NR after the upscaler, and at what share of the output |
 | `RRStereo` | 0 | Cross-eye RR input fusion, 0 to 100 (VR + path tracing) |
 | `RRTransparentGuides`, `PTReference` | 1, 0 | Transparent-layer RR guides; path-traced reference accumulation view (also Ctrl+Alt+R) |
 | `DLSSObjectMotion`, `DLSSHairMotion`, `DLSSRigidMotion`, `DLSSHairBias` | 1, 1, 1, 0 | Motion sources and hair bias mask |
-| `[NR] ...` | | Denoiser keys (`RegionShiftY`, `FoveationSize`, `Style`, `Intensity`, ...) |
+| `[NR] ...` | | Neural rendering keys (`RegionShiftY`, `FoveationSize`, `Style`, `Intensity`, ...) |
 
 ## Interfaces
 
@@ -107,5 +107,5 @@ Run's `performance.ini` (path in `VAM_PERFORMANCE_CONFIG`; re-read when the file
 ## Read next
 
 [../../../docs/knowledge/frame-path.md](../../../docs/knowledge/frame-path.md), [../../../docs/knowledge/upscaling.md](../../../docs/knowledge/upscaling.md),
-[../../../docs/knowledge/denoiser.md](../../../docs/knowledge/denoiser.md), [../../../docs/knowledge/motion-vectors.md](../../../docs/knowledge/motion-vectors.md),
+[../../../docs/knowledge/neural-rendering.md](../../../docs/knowledge/neural-rendering.md), [../../../docs/knowledge/motion-vectors.md](../../../docs/knowledge/motion-vectors.md),
 [../../../docs/knowledge/d3d11on12.md](../../../docs/knowledge/d3d11on12.md)

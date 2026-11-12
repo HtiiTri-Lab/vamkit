@@ -31,11 +31,11 @@ see below):
 - `instance.cpp`, `system.cpp`, `session.cpp`, `framework/entry.cpp` (changed): the `SIMXR` paths. The runtime names
   itself as the bundled Virtual Desktop runtime does, reads its settings from `SIMXR_<name>` environment variables
   instead of the registry, writes its log to `SIMXR_LOG_DIR`, loads `LibOVRRT64_1.dll` from its own folder, skips the
-  search for Virtual Desktop and the redirect to another runtime, and does not start the denoiser pass.
+  search for Virtual Desktop and the redirect to another runtime, and does not start the neural rendering (NR) pass.
 - `simxr.h`, `simxr.cpp` (added): the two helpers those paths call. `commit.h` (added): a fixed string in place of
   the generated commit hash. `simxr-openxr.json` (added): the runtime manifest.
 - `dlssnr.cpp`, `d3d11_native.cpp`, `runtime.h` (changed), `DlssnrFeatherPS.hlsl` (added): a soft edge for the
-  region upstream's experimental denoiser pass processes. It is compiled but never runs in this build, because the
+  region upstream's experimental neural rendering (NR) pass processes. It is compiled but never runs in this build, because the
   `SIMXR` define skips the pass's initialization. It is kept so that the sources equal the ones the tool was
   developed and verified with.
 

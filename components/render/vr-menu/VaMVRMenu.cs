@@ -16,7 +16,7 @@
 //     the launch panel always starts VaM through OFXR and leaves this to the
 //     tab. While VaM's menus are open frame generation is off as well
 //     (DLSSMenuNative), so menu text is never interpolated.
-//   * noise reduction, in this run's performance.ini (VAM_PERFORMANCE_CONFIG,
+//   * neural rendering (NR), in this run's performance.ini (VAM_PERFORMANCE_CONFIG,
 //     written by LaunchPanel.py, passed on by Launch.ps1), which the NR
 //     prepass re-reads every 250 ms; in the DLSS launcher also where NR runs
 //     (before or after the upscaler, NRAfterUpscale).
@@ -38,7 +38,7 @@
 //   * v29: NR after the upscaler's Work scale ([Performance] NRAfterScale) and
 //     DLSS-G's mode ([Performance] DLSSGLite, 1 = Preset C; only with a layer
 //     that follows it live, OFXR-DLSSG-v12), both the launch panel's before.
-//   * v30: the same settings in pages (Frame gen, Clarity, Denoise, Lighting, Skin, Body), each
+//   * v30: the same settings in pages (Frame gen, Clarity, Neural rendering, Lighting, Skin, Body), each
 //     with its sub-pages, laid out without scrolling (VaMVRMenu.Menu.cs); no
 //     hints: the labels and values say what a row does. v31: pages, sub-pages,
 //     cards and choices each with a look of their own. v32: Region up, the NR
@@ -445,7 +445,7 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
 
     // v30: the pages, left to right in what a change costs or shows:
     // Frame gen (frame generation and VaM's menus), Clarity (the upscaler and the output),
-    // Denoise (NR: Basics and Strength), Lighting (ray tracing, tone mapping), Skin (the skin
+    // Neural rendering (NR: Basics and Strength), Lighting (ray tracing, tone mapping), Skin (the skin
     // highlights), Body (motion sampling, soft body). A new setting goes into the
     // page and section it belongs to; a page with no row (its plugin missing,
     // no frame generation) has no button.
@@ -574,9 +574,9 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
         // this tab's. Only the DLSS launcher loads NR 310.9.16 and has NRAfterUpscale.
         // Fallbacks: the NR prepass's own defaults (dx11_nr_prepass.cpp); NRFeatherPercent
         // in vam_performance_config.h.
-        AddPage(Lang.T("Denoise"));
+        AddPage(Lang.T("Neural rendering"));
         AddSection(Lang.T("Basics"));
-        Add(OnOff("nr_enabled", "NR", "Enabled", "1", Lang.T("Denoise (NR)")));
+        Add(OnOff("nr_enabled", "NR", "Enabled", "1", Lang.T("Neural rendering (NR)")));
         if (dlss)
         {
             Add(Choice("nr_model", "NR", "RenderPreset", "2", Lang.T("Model"), new string[] { "2", "1" },
@@ -974,7 +974,7 @@ public sealed partial class VaMVRMenu : BaseUnityPlugin
         // PT ignores DLSSPreset, so Off hides nothing while PT is on.
         if (item.unlessId != null && byId.TryGetValue(item.unlessId, out other) && other.value == item.unlessValue &&
             !(item.unlessId == PresetId && PathOn())) return false;
-        // Every switch above it is on (v29: Work scale sits under Where, which sits under Denoise (NR)).
+        // Every switch above it is on (v29: Work scale sits under Where, which sits under Neural rendering (NR)).
         for (Item i = item; i.parent != null && byId.TryGetValue(i.parent, out other); i = other)
             if (other.value != "1" && (other.id != "nr_after" || !PathOn())) return false;
         return true;

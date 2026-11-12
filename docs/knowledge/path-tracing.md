@@ -147,7 +147,7 @@ optional `detailReference`.
   the pore normal alone RR printed pores as dark dots in still frames.
 - **History resets** only on scene load, camera jump, a break in frame continuity and a renderer switch. Content
   changes (a material, a texture, an object appearing) do not reset; an earlier version reset on each, hundreds of
-  times a session, taking the denoiser and frame-generation guides with it.
+  times a session, taking ray reconstruction and the frame-generation guides with it.
 - **Detail retention** (`[RayTracing] RRDetail`): a deterministic, dejittered material reference restores only
   contrast RR lost in the same direction; 0 turns the work and its resources off.
 - RR runs before tone mapping; UI and replayed effects are composited after RR. One guide surface per pixel: a

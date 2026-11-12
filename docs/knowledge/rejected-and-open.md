@@ -15,10 +15,10 @@ out, and how to continue. Items that belong to one subsystem are kept short here
   model's weights are trained on game-engine scenes and have not seen skin and hair. Compute: at a Quest 3 panel's resolution the
   full model costs about 5.6 TFLOP per frame (at least 27 ms even in the ideal case), the "mini" variant about 1.5 TFLOP (at least
   7 ms) - more than the roughly 6 ms the second eye's rendering would have cost.
-- If cross-eye reuse is ever asked for again, the only workable form found: one eye runs the denoiser or frame generation, the other
+- If cross-eye reuse is ever asked for again, the only workable form found: one eye runs neural rendering (NR) or frame generation, the other
   is a depth reprojection with hole filling. Measure the reprojection error on same-frame stereo screenshots offline before building
   anything. (A smaller idea was built instead: an optional cross-eye consistency blend of the ray-reconstructed result, off by
-  default, VR with path tracing only; see [denoiser](denoiser.md).)
+  default, VR with path tracing only; see [upscaling](upscaling.md).)
 
 ### An own PC-to-headset streaming channel
 
@@ -123,7 +123,7 @@ Divisor 1, reserving every 4 GB boundary up front, and marking on CpuBoost's wor
   layer versions 8-10, OpenComposite versions 11-15, menu 4-6, bridge 2.2-2.4); evidence before the window is weak. Later tests
   hit the same signature now and then; a retry passes.
 - Ruled out: the hair solver (crashes without it), the asynchronous post-processing, the hair budget's rate patch, a GPU reset (timing
-  does not fit), the denoiser and super resolution (not yet running when it crashes), session operations (four rounds of 10 scene
+  does not fit), neural rendering and super resolution (not yet running when it crashes), session operations (four rounds of 10 scene
   loads, 40 menu toggles, 88 frame-generation toggles, 80 render-scale changes: 0 crashes), and an audit of the bridge's unsafe
   writes, the menu pause, the frame multiplier query and the OpenComposite bone input.
 - Hypothesis, unconfirmed: the 4 GB block-header defect of the collector ([gc](gc.md)): a header whose address lies within 0xfff bytes
@@ -144,7 +144,7 @@ Divisor 1, reserving every 4 GB boundary up front, and marking on CpuBoost's wor
   process ends). Two occurrences in five days of logs, both at the moment VaM's menu opened or closed and the render size switched between 100%
   and 50% (the layer logs the eye size change, for example 3057x3248 <-> 1528x1624), direction menu-open 100% native -> close back to 50%
   with DLSS, in the first one or two frames. Frame generation was paused at that time (it resumes 0.6 s after the menu closes) and the
-  denoiser was off in one of the two, so neither is the trigger.
+  neural rendering was off in one of the two, so neither is the trigger.
 - Known: in one case, 1.5 s before the hang the GPU was at 100% load with power rising 470 -> 517 W and memory bandwidth falling 20% -> 0,
   as if one GPU task kept computing; it is not paging. Process video memory 24 GB (limit 31.4 GB), steady at 19-23 GB all night: not memory
   exhaustion, not a leak. Not polling of settings (that only cost CPU).
@@ -152,7 +152,7 @@ Divisor 1, reserving every 4 GB boundary up front, and marking on CpuBoost's wor
   "VaM menu -> no upscaling or interpolation while the menu is open") each opening swaps Unity's eye textures from 50% to 100% and
   back: about 3 GB of render targets allocated and freed per open/close. At least 3000 such switches over those days against two hangs:
   probabilistic.
-- Checked and safe on resize: the OpenComposite denoiser (swap back to the old size, drain before release), DLSS super resolution
+- Checked and safe on resize: OpenComposite's neural rendering pass (swap back to the old size, drain before release), DLSS super resolution
   (`ReleaseFeature` drains first), OpenComposite's own shaders (all loops bounded), the frame-generation pause (waits for presenter and
   compositor idle), the ray-tracing host (deferred release), the hair rasteriser (bounds inside the drawable area).
 - Not known: which GPU task runs away. Next step: enable D3D12 DRED (before the 11on12 proxy creates its device) or Nsight Aftermath

@@ -171,8 +171,8 @@ flush (`native/wrap_batch_native.cpp`).
   face takes the face's pixels and the face's outline shimmers. See [motion-vectors.md](motion-vectors.md).
 - Sheer clothing in the path tracer: an attempt to match raster's look (light and shadow treat translucent cloth as a solid
   occluder, a single alpha multiply under point and spot lights) produced ugly shadows and was rolled back. Translucent layers
-  enter the denoiser's guide buffers by coverage, blended per layer, not by a 0.5 cut-off, so thin cloth over skin is not
-  guided as skin ([denoiser.md](denoiser.md)).
+  enter ray reconstruction's guide buffers by coverage, blended per layer, not by a 0.5 cut-off, so thin cloth over skin is not
+  guided as skin ([path-tracing.md](path-tracing.md)).
 
 ### Cloth explosion root cause (development tree, for context)
 

@@ -2,7 +2,7 @@
 
 A `d3d11.dll` that sits beside `VaM.exe`. Unity loads `d3d11.dll` by name and calls `D3D11CreateDevice`; this proxy makes
 that device a D3D11On12 device on the process's D3D12 device and one direct queue of its own, so D3D12 work (DLSS, ray
-tracing, neural denoising, frame generation) can run on the same queue, in order with VaM's frame, with no fence and no round
+tracing, neural rendering, frame generation) can run on the same queue, in order with VaM's frame, with no fence and no round
 trip. It also holds the desktop presenter: in desktop mode it owns the flip-model D3D12 swap chain and runs frame
 generation there (DLSS Frame Generation, or AMD FSR's on any card). The player sees nothing of it directly; without it
 the VR compositor cannot do path tracing or the D3D12 stages. Depends on the NVIDIA NGX SDK (`ngx-sdk`), on the headers

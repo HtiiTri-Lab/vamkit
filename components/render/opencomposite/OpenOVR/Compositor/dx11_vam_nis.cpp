@@ -111,7 +111,8 @@ RWTexture2D<float4> unchanged : register(u1);
     target[id] = float4(clamp(c.rgb + edit, 0, maxValue), c.a);
 }
 )";
-// denoise / sharpen: NR after the upscaler and NVSharpen when it runs last (elsewhere their time counts as denoise).
+// denoise / sharpen: NR (neural rendering; `denoise` is the stage's old name, kept for the logs) after the upscaler
+// and NVSharpen when it runs last (elsewhere their time counts as denoise).
 enum SubmitStage : unsigned { StageCrop, StageGuides, StageNr, StageUpscale, StageDenoise, StageSharpen, StageOutput, SubmitStageCount };
 const char* const kSubmitStageNames[SubmitStageCount] = {"crop", "guides", "nr", "upscale", "denoise", "sharpen", "output"};
 // [NR] PackEyes: eye 0's VamNis also crops eye 1 (the other half of the same
@@ -794,7 +795,7 @@ bool VamNis::Process(ID3D11Texture2D* source, UINT slice, const float* bounds,
         const auto denoiseOutput = [&](ID3D11RenderTargetView* stagingView = nullptr, bool upscaled = false) {
             if (!nrAfterTarget) return;
             // With sharpening, keep NR on the SR staging image so the last pass
-            // sharpens the denoised result, without another full-resolution copy.
+            // sharpens NR's result, without another full-resolution copy.
             auto target = stagingView ? p.output.Get() : nrAfterTarget.Get();
             auto view = stagingView ? p.outputView : nrAfterView;
             if (p.nrAfterScale < 100 && p.DenoiseReduced(eye, target, view, outputWidth, outputHeight, *nr, dlss,

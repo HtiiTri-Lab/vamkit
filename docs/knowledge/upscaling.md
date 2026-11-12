@@ -97,7 +97,7 @@ SR's place inside `Upscale()` with the same per-eye textures and guides, one con
    reset, the frame serial is not consecutive, or the route changed between raster and path tracing.
 5. A composite pass (`Composite` in the RR shader) applies the detail-preservation factor (below), the optional
    cross-eye resolve (below), the UI layers captured by the bridge, and publishes the image. The existing tone mapper,
-   then NR ([denoiser.md](denoiser.md)), then NVSharpen, then frame generation follow
+   then NR ([neural-rendering.md](neural-rendering.md)), then NVSharpen, then frame generation follow
    ([frame-generation.md](frame-generation.md)).
 
 On any exception in a path-traced frame the code switches path tracing off (`ST_SetPathTracingV1(0)`), and the raster
@@ -267,7 +267,7 @@ headset, 144 Hz). Not looked at by a person in a headset.
   recorded on a ring without a device. `ProbeUpscalers` now brings the ring up itself (`CommandRing`) before it offers
   XeSS or FSR. Rule: whatever records on the ring calls `on12Commands.Init` on its own path; never rely on NGX having
   run. Found with `VAMKIT_NO_DLSS=1`, which is why that switch must be part of any change to this code.
-- **The denoiser (NR) retried once a second for ever on a desktop without NGX.** Its retry was meant for resource
+- **Neural rendering (NR) retried once a second for ever on a desktop without NGX.** Its retry was meant for resource
   failures. NGX not coming up is now `unavailable`: one log line (`NR prepass cannot run on this machine`), no retry.
 - **SR pauses and the image goes soft.** VaM's own render scale times ours exceeds the output; set VaM's to 1.0.
 - **Small menu text shakes with SR on.** The upscaler plus jitter smears thin glyphs on head turns; menus therefore

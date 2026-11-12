@@ -10,7 +10,7 @@ it was developed with, the hash, and where people usually get the file.
 |---|---|---|---|
 | `nvngx_dlss.dll` | DLSS super resolution, models K / L / M (path tracing off) | DLSS upscaling is unavailable | public, NVIDIA's DLSS repository on GitHub, the tag pinned in the manifest |
 | `nvngx_dlssd.dll` | DLSS Ray Reconstruction, preset F (path tracing on) | path tracing cannot be shown: the tracer waits for RR | public, same repository and tag |
-| `nvngx_dlssnr.dll` | the neural denoiser on the output | the denoiser stays off; everything else works | no public download. It reached the public inside game updates; the user supplies a copy and the hash is checked |
+| `nvngx_dlssnr.dll` | neural rendering (NR) on the output | NR stays off; everything else works | no public download. It reached the public inside game updates; the user supplies a copy and the hash is checked |
 | `nvngx_dlssg.dll` | DLSS Frame Generation (VR through the OFXR layer, desktop through our presenter) | frame generation falls back to the OFXR layer's optical flow | a current NVIDIA driver downloads it into its model store the first time a frame generation title runs; a copy from a game that ships it is accepted too |
 
 The launcher passes the folders to the components through environment variables (`VAM_DLSS_RUNTIME_PATH`,

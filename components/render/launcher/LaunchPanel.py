@@ -935,7 +935,7 @@ class LaunchPanel:
         header.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, S(14)))
         header.columnconfigure(0, weight=1)
         tk.Label(header, text=tr("VaM Launcher"), bg=T.BG, fg=T.TEXT, font=(T.FONT, 19, "bold")).grid(row=0, column=0, sticky="w")
-        tk.Label(header, text=tr("Path tracing, upscaling, denoising and frame generation are set in the in-game menu."),
+        tk.Label(header, text=tr("Path tracing, upscaling, neural rendering and frame generation are set in the in-game menu."),
                  bg=T.BG, fg=T.MUTED, font=(T.FONT, 10)).grid(row=1, column=0, sticky="w", pady=(S(2), 0))
         self.state_label = tk.Label(header, text=tr("● Not running"), bg=T.BG, fg=T.MUTED, font=(T.FONT, 10, "bold"))
         self.state_label.grid(row=0, column=1, rowspan=2, sticky="e")
@@ -973,7 +973,7 @@ class LaunchPanel:
 
     def build_start(self, master):
         card = self.card(master, "1", tr("How to start"),
-                         tr("The mod: skin and hair shading, upscaling (DLSS, XeSS or FSR), denoising and frame generation; path tracing is switched in the in-game menu. Vanilla: loads none of the mod's files; for going back and for comparing."))
+                         tr("The mod: skin and hair shading, upscaling (DLSS, XeSS or FSR), neural rendering and frame generation; path tracing is switched in the in-game menu. Vanilla: loads none of the mod's files; for going back and for comparing."))
         row = self.add(card, "variant", tr("Start as"))
         self.segmented(row, "variant", [(tr(name), value) for value, name in VARIANT_NAMES.items()])
         row = self.add(card, "display_mode", tr("Display"))
@@ -991,7 +991,7 @@ class LaunchPanel:
         tk.Label(summary, text=tr("This launch"), bg=T.SURFACE, fg=T.TEXT, font=(T.FONT, 13, "bold")).pack(anchor="w", padx=S(16), pady=(S(14), S(8)))
         self.steps = {}
         self.step_titles = {}
-        titles = (("variant", tr("Start as")), ("render", tr("Render")), ("nr", tr("Denoise")), ("upscale", tr("Upscale")),
+        titles = (("variant", tr("Start as")), ("render", tr("Render")), ("nr", tr("Neural rendering")), ("upscale", tr("Upscale")),
                   ("framegen", tr("Frame gen")), ("output", tr("→ Headset")))
         # As wide as the longest title of this language (7 holds the Chinese ones).
         title_width = max(7, 1 + max(len(title) for title in (*(title for _, title in titles), tr("→ Monitor"))))
@@ -1262,7 +1262,7 @@ class LaunchPanel:
         self.live_text = performance_ini(self.active)
         self.paint_running()
         # The tab's name as the in-game menu shows it (VaMVRMenu.Menu.cs MenuTabLabel).
-        self.set_status(tr("Starting. Path tracing, the upscaler model, the render scale, denoising and frame generation are changed in the “{0}” tab of the game's main menu; VaM's own files are put back when it exits, and closing this window does not stop the game.",
+        self.set_status(tr("Starting. Path tracing, the upscaler model, the render scale, neural rendering and frame generation are changed in the “{0}” tab of the game's main menu; VaM's own files are put back when it exits, and closing this window does not stop the game.",
                            tr("Graphics") if self.active["display_mode"] == "Desktop" else tr("VR Graphics")))
         self.refresh()
         self.root.after(800, self.poll)

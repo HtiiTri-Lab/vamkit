@@ -20,7 +20,7 @@
 ## Fetched at build time, never committed
 
 See `manifest/thirdparty.toml` for versions and hashes: the NVIDIA DLSS SDK and runtimes (SR, RR, Frame Generation,
-the neural denoiser), NVAPI, the NVIDIA Image Scaling SDK, AMD FidelityFX FSR 1, Microsoft Detours, glm, the Khronos
+neural rendering), NVAPI, the NVIDIA Image Scaling SDK, AMD FidelityFX FSR 1, Microsoft Detours, glm, the Khronos
 OpenXR SDK and Vulkan headers, and the OpenVR headers. Each keeps its own license; `vamkit fetch` lists the ones under
 a vendor licence and downloads them only after `--accept-licenses`. Shaders are compiled with the Windows SDK's own
 `dxc` and `fxc`.

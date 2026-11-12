@@ -38,7 +38,7 @@ The panel writes a run folder `profiles/<mode>/panel-runs/<stamp>/` with `perfor
 | `[Performance] RenderScaleRR` | 33 | Render scale of Ray Reconstruction (path tracing on), 33 to 100 |
 | `[Performance] OutputScale` | 100 | Output scale, 75 to 150 |
 | `[Performance] FrameGeneration`, `FrameGenModel`, `DLSSGLite` | 1, `DLSS`, 0 | Frame generation on / off, the generator (`DLSS` or `FSR`; the other stands in where the chosen one cannot run; FSR is 2x) and DLSS-G's light model |
-| `[NR] Enabled`, `Style`, `Intensity`, ... | `Enabled` 1, `Style` 0, `Intensity` 100 | The neural denoiser's settings |
+| `[NR] Enabled`, `Style`, `Intensity`, ... | `Enabled` 1, `Style` 0, `Intensity` 100 | Neural rendering (NR) settings |
 | `selection.json` `frame_multiplier` | 2 | 2, 3 or 4; written to the OFXR layer; `OFXR_FRAME_MULTIPLIER=4` is set for 4 |
 
 Path tracing itself is not a launcher setting: it is `[RayTracing] Renderer` in the skin cfg, switched in game; the launcher carries

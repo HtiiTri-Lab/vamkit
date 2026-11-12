@@ -1,7 +1,7 @@
 # vr-menu
 
 The in-game settings menu: a "VR Graphics" tab ("Graphics" on the desktop; "VR 画面" / "画面" in Chinese) in VaM's main menu with what is worth changing from inside the headset (or at
-the desktop) while the game runs: frame generation, super resolution and Ray Reconstruction, the denoiser, the path tracing
+the desktop) while the game runs: frame generation, super resolution and Ray Reconstruction, neural rendering (NR), the path tracing
 switch and its bounces, tone mapping, skin scattering and light through thin parts. It is laid out for a laser pointer:
 pages, sub-pages and cards, nothing scrolls, every target is big. It edits the run's `performance.ini`, the OFXR layer's
 ini, and other plugins' BepInEx settings in memory. Depends on BepInEx; talks to the compositor, OFXR / presenter and skin /
@@ -35,7 +35,7 @@ No cfg of its own. What the tab edits (key: file, section, key):
 |---|---|
 | 插帧 (frame generation) | `ofxr_bridge.ini [ofxr] frame_multiplier` (2 to 4; desktop: the presenter), `performance.ini [Performance] FrameGeneration`, `FrameGenModel` (`DLSS` / `FSR`, a row only when both generators can run; while FSR generates the multiplier row gives way to a line "2x"), `DLSSGLite` (DLSS-G only), overlay `[overlay] position` |
 | 清晰度 (clarity) | `[Performance] DLSSPreset` (`Off`/`K`/`L`/`M`/`XeSS`/`FSR`, route off; only the models the compositor reports it can run are listed), `RenderScale` (each model's own remembered as `RenderScaleK/L/M/XeSS/FSR`), `RenderScaleRR` (path tracing on), `OutputScale` 75 to 150, `DLSSSharpness`, `DLSSSharpenLast`, `RRStereo` (VR + path tracing), skin cfg `[RayTracing] RRDetail` |
-| 降噪 (denoiser) | `[NR] RenderPreset`, `Style`, `Intensity`, `LocalToneStrength`, `LocalStructureStrength`, `SkinStructureStrength`, `FoveationSize`, `RegionShiftY`; `[Performance] NRAfterUpscale`, `NRAfterScale`, `NRFeatherPercent` |
+| 神经渲染 (neural rendering) | `[NR] RenderPreset`, `Style`, `Intensity`, `LocalToneStrength`, `LocalStructureStrength`, `SkinStructureStrength`, `FoveationSize`, `RegionShiftY`; `[Performance] NRAfterUpscale`, `NRAfterScale`, `NRFeatherPercent` |
 | 光影 (lighting) | skin cfg `[RayTracing] Renderer` (path tracing on / off), `PathBounces`, `PathBackground` (shown only with path tracing); tone-mapping cfg `[General] Mode`, `Style` |
 | 皮肤 (skin) | skin cfg `[Subsurface] Strength`, `[General] Strength` (thin parts), per-character gloss level through the skin plugin's `SkinGlossLevels` / `SetSkinGlossLevel` |
 | 身体 (body) | Settings of other plugins found by id when loaded (the soft body and animation clock of the development tree are not in this repository; rows for absent plugins are left out) |

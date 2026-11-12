@@ -51,7 +51,7 @@ python tools/vamkit install                    # prints the plan; --yes does it
 
 - Double-click `vamkit-launcher.bat` in your VaM folder, choose the mod or vanilla, VR or desktop, and launch.
 - In game, open VaM's main menu: the **VR Graphics** tab (**Graphics** on the desktop) has path tracing, the upscaler,
-  the denoiser, frame generation and the skin settings; **Hair Budget** and **Display Lighting** have their own tabs.
+  neural rendering, frame generation and the skin settings; **Hair Budget** and **Display Lighting** have their own tabs.
 - Vanilla is always one click away, and `python tools/vamkit uninstall` leaves the VaM folder as it was.
 
 ## What it needs
@@ -79,7 +79,7 @@ python tools/vamkit install                    # prints the plan; --yes does it
 ### Smooth motion at a high resolution
 
 - **Upscaling**: DLSS Super Resolution, Intel XeSS or AMD FSR, each with its own render scale, changed in game.
-- **Denoising**: the DLSS neural denoiser on the output.
+- **Neural rendering**: DLSS NR on the output (local tone and skin structure).
 - **Frame generation** in VR and on the desktop: DLSS Frame Generation 2x to 4x, or FSR's 2x on cards without it.
 
 ![Path tracing in VR: frames that reach a 144 Hz headset](docs/images/vr-frames.svg)
@@ -152,7 +152,7 @@ machine cannot run it is said in the launcher and in the logs, not hidden.
 | Path tracing (in-game switch) | People, clothing, rooms and hair path traced, reconstructed by DLSS Ray Reconstruction |
 | Path tracing off | VaM's own lighting and shadows with the new skin, hair and clothing shading |
 | Upscaling | DLSS SR models K / L / M (path tracing off) or RR (path tracing on), each with its own render scale; Intel XeSS and AMD FSR as further choices with path tracing off, also on cards without DLSS (run on an RTX card only so far) |
-| Denoising | DLSS neural denoiser on the output, adjustable in game |
+| Neural rendering | DLSS NR on the output (local tone and skin structure), adjustable in game |
 | Frame generation | DLSS Frame Generation 2-4x, in VR through the OFXR layer and on the desktop through our own presenter; AMD FSR frame generation (2x) where DLSS Frame Generation cannot run |
 | Skin | Screen-space subsurface scattering and light through thin parts (ears, fingers), with or without path tracing |
 | Runtime | Hair and cloth physics in fused GPU passes, clothing wraps batched, character CPU hot paths in native code, a faster Mono collector, a hair cost budget. Same results as VaM's own code |

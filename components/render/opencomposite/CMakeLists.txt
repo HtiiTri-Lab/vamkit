@@ -487,7 +487,7 @@ if(WIN32)
             VERBATIM)
         target_sources(OCCore PRIVATE "${VAM_NIS_HEADER}")
     endforeach()
-    # NVSharpen only: DLSS supplies the scaling; sharpen its final denoised SDR output.
+    # NVSharpen only: DLSS supplies the scaling; sharpen its final SDR output (after NR).
     set(VAM_NIS_SHARPEN_HEADER "${CMAKE_BINARY_DIR}/vam-shaders/vam_nis_sharpen.h")
     add_custom_command(OUTPUT "${VAM_NIS_SHARPEN_HEADER}"
         COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/vam-shaders"

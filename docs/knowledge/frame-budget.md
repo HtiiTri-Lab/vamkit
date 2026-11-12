@@ -80,7 +80,7 @@ GPU shares (simulated headset, development machine):
 - Frame generation, per real frame beyond generation off (quality model, simulated headset): 2x +2.8, 3x +4.4, 4x +5.7 ms;
   offline both eyes at 4x 4.5 ms. The lite model C is cheaper (+.9 / +2.1 / +2.5) and was rejected on quality.
 - NR (new model, packed): about 1.5 ms both eyes before the upscaler; after RR in reduced mode 4.4-4.6 ms for both eyes at
-  the time it was measured ([denoiser.md](denoiser.md)).
+  the time it was measured ([neural-rendering.md](neural-rendering.md)).
 
 CPU: the character path (skin, morphs, normals) was reworked natively, 4.1 -> 2.2 ms on the character thread
 ([cpu.md](cpu.md)). Physics runs at 90 Hz with at most three steps per real frame; freezing an animation does not save

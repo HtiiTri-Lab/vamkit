@@ -94,7 +94,7 @@ are only scanned (`misread headers present N` in the log). The slot is wrapped o
 **Why not reserve every boundary up front** (the first version did, 4 GB to 16 TB, 4095 reservations of 64 KB): that left
 no free address range longer than 4 GB below 16 TB. CUDA, which every DLSS feature uses through
 `NvAPI_D3D12_CreateCuModule`, could not reserve its range and failed; NGX reported 0xBAD00002 for super resolution, ray
-reconstruction, the denoiser and frame generation, and path tracing waits for ray reconstruction, so it never started
+reconstruction, neural rendering and frame generation, and path tracing waits for ray reconstruction, so it never started
 either. The picture simply had none of it, and the game did not say why. Lesson: a defence that reserves address space
 broadly collides with drivers' needs for contiguous space; make it act only on the allocator that causes the problem.
 (Marking stacks also reserve address space: 512 MB per participating thread, 512 MB for the shared pool, 64 MB per thread for
@@ -167,12 +167,12 @@ started VaM.
   generation worked; error counts unchanged.
 - Divisor 2: collection interval estimated (from the measured garbage rates, not timed end to end) as 16-26 minutes with
   path tracing on and 13-22 minutes with it off, against 8-13 and 7-11 with divisor 3.
-- Boundary guard in a path-traced game run: super resolution available, denoiser and ray reconstruction created,
+- Boundary guard in a path-traced game run: super resolution available, neural rendering and ray reconstruction created,
   frame generation producing, `CreateCuModule` failures 0, one boundary moved while loading a scene.
 
 ## Pitfalls
 
-- **DLSS, denoiser, frame generation and path tracing all missing, log shows NGX error 0xBAD00002 or
+- **DLSS, neural rendering, frame generation and path tracing all missing, log shows NGX error 0xBAD00002 or
   `NvAPI_D3D12_CreateCuModule failed`** -> something reserved address space broadly (a gc-tuning build that reserves all
   boundaries, or another injector). Check the gc-tuning log lines first.
 - **A hang of minutes inside a collection, or objects freed while in use** -> the 4 GB header defect; check that the log

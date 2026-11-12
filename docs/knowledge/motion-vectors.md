@@ -1,6 +1,6 @@
 # Motion vectors and depth: where every kind of element gets them
 
-DLSS SR, RR, the neural denoiser and DLSS Frame Generation all need, for every pixel, a depth and a motion vector (where
+DLSS SR, RR, neural rendering (NR) and DLSS Frame Generation all need, for every pixel, a depth and a motion vector (where
 that surface point was in the previous frame). VaM draws its characters in a way Unity cannot see: skin and clothing are skinned
 on the GPU into world-space compute buffers and drawn with `Graphics.DrawMesh`; hair is expanded by tessellation from a buffer
 of guide strands. Unity therefore produces no motion for them, and a wrong vector shows up directly: contours that ripple like
@@ -100,7 +100,7 @@ compositor merges UI on top. Transparency in the guides:
 - **UI.** The bridge sends every visible UI rectangle (current and previous canvas transform) only while path tracing runs; the compositor draws them where they are in front
   of the scene and the guide pass merges their depth and motion. A flag marks elements as "on top"; ZTest Always shaders (`UI/Default-Overlay`,
   `GUI/Text Shader Overlay`, `Custom/TransparentHUD`, `Unlit/UnlitOverlayShader`) are on top, and in VR every world canvas is while path tracing runs.
-- The RR stage also needs a "specular hit distance" and albedo, normal and roughness guides; those are not covered here: [denoiser.md](denoiser.md), [path-tracing.md](path-tracing.md).
+- The RR stage also needs a "specular hit distance" and albedo, normal and roughness guides; those are not covered here: [upscaling.md](upscaling.md), [path-tracing.md](path-tracing.md).
 
 ### Principle: the character's motion wins
 

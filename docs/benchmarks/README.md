@@ -57,7 +57,7 @@ A **setup** is what is installed and switched on; a **case** is a renderer state
 
 | Setup | What runs |
 |---|---|
-| kit | the installed build, the launch panel's preset for the display mode (render scales, denoiser, multiplier are recorded with every result) |
+| kit | the installed build, the launch panel's preset for the display mode (render scales, neural rendering, multiplier are recorded with every result) |
 | VaM alone (`--baseline`) | VaM's own files, none of the kit's plugins, BepInEx on only for the test agent; desktop only (VaM's own VR needs a real headset) |
 | without NAME (`--without NAME`) | the kit with one plugin parked (its files start with NAME, for example `VaMHairSolver`): what that component contributes |
 
@@ -87,7 +87,7 @@ One record per case, over a window of 30 s (default) that starts after the scene
 | `physics_steps_per_frame`, `physics_hz` | physics steps VaM ran per rendered frame (mean over the window) and its fixed step rate. Hair and cloth are simulated once per step, so this is part of the load | same |
 | `cpu_cores` | CPU time VaM's process used, per second of wall clock (2.0 = two cores busy) | process times |
 | `gpu_load_percent`, `video_memory_mb` | load and memory in use of the whole GPU, mean and peak; `video_memory_mb_before_vam` is what was in use before VaM started | `nvidia-smi`, once a second |
-| `gpu_stages` | GPU time of the compositor's stages (upscaling, denoiser, ray reconstruction, object motion), mean per frame | the compositor's timing lines in `opencomposite.log` |
+| `gpu_stages` | GPU time of the compositor's stages (upscaling, neural rendering, ray reconstruction, object motion; NR after the upscaler is the stage `denoise`), mean per frame | the compositor's timing lines in `opencomposite.log` |
 | `renderer` | is it tracing, traced triangles and hair segments, scene build time, is ray reconstruction the upscaler | the skin plugin's status |
 | `headset` (VR) | the simulated display over the same window: `displayed_fps` (new frames shown per second), `submitted_fps`, `repeat_ratio` (share of refreshes that showed an old frame), `hitches` (an image held for three refreshes or more), `longest_image_ms`, `pipeline_gaps` (no frame for four refreshes), `frozen_pose_runs`, `pose_age_intended_ms` | the simulated headset's per-refresh log, `simxr.analyze` |
 | `start_seconds`, `load_seconds` | launch to a responsive VaM; loading the scene | wall clock |
@@ -99,7 +99,7 @@ How to read them:
 - **Compare inside one results file first.** Two sessions differ by a few percent for reasons nobody controls; a
   difference smaller than that between two files means nothing.
 - **`raster` against VaM alone is not a like-for-like speed test.** The kit renders at a lower resolution and
-  reconstructs (DLSS), denoises, and shades skin, hair and clothing differently; VaM alone renders natively with MSAA.
+  reconstructs (DLSS), applies neural rendering, and shades skin, hair and clothing differently; VaM alone renders natively with MSAA.
   The pair shows what the kit's picture costs or saves on that machine, not which is "faster".
 - **With frame generation on, read `fps` against the beat** (refresh / multiplier) and look at `frame_ms_p99`,
   `hitches` and, in VR, the `headset` block. `gpu_stages` then include the time the compositor waits for the beat:

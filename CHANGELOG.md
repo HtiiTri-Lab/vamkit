@@ -9,6 +9,9 @@
 - The launcher offers the mod or vanilla (VaM's own files, BepInEx off), in VR or on the desktop; `launch.py` replaces
   the PowerShell launch script.
 - The NRD denoiser path is removed (path tracing always goes through RR).
+- NR is called neural rendering (神经渲染), not a denoiser: the menu page, the launcher and the docs say so; the
+  `[NR]` keys and the log's stage name `denoise` are unchanged. The knowledge page on it is now
+  [docs/knowledge/neural-rendering.md](docs/knowledge/neural-rendering.md).
 - Desktop presenter v3: Unity's queue no longer waits on the GPU for the presenter's queue (its frames go through a ring
   of three inputs), Unity's thread waits for the presenter for at most a second, and long fence waits, latency-object
   timeouts and slow `Present` calls are logged in `dlssg.log`. Before, a stall in presentation could stop all of VaM

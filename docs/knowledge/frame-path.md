@@ -5,11 +5,11 @@ never replaces Unity's renderer. It lets Unity draw, copies what the reconstruct
 takes the frame over at four places: before Unity's opaque pass (path tracing), after its transparents (the capture), at
 eye submission (the compositor) and at presentation (frame generation, or our own presenter on the desktop). A player
 sees the result as a render at a fraction of the output size, reconstructed to full size by DLSS (RR preset F when path
-tracing is on, SR K / L / M when it is off), cleaned by the neural denoiser, tone mapped, and then multiplied in
+tracing is on, SR K / L / M when it is off), passed through neural rendering (NR), tone mapped, and then multiplied in
 frame rate by DLSS Frame Generation.
 
 This document is the map. Each stage has its own document: [d3d11on12.md](d3d11on12.md) for the device,
-[motion-vectors.md](motion-vectors.md) for the guides, [upscaling.md](upscaling.md), [denoiser.md](denoiser.md),
+[motion-vectors.md](motion-vectors.md) for the guides, [upscaling.md](upscaling.md), [neural-rendering.md](neural-rendering.md),
 [frame-generation.md](frame-generation.md), [path-tracing.md](path-tracing.md), [settings-and-menu.md](settings-and-menu.md).
 
 ## How it works
@@ -21,7 +21,7 @@ This document is the map. Each stage has its own document: [d3d11on12.md](d3d11o
 | 0 | Launch: swaps VaM's own files, sets the environment, arms OFXR in VR | `components/render/launcher/launch.py` | `run_mod`, `mod_environment`, `activate_mod`, `restore_files` |
 | 1 | Unity camera, jitter, depth, motion collection, post-processing hand-over | `components/render/dlss-bridge/VaMDLSSBridge.cs` (BepInEx plugin `local.vam.dlssbridge`) | `PreCull`, `PreRender`, `LateUpdate`, `SetupPostEffects` |
 | 2 | Unity's D3D11 device becomes a D3D11On12 device | `components/render/d3d11-proxy/d3d11_proxy.cpp` (VaM's `d3d11.dll`) | `Proxy_D3D11CreateDevice`, `CreateOn12`, `D3DInterop_GetOn12ForDevice` |
-| 3 | Compositor: guides, SR or RR, denoiser, sharpening, UI composition, tone-mapping hand-off | `components/render/opencomposite/OpenOVR/Compositor/` (VaM's `openvr_api.dll` is OpenComposite) | `dx11_vam_dlss.cpp` (`OnRenderEvent`, `Capture`, `PrepareGuides`, `Upscale`), `vam_rr.inl` (`Reconstruct`, `FinishPathFrame`, `ToneRr`, `PostRr`, `SubmitRr`), `dx11_vam_nis.cpp` (`VamNis::Process`), `dx11_nr_prepass.cpp` |
+| 3 | Compositor: guides, SR or RR, neural rendering (NR), sharpening, UI composition, tone-mapping hand-off | `components/render/opencomposite/OpenOVR/Compositor/` (VaM's `openvr_api.dll` is OpenComposite) | `dx11_vam_dlss.cpp` (`OnRenderEvent`, `Capture`, `PrepareGuides`, `Upscale`), `vam_rr.inl` (`Reconstruct`, `FinishPathFrame`, `ToneRr`, `PostRr`, `SubmitRr`), `dx11_vam_nis.cpp` (`VamNis::Process`), `dx11_nr_prepass.cpp` |
 | 4 | Path tracer: scene, materials, the trace itself (called from stage 3 on the shared D3D12 queue) | `components/shading/skin/native/rt.cpp`, `components/shading/rt-core/` | `ST_RecordPathTraceV1`, `ST_FinishPathTraceV1` |
 | 5 | Frame generation, VR: an OpenXR API layer between OpenComposite and the runtime | `components/render/ofxr-dlssg/` | `src/layer/openxr_layer.cpp`, `src/d3d12/d3d12_dlssg.cpp`, provider exports `OFXR_PublishD3D11GuidesV3` |
 | 5' | Presentation and frame generation, desktop: our own DXGI owner inside the proxy DLL | `components/render/d3d11-proxy/desktop_presenter.cpp` | `VamDesktopInstall`, `Group` |
@@ -119,7 +119,7 @@ files listed in the table. For each eye, in submission order (`VamNis::Process` 
 4. the reconstruction: `VamDlss::Upscale` -> SR K/L/M (NGX D3D12 through the 11on12 queue), or, with path tracing,
    `SubmitRr` (RR's output was already made at capture time);
 5. NR after the upscaler on a copy of the output reduced to `NRAfterScale` %, its edit added back
-   ([denoiser.md](denoiser.md)); NVSharpen, last or right after SR (`DLSSSharpness`, `DLSSSharpenLast`);
+   ([neural-rendering.md](neural-rendering.md)); NVSharpen, last or right after SR (`DLSSSharpness`, `DLSSSharpenLast`);
 6. publish depth, motion and camera to OFXR (`PublishFrameGeneration`) and hand the image to the runtime.
 
 **Which reconstruction.** `ReadVamPerformanceSettings()` (`vam_performance_config.h`) asks `VamPathRequested()`, which calls

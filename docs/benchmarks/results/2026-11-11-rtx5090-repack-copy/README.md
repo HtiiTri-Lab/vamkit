@@ -15,7 +15,7 @@ them: [../../README.md](../../README.md).
 | Simulated headset | 3072x3264 per eye, 144 Hz, the head looking left and right |
 | VaM | a copy, without any content, of the development machine's VaM 1.22: a third-party repack, **not checked against an official installation**. BepInEx 5.0.1 |
 | VaM's preferences | MSAA 4, 6 pixel lights, shader quality High, physics rate Auto (cap 2), smooth passes 4, **soft body physics off**, glow High |
-| The kit's preset | path tracing off: DLSS SR K at 75 % render scale; path tracing on: RR at 33 %; output 100 %; denoiser on; frame generation 4x |
+| The kit's preset | path tracing off: DLSS SR K at 75 % render scale; path tracing on: RR at 33 %; output 100 %; neural rendering (NR) on; frame generation 4x |
 
 A download was running on the machine during the measurement; it may have cost the cases that are limited by the
 CPU a little. Treat this folder as the method's first complete run, not as a reference: the reference will be the
@@ -85,7 +85,7 @@ Every record:
   raster lighting and shadow maps.
 - **VaM alone is faster on the desktop** (158-306) in these light scenes. That is the price of the kit's picture, not
   a like-for-like test: VaM alone renders 4K natively with MSAA and no reconstruction; the kit renders at 75 % (or
-  33 % with path tracing), reconstructs, denoises (about 1.7 ms per frame at 4K) and shades skin, hair and clothing
+  33 % with path tracing), reconstructs, applies neural rendering (about 1.7 ms per frame at 4K) and shades skin, hair and clothing
   differently. VaM alone cannot be measured in VR without a real headset.
 - **Video memory**: VaM alone 5.7-8.9 GB (of which about 2.3 GB were in use before VaM started); the kit 8.8-13.8 GB on
   the desktop and 13.2-18.4 GB in VR.

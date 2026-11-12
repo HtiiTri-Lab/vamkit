@@ -170,8 +170,8 @@ installs = "vamkit/bin/dlss/sr/nvngx_dlssd.dll"
 
 [[item]]
 id = "dlss-nr"
-what = "nvngx_dlssnr.dll 310.9.16, the neural denoiser (optional: without it the denoiser stays off)"
-without = "the neural denoiser on the output: the denoiser setting has no effect"
+what = "nvngx_dlssnr.dll 310.9.16, neural rendering (NR; optional: without it NR stays off)"
+without = "neural rendering (NR) on the output: the NR settings have no effect"
 min_version = "310.1.0"
 kind = "user"
 name = "nvngx_dlssnr.dll"

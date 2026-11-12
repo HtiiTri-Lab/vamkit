@@ -24,7 +24,7 @@ by reading code, not by capturing more.
 
 | Seen | Read |
 |---|---|
-| No upscaling, no denoiser, no frame generation, path tracing never takes over; the logs show a DLSS create failure | [gc.md](../knowledge/gc.md) (address space taken from CUDA), then anything else that reserves address space or hooks system calls |
+| No upscaling, no neural rendering, no frame generation, path tracing never takes over; the logs show a DLSS create failure | [gc.md](../knowledge/gc.md) (address space taken from CUDA), then anything else that reserves address space or hooks system calls |
 | The picture freezes for about half a minute the first time path tracing starts after a build | [path-tracing.md](../knowledge/path-tracing.md): the driver compiles the pipelines once |
 | The in-game settings tab is missing | [settings-and-menu.md](../knowledge/settings-and-menu.md) |
 | VR launch refused when started as administrator | [settings-and-menu.md](../knowledge/settings-and-menu.md) |
@@ -43,7 +43,7 @@ by reading code, not by capturing more.
 |---|---|
 | Render scale has no effect with path tracing on; `DLSSPreset=RR` behaves as K with it off | [upscaling.md](../knowledge/upscaling.md): both intended |
 | Upscaling pauses and the image goes soft | [upscaling.md](../knowledge/upscaling.md): VaM's own render scale |
-| Small menu text shakes; the picture changes when a menu opens | [upscaling.md](../knowledge/upscaling.md), [denoiser.md](../knowledge/denoiser.md): native frames while a menu is open |
+| Small menu text shakes; the picture changes when a menu opens | [upscaling.md](../knowledge/upscaling.md), [neural-rendering.md](../knowledge/neural-rendering.md): native frames while a menu is open |
 | Ghosting behind transparent things on head turns; hair shimmering at a low render scale | [upscaling.md](../knowledge/upscaling.md), [motion-vectors.md](../knowledge/motion-vectors.md) |
 | A face or body outline warps while frame generation is on | [motion-vectors.md](../knowledge/motion-vectors.md): whose motion and depth the pixel carries |
 | Dark bars at the picture's edge when the view pans with frame generation | [frame-generation.md](../knowledge/frame-generation.md) |
@@ -54,7 +54,7 @@ by reading code, not by capturing more.
 | A scene's own menu or a world-space panel is missing or hidden behind a person with path tracing | [frame-path.md](../knowledge/frame-path.md), [path-tracing.md](../knowledge/path-tracing.md) (UI composition) |
 | Hard line under the chin or along shadow edges; plastic or flat highlights; dark eyes with a clothing item | [skin.md](../knowledge/skin.md) |
 | Highlights grey or hazy, halos, tone mapping applied twice | [tone-and-display-lighting.md](../knowledge/tone-and-display-lighting.md) |
-| The denoised picture is warmer or darker in one configuration | [denoiser.md](../knowledge/denoiser.md): the packed canvas width |
+| The picture after neural rendering is warmer or darker in one configuration | [neural-rendering.md](../knowledge/neural-rendering.md): the packed canvas width |
 | Hidden accessories appear, or clothing looks too sheer | [clothing.md](../knowledge/clothing.md), [path-tracing.md](../knowledge/path-tracing.md): what a negative alpha adjustment means |
 | Hair too dark, too bright or too costly with path tracing | [path-tracing.md](../knowledge/path-tracing.md), [hair.md](../knowledge/hair.md) |
 
@@ -66,7 +66,7 @@ by reading code, not by capturing more.
 | Two long frames at a fixed period (for example every 2 s), worse in heavy scenes | [../protocol/design-rules.md](../protocol/design-rules.md), "No timed whole-scene work"; [hair.md](../knowledge/hair.md) |
 | The real frame rate sits one step below what the GPU load suggests | [frame-budget.md](../knowledge/frame-budget.md): the cadence rule |
 | On the desktop the window flashes away for an instant, or the frame rate is quantised | [frame-generation.md](../knowledge/frame-generation.md): the desktop presenter |
-| One long frame a few seconds after a feature was created; a hitch of 1 to 3 s when a model or size changes | [denoiser.md](../knowledge/denoiser.md), [upscaling.md](../knowledge/upscaling.md) |
+| One long frame a few seconds after a feature was created; a hitch of 1 to 3 s when a model or size changes | [neural-rendering.md](../knowledge/neural-rendering.md), [upscaling.md](../knowledge/upscaling.md) |
 | One part of a character jumps or lags while the rest moves | [../protocol/performance.md](../protocol/performance.md), "Two different smoothness problems"; then the component's document |
 | The character's motion looks softened or delayed against its animation | [../protocol/design-rules.md](../protocol/design-rules.md), "The character's motion wins" |
 | Hair or cloth moves differently from stock VaM | [hair.md](../knowledge/hair.md), [clothing.md](../knowledge/clothing.md): run the verify mode; the result must equal GPUTools' |

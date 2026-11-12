@@ -32,7 +32,7 @@ Files: `plugin/VaMToneMapping.cs` (BepInEx plugin `local.vam.tonemapping`), `nat
    - *Path tracing on (DLSS RR F)*: the plugin passes its event pointer through `VaMDLSS_WrapToneMapEvent` (exported from
      the compositor, `components/render/opencomposite/OpenOVR/Compositor/dx11_vam_dlss.cpp`). The wrapper (`OnRrToneMap`,
      `ToneRr` in `vam_rr.inl`) intercepts the event, runs the same native pass **once on RR's full-resolution output**
-     (the double-wide scene image) and copies the result back, and the later stages (neural denoiser, sharpening, frame
+     (the double-wide scene image) and copies the result back, and the later stages (neural rendering, sharpening, frame
      generation) see the toned image. If the compositor is not ready, the serial does not match or the target
      size does not fit, the wrapper returns false and the event runs as it would without RR.
    - *Path tracing off (DLSS SR K / L / M or off)*: no interception; it runs at the camera stage, before SR.
@@ -57,7 +57,7 @@ Files: `plugin/VaMToneMapping.cs` (BepInEx plugin `local.vam.tonemapping`), `nat
    the shadows and mids of every scene it runs on. Defaults live in `native/tonemap.cpp` (`gContrast`, `gShoulder`,
    `gHdrMax`, `gMidIn`, `gMidOut`, `gSaturation`, `gCrosstalk`, `gSplit`).
 6. **Not done on purpose.** Grain, vignette, chromatic aberration and depth of field are not applied in VR (two eyes would
-   disagree; grain is wiped by the denoiser and smeared by frame generation). Colour grading by LUT and mild bloom are
+   disagree; grain is wiped out by reconstruction and NR and smeared by frame generation). Colour grading by LUT and mild bloom are
    fine. A third style (an AgX-like curve with Blender's inset/outset matrices, white point 3) was built and shown; it
    kept the hue of bright coloured lights better (an orange lamp's hue moved 16 to 54 degrees in the neutral style versus
    16 to 29 in AgX, in an offline test) and was not installed. It is not in this repository.

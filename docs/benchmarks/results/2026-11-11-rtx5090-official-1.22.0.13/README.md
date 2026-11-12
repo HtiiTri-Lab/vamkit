@@ -16,7 +16,7 @@ with VaM alone. Measured on 2026-11-11 with `tools/lab/bench/bench.py run --disp
 | VaM | 1.22.0.13 as MeshedVR's updater installs it, no licence key entered, nothing added but BepInEx 5.4.23.6 (from its release page) and the kit |
 | VaM's preferences | as a new installation has them: MSAA 4, 2 pixel lights, shader quality High, physics rate Auto (72 Hz on this desktop, 90 Hz in VR; at most 2 steps a frame), smooth passes 2, **soft body physics on**, glow Low, mirror reflections and realtime reflection probes on |
 | The kit | this repository's build against that VaM. In this run cpu-boost was not active: its first fingerprint check did not recognise the methods of 1.22.0.13 (see "With cpu-boost" below for the two scenes it matters in) |
-| The kit's preset | path tracing off: DLSS SR K at 75 % render scale; path tracing on: RR at 33 %; output 100 %; denoiser on; frame generation 4x |
+| The kit's preset | path tracing off: DLSS SR K at 75 % render scale; path tracing on: RR at 33 %; output 100 %; neural rendering (NR) on; frame generation 4x |
 
 ## Results
 

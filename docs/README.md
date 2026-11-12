@@ -36,7 +36,7 @@ Each document has the same sections: how it works, settings, measured, pitfalls,
 | [frame-path.md](knowledge/frame-path.md) | a frame from Unity's camera to the display, in VR and on the desktop; who owns each step |
 | [d3d11on12.md](knowledge/d3d11on12.md) | Unity's D3D11 device on a D3D12 queue: why, what it costs, the rules that keep it cheap |
 | [upscaling.md](knowledge/upscaling.md) | DLSS super resolution models, Ray Reconstruction, render scales, sharpening |
-| [denoiser.md](knowledge/denoiser.md) | the neural denoiser on the output |
+| [neural-rendering.md](knowledge/neural-rendering.md) | neural rendering (NR) on the output |
 | [frame-generation.md](knowledge/frame-generation.md) | frame generation in VR and the desktop presenter; pacing |
 | [motion-vectors.md](knowledge/motion-vectors.md) | where each element's motion and depth come from |
 | [frame-budget.md](knowledge/frame-budget.md) | the development machine, the frame-rate target, where a frame's time goes, every gain measured |

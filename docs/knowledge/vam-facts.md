@@ -154,8 +154,8 @@ three references when registering. `atom.uid` is still "UID" at the first `PrepR
 - **Stock skin shader** (`globalgamemanagers.assets`): diffuse = `2 (1 - S/2) * saturate(S/2 + (1 - S/2) N.L) * ((N.L + 1)/2)^2` per
   channel, so the dark side gets a flat floor and then a hard cut; one normalised Blinn-Phong lobe plus Fresnel; Skyshop IBL plus
   spherical harmonics whose orders 1 and 2 are attenuated by S; **no transmission term at all**. `_TranslucencyColor` /
-  `_TranslucencyTex` are set only by DAZ import and have no UI. VaM and the denoiser both show no ear or finger light-through; with the
-  neural denoiser on (a simulated headset, backlit) skin came out 20-30% darker with red and green up 4-8%.
+  `_TranslucencyTex` are set only by DAZ import and have no UI. VaM and NR both show no ear or finger light-through; with
+  neural rendering (NR) on (a simulated headset, backlit) skin came out 20-30% darker with red and green up 4-8%.
 - **Semi-transparent clothing** (disassembly): `Custom/Subsurface/Transparent*` clothing shaders have no ShadowCaster of their own and fall
   back to the `TransparentCutoutSeparateAlpha(ComputeBuff)` caster, which only discards pixels with
   `saturate(_AlphaTex.a + _AlphaAdjust) < _Cutoff`; clothing materials have `_Cutoff` 0.001, so **sheer cloth casts a solid shadow** and
