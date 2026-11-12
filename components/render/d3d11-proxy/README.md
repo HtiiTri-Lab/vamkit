@@ -37,6 +37,7 @@ No cfg file. Environment variables (the launcher sets them for the mod; the DLL 
 |---|---|
 | `D3DINTEROP_MODE` | `on12`: Unity's `D3D11CreateDevice` (hardware, from `UnityPlayer.dll`) returns a D3D11On12 device. Unset or `pass`: every call goes to the real function, VaM as without this DLL |
 | `D3DINTEROP_LOG` | Directory for `d3d11_proxy.log`; when set, VRAM is also sampled each second into `d3d11_proxy_vram.csv`. Default in on12 mode: the exe's folder |
+| `D3DINTEROP_ON12_WORKER` | Diagnostic. `0`: 11on12 runs without its own worker thread (`D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS`); its translation and submissions happen on Unity's render thread. Logged in `d3d11_proxy.log`. The launcher passes it through |
 | `VAM_DESKTOP_CONFIG` | Desktop only: an ini with `[ofxr] frame_multiplier` (2 to 4) and `[overlay] position` |
 | `VAM_PERFORMANCE_CONFIG` | The run's `performance.ini`: `[Performance] FrameGeneration`, `FrameGenModel` (`DLSS` / `FSR`), `DLSSGLite` are read for the desktop presenter |
 | `VAM_FSR_RUNTIME_PATH` | The folder with AMD's FSR API DLLs (`vamkit/bin/fsr`); without it FSR frame generation is not offered |
@@ -59,15 +60,18 @@ No cfg file. Environment variables (the launcher sets them for the mod; the DLL 
 
 None offline in this repository (the development tree had an 11on12 probe; it was not moved here). Only the game shows it: the log
 lines "on12: device ... on D3D12 device ... queue ..." and, for the desktop, `dlssg.log` (foreground changes, every `ResizeBuffers`, window
-"not responding" verdicts).
+"not responding" verdicts, and lines starting `desktop wait:` / `desktop presenter:` when a fence wait lasts more than 2 s, the swap chain's
+latency object times out, a `Present` takes 250 ms or more, or the presenter has not taken a frame for a second; each names what the presenter is
+doing and how far both queues have got).
 
 ## Invariants
 
 - Vanilla stays vanilla: with `D3DINTEROP_MODE` unset or `pass` the proxy must hand every call to the real `D3D11CreateDevice`. If 11on12 cannot be created,
   Unity gets the real device and the failure is logged.
 - Every export but `D3D11CreateDevice` forwards to `System32\d3d11.dll` with the real ordinals; regenerate the thunks with `gen_thunks.py`, never by hand.
-- Presenter: its DLSS-G, copies and presents run on its own queue and are not drained after each step; Unity's queue waits only until the presenter has taken its own
-  copy. A `ResizeBuffers` to the size the buffers already have keeps buffers, frames and DLSS-G. A keep-alive `WM_NULL` is posted to VaM's window each second
+- Presenter: its DLSS-G, copies and presents run on its own queue and are not drained after each step. Unity's queue never waits on the GPU for the
+  presenter's queue: Unity's frames go through a ring of three inputs, and Unity writes only one that is neither taken nor still being read (checked on
+  the CPU). Unity's thread waits for the presenter to take the last frame (the pacing), for at most a second. A `ResizeBuffers` to the size the buffers already have keeps buffers, frames and DLSS-G. A keep-alive `WM_NULL` is posted to VaM's window each second
   so Windows does not judge it not responding when no input arrives.
 - The presenter's NGX generator is compiled from OFXR's own source file; keep the two in step.
 

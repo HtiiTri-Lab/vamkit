@@ -9,6 +9,14 @@
 - The launcher offers the mod or vanilla (VaM's own files, BepInEx off), in VR or on the desktop; `launch.py` replaces
   the PowerShell launch script.
 - The NRD denoiser path is removed (path tracing always goes through RR).
+- Desktop presenter v3: Unity's queue no longer waits on the GPU for the presenter's queue (its frames go through a ring
+  of three inputs), Unity's thread waits for the presenter for at most a second, and long fence waits, latency-object
+  timeouts and slow `Present` calls are logged in `dlssg.log`. In answer to a desktop hang on another machine (GPU
+  nearly idle, Unity's thread in 11on12, the presenter in a fence wait), where a stall in presentation could stop all of
+  VaM through that wait. `D3DINTEROP_ON12_WORKER=0` runs 11on12 without its own worker thread, as a diagnostic.
+  Run on the desktop in a trial copy (DLSS-G 4x on 160 Hz, frame generation off and on while playing, two window
+  resizes, also with `D3DINTEROP_ON12_WORKER=0`): 40 real fps with generation as before, no long wait logged. The hang
+  was never seen on the development machine, so only the reporting machine can show whether this ends it.
 - Skin: screen-space subsurface scattering for the path tracer and light through thin parts on both routes
   (`[Subsurface] Strength`, `[General] Strength`, both in the menu); the old overall translucency layer is gone.
 - Runtime components added: cpu-boost, gc-tuning, hair-solver, hair-budget, cloth-physics, wrap-batch. Worker thread

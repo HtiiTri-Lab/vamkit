@@ -19,6 +19,19 @@
 //   all down; the window had no presented image until DLSS-G was made again
 //   (0.2-0.4 s) and showed the desktop behind it.
 // - Foreground changes and every ResizeBuffers go to dlssg.log.
+//
+// v3 (2026-11-12, a report of a desktop hang 20-90 frames after start on another machine: VaM "not responding",
+// GPU nearly idle, Unity's thread inside 11on12, the presenter in a fence wait):
+// - Unity's queue no longer waits on the GPU for the presenter's queue. In v2 it waited for the presenter's copy of
+//   the last frame, and that copy sits on the presenter's queue behind the copies into the swap chain's buffers, which
+//   the GPU holds until the presentation engine frees those buffers. So any stall in presentation stopped Unity's
+//   queue, then Unity's thread in 11on12, then the main thread. Now Unity's frames go through a ring of three inputs:
+//   Unity writes one whose last read by the presenter has completed (checked on the CPU, not waited for), the
+//   presenter reads another.
+// - Unity still waits for the presenter to take its last frame (that wait is the pacing), but for at most a second;
+//   after that it replaces the frame the presenter has not taken and goes on, so the window keeps answering.
+// - Every CPU wait on a fence uses an event: one that lasts more than 2 s is logged with the fence, the value and how
+//   far it got; so are latency-object timeouts, slow Present calls and the presenter's current step.
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include "desktop_presenter.h"
@@ -115,8 +128,6 @@ void StartForegroundLog(){
         if(hook)UnhookWinEvent(hook);
     }).detach();
 }
-void WaitFence(ID3D12Fence* fence,UINT64 value){if(value&&fence->GetCompletedValue()<value)Check(fence->SetEventOnCompletion(value,nullptr));}
-
 class Swapchain final:public IDXGISwapChain4 {
     std::atomic<ULONG> refs{1};
     Ptr<IDXGISwapChain4> real;
@@ -124,7 +135,13 @@ class Swapchain final:public IDXGISwapChain4 {
     Ptr<ID3D11On12Device> on12;
     DXGI_SWAP_CHAIN_DESC desc{};
     std::vector<Surface> app;
-    Surface color,depth,motion;
+    // Unity's frames for the presenter: the frame (color), the compositor's guides (depth, motion) and their
+    // description. ready: the ready-fence value after Unity wrote it; read: the present-fence value after the
+    // presenter's last read of it (0: never read). resized: the guides changed size with this frame.
+    struct Input{Surface color,depth,motion;xrfg::DlssMotionVectorFrame guides;UINT64 ready=0,read=0;bool resized=false;};
+    static constexpr int kInputs=3;
+    Input inputs[kInputs];
+    UINT guideWidth=0,guideHeight=0;     // Unity's side: the size of the guides last copied
     Ptr<ID3D12Resource> shown;          // the presenter's copy of the real frame
     Ptr<ID3D12Resource> generated[3];
     Ptr<ID3D12DescriptorHeap> rtvHeap;
@@ -136,19 +153,24 @@ class Swapchain final:public IDXGISwapChain4 {
     Slot* open=nullptr;
     ID3D12GraphicsCommandList* list=nullptr;
     Ptr<ID3D12Fence> readyFence,presentFence;
-    UINT64 readyValue=0;                 // signaled on Unity's queue
+    std::atomic<UINT64> readyValue{0};   // signaled on Unity's queue
     std::atomic<UINT64> presentValue{0}; // signaled on the presenter queue
-    UINT64 inputsReleased=0;             // presentFence value once the presenter has its copy of the inputs
     HANDLE pauseEvent=nullptr,timer=nullptr,latency=nullptr;
     std::mutex mutex;
     std::condition_variable changed;
-    // pending: a frame waits for the presenter; writing: Unity writes the inputs;
-    // consuming: the presenter reads them; busy: the presenter shows a group;
-    // exclusive: a resize or teardown owns everything.
-    bool stop=false,pending=false,writing=false,consuming=false,busy=false,exclusive=false,resetGenerator=false;
-    UINT64 pendingValue=0;
+    // Under `mutex`. pendingInput: written by Unity, not yet taken; takenInput: taken by the presenter, its read
+    // not yet submitted; writtenLast: the input Unity wrote last. writing: Unity writes an input; busy: the presenter
+    // works on a frame; exclusive: a resize or teardown owns everything; stalled: Unity stopped waiting for the
+    // presenter (the time it started to wait in stalledSince) and does not wait again until the presenter takes one.
+    int pendingInput=-1,takenInput=-1,writtenLast=-1;
+    bool stop=false,writing=false,busy=false,exclusive=false,stalled=false;
+    double stalledSince=0;
+    // What the presenter is doing and since when, for the logs of long waits.
+    std::atomic<const char*> step{"starting"};
+    std::atomic<double> stepSince{0};
+    unsigned latencyMisses=0;double latencyLogged=0;
+    std::atomic<DWORD> presenterThread{0};
     std::thread thread;
-    xrfg::DlssMotionVectorFrame guides;
     UINT sync=0,flags=0,index=0;
     ULONGLONG nextRead=0,retryAt=0;
     FILETIME configStamp{},performanceStamp{};
@@ -173,9 +195,31 @@ class Swapchain final:public IDXGISwapChain4 {
         else if(!strcmp(op,"generated")){op="desktop_generated";a=serial;b=multiplier.load();c=count;}
         fprintf(flight,"seq=%llu ms=%.3f tid=%lu phase=%c op=%s result=%u dur_us=%u a=%llu b=%llu c=%llu\n",++seq,Ms(),GetCurrentThreadId(),phase,op,count,unsigned(duration*1000),a,b,c);fflush(flight);
     }
+    void Step(const char* s){step=s;stepSince=Ms();}
+    // Where both queues and the presenter are, for the log lines of long waits.
+    std::string State(){
+        char b[400];snprintf(b,sizeof b,"presenter: %s for %.0f ms; Unity's queue at %llu of %llu; presenter's queue at %llu of %llu",
+            step.load(),Ms()-stepSince.load(),readyFence->GetCompletedValue(),readyValue.load(),presentFence->GetCompletedValue(),presentValue.load());
+        return b;
+    }
+    // A CPU wait for a fence, through an event so that it can be timed: one that lasts more than 2 s is logged (then
+    // every 5 s) with what it waits for, and again when it ends.
+    void WaitFence(ID3D12Fence* fence,UINT64 value,const char* what){
+        if(!value||fence->GetCompletedValue()>=value)return;
+        thread_local HANDLE event=CreateEventW(nullptr,FALSE,FALSE,nullptr);
+        if(!event){Check(fence->SetEventOnCompletion(value,nullptr));return;}
+        Check(fence->SetEventOnCompletion(value,event));
+        const double begin=Ms();double next=begin+2000;
+        while(WaitForSingleObject(event,250)==WAIT_TIMEOUT){
+            if(Ms()<next)continue;next+=5000;
+            xrfg::dlssg_log("desktop wait: %s has waited %.0f ms for %s (fence at %llu, waiting for %llu); %s",
+                GetCurrentThreadId()==presenterThread.load()?"the presenter":"Unity's thread",Ms()-begin,what,fence->GetCompletedValue(),value,State().c_str());
+        }
+        if(Ms()-begin>=2000)xrfg::dlssg_log("desktop wait: %s came after %.0f ms",what,Ms()-begin);
+    }
     // Presenter-queue command lists: a ring, so nothing waits for the queue to drain.
     void Begin(){
-        Slot& s=slots[slotNext++%8];WaitFence(presentFence.Get(),s.value);
+        Slot& s=slots[slotNext++%8];WaitFence(presentFence.Get(),s.value,"a free command list on the presenter's queue");
         Check(s.allocator->Reset());Check(s.list->Reset(s.allocator.Get(),nullptr));open=&s;list=s.list.Get();
     }
     UINT64 Submit(){
@@ -185,8 +229,8 @@ class Swapchain final:public IDXGISwapChain4 {
     void Abandon(){if(list){list->Close();list=nullptr;open=nullptr;}}
     // Both queues idle; only while `exclusive` (or before the presenter runs).
     void DrainAll(){
-        UINT64 v=++presentValue;Check(presentQueue->Signal(presentFence.Get(),v));WaitFence(presentFence.Get(),v);
-        context->Flush();UINT64 r=++readyValue;Check(queue->Signal(readyFence.Get(),r));WaitFence(readyFence.Get(),r);
+        UINT64 v=++presentValue;Check(presentQueue->Signal(presentFence.Get(),v));WaitFence(presentFence.Get(),v,"the presenter's queue to drain");
+        context->Flush();UINT64 r=++readyValue;Check(queue->Signal(readyFence.Get(),r));WaitFence(readyFence.Get(),r,"Unity's queue to drain");
     }
     static void Barrier(ID3D12GraphicsCommandList* l,ID3D12Resource* r,D3D12_RESOURCE_STATES a,D3D12_RESOURCE_STATES b){
         if(a==b)return;D3D12_RESOURCE_BARRIER v{};v.Type=D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;v.Transition={r,D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,a,b};l->ResourceBarrier(1,&v);
@@ -209,13 +253,14 @@ class Swapchain final:public IDXGISwapChain4 {
         desc.BufferDesc.Width=actual.Width;desc.BufferDesc.Height=actual.Height;
         app.clear();index=0;
         for(UINT i=0;i<std::max(1u,desc.BufferCount);i++)app.push_back(MakeSurface(actual.Width,actual.Height,Raw(actual.Format),true));
-        color=MakeSurface(actual.Width,actual.Height,Raw(actual.Format),false);
+        for(auto& in:inputs){in={};in.color=MakeSurface(actual.Width,actual.Height,Raw(actual.Format),false);}
+        pendingInput=takenInput=writtenLast=-1;guideWidth=guideHeight=0;
         windowSurface=app[0].wrapped.Get();
         for(auto& s:app){ID3D11Resource* r=s.wrapped.Get();on12->AcquireWrappedResources(&r,1);}
-        auto like=color.native->GetDesc();
+        auto like=inputs[0].color.native->GetDesc();
         shown=MakeTexture(like,D3D12_RESOURCE_FLAG_NONE);
         for(auto& target:generated)target=MakeTexture(like,D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-        generator.reset();depth={};motion={};serial=0;inputsReleased=0;readyKnown=false;
+        generator.reset();serial=0;readyKnown=false;
         lastPresent=Ms();
     }
     bool Stamp(const std::wstring& path,FILETIME& previous){WIN32_FILE_ATTRIBUTE_DATA a{};if(!GetFileAttributesExW(path.c_str(),GetFileExInfoStandard,&a))return false;bool change=CompareFileTime(&a.ftLastWriteTime,&previous)!=0;previous=a.ftLastWriteTime;return change;}
@@ -266,8 +311,13 @@ class Swapchain final:public IDXGISwapChain4 {
     }
     HRESULT Display(ID3D12Resource* source,unsigned kind,double target,bool paced){
         double waitBegin=Ms();Trace("internal_wait_frame",0,'B');
-        if(paced)SleepTo(target);
-        if(latency&&!IsIconic(desc.OutputWindow))WaitForSingleObject(latency,100);
+        Step("pacing");if(paced)SleepTo(target);
+        Step("waiting for the swap chain's latency object");
+        if(latency&&!IsIconic(desc.OutputWindow)&&WaitForSingleObject(latency,100)==WAIT_TIMEOUT){
+            // The presentation engine retired no frame for 100 ms: presented anyway. Logged at most every 5 s.
+            latencyMisses++;
+            if(Ms()-latencyLogged>=5000){xrfg::dlssg_log("desktop presenter: the swap chain's latency object stayed unsignaled for 100 ms (%u times since the last such line); %s",latencyMisses,State().c_str());latencyMisses=0;latencyLogged=Ms();}
+        }
         Trace("internal_wait_frame",0,'E',Ms()-waitBegin,UINT64(target*1000000.));
         Trace("internal_begin_frame",0,'E');double endBegin=Ms();
         Ptr<ID3D12Resource> back;Check(real->GetBuffer(real->GetCurrentBackBufferIndex(),IID_PPV_ARGS(&back)));
@@ -287,7 +337,9 @@ class Swapchain final:public IDXGISwapChain4 {
             std::wstring path;path.swap(presentedCapture);SaveCapture(back.Get(),path,D3D12_RESOURCE_STATE_PRESENT);
         }
         lastPresent=Ms();
+        Step("in Present");
         HRESULT h=real->Present(paced?1:sync,flags&~DXGI_PRESENT_TEST);
+        if(double took=Ms()-lastPresent;took>=250)xrfg::dlssg_log("desktop presenter: Present took %.0f ms (0x%08x)",took,unsigned(h));
         Trace("internal_end_frame",0,'E',Ms()-endBegin);
         Trace(kind==2?"generated_present":kind==1?"real_present":"repeat_present",1);displayed++;
         return h;
@@ -302,10 +354,13 @@ class Swapchain final:public IDXGISwapChain4 {
         Barrier(list,back.Get(),D3D12_RESOURCE_STATE_RENDER_TARGET,D3D12_RESOURCE_STATE_PRESENT);Submit();
         real->Present(0,0);lastPresent=Ms();
     }
-    // One real frame: take a copy of the inputs (and DLSS-G's frames from them),
-    // hand the inputs back to Unity, then show the group evenly spaced.
-    void Group(UINT64 value,double idleSince){
-        WaitFence(readyFence.Get(),value);
+    // One real frame: take a copy of input `slot` (and DLSS-G's frames from it),
+    // hand the input back to Unity, then show the group evenly spaced.
+    void Group(int slot,double idleSince){
+        Input& in=inputs[slot];
+        Step("waiting for Unity's frame on Unity's queue");
+        WaitFence(readyFence.Get(),in.ready,"Unity's frame (the ready fence)");
+        Step("recording the copy");
         double ready=Ms();
         Settings();
         const double vsync=1000./refresh;
@@ -319,25 +374,28 @@ class Swapchain final:public IDXGISwapChain4 {
         bool makeGenerator=false;
         UINT count=0;
         Begin();
-        Barrier(list,color.native.Get(),D3D12_RESOURCE_STATE_COMMON,D3D12_RESOURCE_STATE_COPY_SOURCE);
+        ID3D12Resource* const color=in.color.native.Get();
+        Barrier(list,color,D3D12_RESOURCE_STATE_COMMON,D3D12_RESOURCE_STATE_COPY_SOURCE);
         Barrier(list,shown.Get(),D3D12_RESOURCE_STATE_COMMON,D3D12_RESOURCE_STATE_COPY_DEST);
-        list->CopyResource(shown.Get(),color.native.Get());
+        list->CopyResource(shown.Get(),color);
         Barrier(list,shown.Get(),D3D12_RESOURCE_STATE_COPY_DEST,D3D12_RESOURCE_STATE_COMMON);
-        Barrier(list,color.native.Get(),D3D12_RESOURCE_STATE_COPY_SOURCE,D3D12_RESOURCE_STATE_COMMON);
-        if(paced&&guides.dlssg_camera){
-            if(resetGenerator){generator.reset();resetGenerator=false;}
+        Barrier(list,color,D3D12_RESOURCE_STATE_COPY_SOURCE,D3D12_RESOURCE_STATE_COMMON);
+        if(in.resized){generator.reset();in.resized=false;}
+        if(paced&&in.guides.dlssg_camera){
             if(generator){
                 // No more frames than this generator makes per pair: FSR one, DLSS-G what the card's can.
-                xrfg::GuidedRecordInput input{};input.backbuffer=color.native.Get();input.guides=&guides;input.outputs=std::min(multiplier.load()-1,generator->max_outputs());
+                xrfg::GuidedRecordInput input{};input.backbuffer=color;input.guides=&in.guides;input.outputs=std::min(multiplier.load()-1,generator->max_outputs());
                 for(UINT i=0;i<input.outputs;i++)input.destinations[i]=generated[i].Get();
                 Check(generator->record(list,input,&count));
             }else makeGenerator=GetTickCount64()>=retryAt;
         }else if(generator)generator->invalidate_history();
         UINT64 released=Submit();
-        {std::lock_guard lock(mutex);inputsReleased=released;consuming=false;}changed.notify_all();
+        // The input is Unity's again once this list has run on the GPU; Unity checks that before it writes it.
+        {std::lock_guard lock(mutex);in.read=released;takenInput=-1;}changed.notify_all();
         if(generator&&!generator->usable()){generator.reset();retryAt=GetTickCount64()+1000;}
         Trace("generated",count);
-        WaitFence(presentFence.Get(),released);
+        Step("waiting for its copy of the frame on its own queue");
+        WaitFence(presentFence.Get(),released,"its copy of the frame (the presenter's queue)");
         if(count)CaptureGenerated(generated[0].Get());
         const UINT frames=count+1;
         if(!known&&period>0)period=std::max(period*0.97,vsync*frames);
@@ -353,38 +411,78 @@ class Swapchain final:public IDXGISwapChain4 {
         // A new generator takes 0.15-0.4 s (DLSS-G's feature; FSR's context comes with its first pair): made after
         // this frame is shown. The one chosen, or the other where it cannot run.
         if(makeGenerator){
+            Step("making a frame generator");
             xrfg::FrameGenModel made{};
-            auto next=xrfg::make_guided_frame_generator(device.Get(),presentQueue.Get(),color.native->GetDesc(),&made);
+            auto next=xrfg::make_guided_frame_generator(device.Get(),presentQueue.Get(),in.color.native->GetDesc(),&made);
             if(next){generator=std::move(next);generatorMost=generator->max_outputs()+1;}
             else{retryAt=GetTickCount64()+1000;Trace("ngx_retry");}
         }
     }
     void Run(){
         SetThreadDescription(GetCurrentThread(),L"VaM Desktop presenter");
+        presenterThread=GetCurrentThreadId();
         bool pinned=false;
         for(;;){
-            UINT64 value=0;double idleSince=Ms();
+            int slot=-1;double idleSince=Ms();
+            Step("waiting for Unity's next frame");
             {std::unique_lock lock(mutex);
-                changed.wait(lock,[&]{return stop||(pending&&!writing&&!exclusive);});
+                changed.wait(lock,[&]{return stop||(pendingInput>=0&&!exclusive);});
                 if(stop)return;
-                pending=false;consuming=busy=true;value=pendingValue;
+                slot=pendingInput;pendingInput=-1;takenInput=slot;busy=true;
+                if(stalled){stalled=false;xrfg::dlssg_log("desktop presenter: takes Unity's frames again, %.0f ms after Unity first waited in vain",Ms()-stalledSince);}
             }
             if(!pinned)if(auto cpu=GetModuleHandleW(L"VaMCpuBoostNative.bin")){
                 auto api=reinterpret_cast<int(__cdecl*)()>(GetProcAddress(cpu,"CB_ApiVersion"));
                 auto pin=reinterpret_cast<unsigned long long(__cdecl*)(int)>(GetProcAddress(cpu,"CB_PinThread"));
                 if(api&&api()>=5&&pin){pin(1);pinned=true;}
             }
-            try{Group(value,idleSince);}
+            try{Group(slot,idleSince);}
             catch(HRESULT h){Abandon();generator.reset();retryAt=GetTickCount64()+1000;Trace("device_retry");xrfg::dlssg_log("desktop presenter error 0x%08x; retry",unsigned(h));}
             catch(...){Abandon();generator.reset();retryAt=GetTickCount64()+1000;Trace("presenter_retry");}
-            {std::lock_guard lock(mutex);consuming=busy=false;}changed.notify_all();
+            // After an error the input's read (if any was submitted) is in inputs[slot].read; one never submitted
+            // leaves read as it was, so the input is free.
+            {std::lock_guard lock(mutex);takenInput=-1;busy=false;}changed.notify_all();
         }
     }
-    // Unity, before it writes the inputs: the presenter has taken the last ones.
-    void WaitInputs(){std::unique_lock lock(mutex);changed.wait(lock,[&]{return !pending&&!consuming&&!exclusive;});writing=true;}
-    void DoneWriting(bool frame){{std::lock_guard lock(mutex);writing=false;if(frame){pending=true;pendingValue=readyValue;}}changed.notify_all();}
-    // Resize, fullscreen switch, teardown: the presenter stopped between groups.
-    void Exclusive(){std::unique_lock lock(mutex);changed.wait(lock,[&]{return !pending&&!consuming&&!busy&&!writing;});exclusive=true;}
+    // Unity, before it writes a frame: which input to write. It waits, as v2 did, until the presenter has taken the
+    // last frame and submitted its read (that wait is what paces Unity), but for at most kTakeMs: then it logs where
+    // the presenter is, stops waiting until the presenter takes a frame again, and writes over the frame not yet
+    // taken. Otherwise it takes an input that is neither taken nor still being read: the presenter has at most one
+    // input in flight (it waits for each read before it shows the frame), so with three one is always free.
+    static constexpr int kTakeMs=1000;
+    int Claim(){
+        std::unique_lock lock(mutex);
+        if(!stalled){
+            const double begin=Ms();
+            if(!changed.wait_for(lock,std::chrono::milliseconds(kTakeMs),[&]{return pendingInput<0&&takenInput<0;})){
+                stalled=true;stalledSince=begin;
+                xrfg::dlssg_log("desktop presenter: has not taken Unity's last frame in %d ms; Unity goes on without waiting until it does; %s",kTakeMs,State().c_str());
+            }
+        }
+        changed.wait(lock,[&]{return !exclusive;});
+        int slot=-1;
+        if(pendingInput>=0){slot=pendingInput;pendingInput=-1;}   // not taken: written over
+        else{
+            const UINT64 done=presentFence->GetCompletedValue();
+            for(int i=1;i<=kInputs&&slot<0;i++){int c=(writtenLast+i+kInputs)%kInputs;if(c!=takenInput&&inputs[c].read<=done)slot=c;}
+            if(slot<0){
+                // Not expected (see above): the input the presenter read longest ago, once its read is done.
+                for(int i=1;i<=kInputs&&slot<0;i++){int c=(writtenLast+i+kInputs)%kInputs;if(c!=takenInput)slot=c;}
+                const UINT64 read=inputs[slot].read;
+                lock.unlock();WaitFence(presentFence.Get(),read,"the presenter's read of an input");lock.lock();
+            }
+        }
+        writing=true;return slot;
+    }
+    void Publish(int slot,bool frame){{std::lock_guard lock(mutex);writing=false;if(frame){pendingInput=writtenLast=slot;}}changed.notify_all();}
+    // Resize, fullscreen switch, teardown: the presenter stopped between groups. A frame it has not taken is dropped.
+    void Exclusive(){
+        std::unique_lock lock(mutex);pendingInput=-1;
+        const double begin=Ms();double next=begin+2000;
+        while(!changed.wait_for(lock,std::chrono::milliseconds(250),[&]{return !busy&&!writing;}))
+            if(Ms()>=next){next+=5000;xrfg::dlssg_log("desktop wait: a resize has waited %.0f ms for the presenter to stop; %s",Ms()-begin,State().c_str());}
+        exclusive=true;
+    }
     void Shared(){{std::lock_guard lock(mutex);exclusive=false;}changed.notify_all();}
     void CaptureGenerated(ID3D12Resource* source){
         std::wstring path;{std::lock_guard lock(captureMutex);path.swap(capturePath);}if(path.empty())return;
@@ -401,7 +499,7 @@ class Swapchain final:public IDXGISwapChain4 {
         Begin();Barrier(list,source,state,D3D12_RESOURCE_STATE_COPY_SOURCE);
         D3D12_TEXTURE_COPY_LOCATION src{},dst{};src.pResource=source;src.Type=D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
         dst.pResource=buffer.Get();dst.Type=D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;dst.PlacedFootprint=footprint;
-        list->CopyTextureRegion(&dst,0,0,0,&src,nullptr);Barrier(list,source,D3D12_RESOURCE_STATE_COPY_SOURCE,state);WaitFence(presentFence.Get(),Submit());
+        list->CopyTextureRegion(&dst,0,0,0,&src,nullptr);Barrier(list,source,D3D12_RESOURCE_STATE_COPY_SOURCE,state);WaitFence(presentFence.Get(),Submit(),"a test capture");
         unsigned char* bytes=nullptr;D3D12_RANGE range{0,size_t(total)};Check(buffer->Map(0,&range,reinterpret_cast<void**>(&bytes)));
         FILE*f=_wfopen(path.c_str(),L"wb");if(f){fprintf(f,"P6\n%u %u\n255\n",UINT(d.Width),d.Height);std::vector<unsigned char> row(size_t(d.Width)*3);
             bool bgra=Raw(d.Format)==DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -435,7 +533,7 @@ public:
         real->SetMaximumFrameLatency(1);latency=real->GetFrameLatencyWaitableObject();
         gameWindow=desc.OutputWindow;
         CreateBuffers();Settings();fpsAt=Ms();
-        xrfg::dlssg_log("desktop Unity surfaces count=%u effect=%u format=%u; physical flip buffers=3 on the presenter's own HIGH queue (v2: even pacing, same-size resizes kept)",desc.BufferCount,UINT(desc.SwapEffect),UINT(desc.BufferDesc.Format));
+        xrfg::dlssg_log("desktop Unity surfaces count=%u effect=%u format=%u; physical flip buffers=3 on the presenter's own HIGH queue (v3: inputs in a ring of %d, no GPU waits between the queues, bounded waits for Unity)",desc.BufferCount,UINT(desc.SwapEffect),UINT(desc.BufferDesc.Format),kInputs);
         auto logs=Env(L"D3DINTEROP_LOG");if(!logs.empty())flight=_wfopen((logs+L"\\ofxr-bridge-flight-desktop.log").c_str(),L"w");
         active=true;thread=std::thread([this]{Run();});
     }
@@ -455,25 +553,27 @@ public:
     HRESULT STDMETHODCALLTYPE GetDevice(REFIID a,void**b)override{return unity->QueryInterface(a,b);}
     HRESULT STDMETHODCALLTYPE Present(UINT interval,UINT presentFlags)override{
         if(presentFlags&DXGI_PRESENT_TEST)return real->Present(interval,presentFlags);
-        bool claimed=false;
+        int slot=-1;
         try{
-            double waited=Ms();Trace("app_wait_frame",0,'B');WaitInputs();claimed=true;Trace("app_wait_frame",0,'E',Ms()-waited);sync=interval;flags=presentFlags;
+            double waited=Ms();Trace("app_wait_frame",0,'B');slot=Claim();Trace("app_wait_frame",0,'E',Ms()-waited);sync=interval;flags=presentFlags;
+            // The input is neither taken nor still read by the presenter's queue (Claim checked its fence on the CPU):
+            // Unity's queue writes it without waiting for the presenter's queue.
+            Input& in=inputs[slot];
             CaptureUnity();
             OFXR_D3D11GuidePublicationV3 p;Ptr<ID3D11Texture2D> d,m;
             {std::lock_guard lock(publicationMutex);p=publication;d=publishedDepth;m=publishedMotion;}
+            auto& guides=in.guides;
             guides={};guides.serial=p.serial;guides.previous_serial=serial;guides.reset=p.reset||p.serial!=serial+1;serial=p.serial;
-            // Unity's earlier work goes to its queue first; the copies below wait
-            // on the GPU until the presenter has its copy of the last inputs.
-            context->Flush();
-            if(inputsReleased)Check(queue->Wait(presentFence.Get(),inputsReleased));
             if(d&&m&&p.width&&p.height){
-                if(!depth.native||depth.native->GetDesc().Width!=p.width||depth.native->GetDesc().Height!=p.height){
-                    WaitFence(presentFence.Get(),inputsReleased);
-                    depth=MakeSurface(p.width,p.height,DXGI_FORMAT_R32_FLOAT,false);motion=MakeSurface(p.width,p.height,DXGI_FORMAT_R16G16_FLOAT,false);resetGenerator=true;guides.reset=true;
+                // New guide sizes: the generator is made again (Group); each input gets surfaces of the new size when
+                // it is next written.
+                if(p.width!=guideWidth||p.height!=guideHeight){guideWidth=p.width;guideHeight=p.height;in.resized=true;guides.reset=true;}
+                if(!in.depth.native||in.depth.native->GetDesc().Width!=p.width||in.depth.native->GetDesc().Height!=p.height){
+                    in.depth=MakeSurface(p.width,p.height,DXGI_FORMAT_R32_FLOAT,false);in.motion=MakeSurface(p.width,p.height,DXGI_FORMAT_R16G16_FLOAT,false);
                 }
-                ID3D11Resource* snapshots[]={depth.wrapped.Get(),motion.wrapped.Get()};on12->AcquireWrappedResources(snapshots,2);
-                context->CopyResource(depth.wrapped.Get(),d.Get());context->CopyResource(motion.wrapped.Get(),m.Get());on12->ReleaseWrappedResources(snapshots,2);
-                guides.depth=depth.native;guides.motion_vectors=motion.native;guides.depth_width=guides.motion_width=p.width;guides.depth_height=guides.motion_height=p.height;
+                ID3D11Resource* snapshots[]={in.depth.wrapped.Get(),in.motion.wrapped.Get()};on12->AcquireWrappedResources(snapshots,2);
+                context->CopyResource(in.depth.wrapped.Get(),d.Get());context->CopyResource(in.motion.wrapped.Get(),m.Get());on12->ReleaseWrappedResources(snapshots,2);
+                guides.depth=in.depth.native;guides.motion_vectors=in.motion.native;guides.depth_width=guides.motion_width=p.width;guides.depth_height=guides.motion_height=p.height;
                 guides.dlssg_camera=true;guides.depth_inverted=p.depth_inverted!=0;guides.scale_x=p.motion_scale_x;guides.scale_y=p.motion_scale_y;guides.jitter_x=p.jitter_x;guides.jitter_y=p.jitter_y;
                 guides.jittered=p.jitter_x!=0 || p.jitter_y!=0;
                 guides.resource_state=guides.depth_resource_state=D3D12_RESOURCE_STATE_COMMON;
@@ -483,13 +583,13 @@ public:
                 memcpy(guides.camera_position.data(),p.camera_position,sizeof p.camera_position);memcpy(guides.camera_up.data(),p.camera_up,sizeof p.camera_up);
                 memcpy(guides.camera_right.data(),p.camera_right,sizeof p.camera_right);memcpy(guides.camera_forward.data(),p.camera_forward,sizeof p.camera_forward);
             }
-            ID3D11Resource* output=color.wrapped.Get();on12->AcquireWrappedResources(&output,1);context->CopyResource(output,app[index].wrapped.Get());on12->ReleaseWrappedResources(&output,1);context->Flush();
-            Check(queue->Signal(readyFence.Get(),++readyValue));
+            ID3D11Resource* output=in.color.wrapped.Get();on12->AcquireWrappedResources(&output,1);context->CopyResource(output,app[index].wrapped.Get());on12->ReleaseWrappedResources(&output,1);context->Flush();
+            const UINT64 ready=++readyValue;Check(queue->Signal(readyFence.Get(),ready));in.ready=ready;
             // BLT chains rotate the storage behind buffer 0; Unity keeps the
             // one GetBuffer(0) RTV. Only a flip-model caller rotates indices.
             if(desc.SwapEffect==DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL || desc.SwapEffect==DXGI_SWAP_EFFECT_FLIP_DISCARD)index=(index+1)%app.size();
-            DoneWriting(true);return S_OK;
-        }catch(HRESULT h){if(claimed)DoneWriting(false);return h;}catch(...){if(claimed)DoneWriting(false);return E_FAIL;}
+            Publish(slot,true);return S_OK;
+        }catch(HRESULT h){if(slot>=0)Publish(slot,false);return h;}catch(...){if(slot>=0)Publish(slot,false);return E_FAIL;}
     }
     HRESULT STDMETHODCALLTYPE GetBuffer(UINT n,REFIID id,void**out)override{return n<app.size()?app[n].wrapped->QueryInterface(id,out):DXGI_ERROR_INVALID_CALL;}
     HRESULT STDMETHODCALLTYPE SetFullscreenState(BOOL f,IDXGIOutput* o)override{
@@ -508,7 +608,7 @@ public:
         xrfg::dlssg_log("desktop ResizeBuffers count=%u %ux%u -> %ux%u format=%u flags=0x%x: %s (%llu kept so far); foreground %s",n,w,h,rw,rh,UINT(f),resizeFlags,
             same?"same size, buffers and DLSS-G kept":"new buffers",static_cast<unsigned long long>(kept+(same?1:0)),WindowOwner(GetForegroundWindow()).c_str());
         if(same){kept++;return S_OK;}
-        try{Exclusive();DrainAll();context->ClearState();for(auto&s:app){ID3D11Resource*r=s.wrapped.Get();on12->ReleaseWrappedResources(&r,1);}context->Flush();app.clear();color={};depth={};motion={};shown.Reset();generator.reset();for(auto&t:generated)t.Reset();DrainAll();
+        try{Exclusive();DrainAll();context->ClearState();for(auto&s:app){ID3D11Resource*r=s.wrapped.Get();on12->ReleaseWrappedResources(&r,1);}context->Flush();app.clear();for(auto&in:inputs)in={};shown.Reset();generator.reset();for(auto&t:generated)t.Reset();DrainAll();
             HRESULT result=real->ResizeBuffers(3,w,h,f==DXGI_FORMAT_UNKNOWN?Raw(desc.BufferDesc.Format):Raw(f),DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT|DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
             if(FAILED(result)){CreateBuffers();Shared();return result;}if(n)desc.BufferCount=n;if(f!=DXGI_FORMAT_UNKNOWN)desc.BufferDesc.Format=f;CreateBuffers();
             try{Blank();}catch(...){Abandon();}

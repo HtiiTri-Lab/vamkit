@@ -185,8 +185,21 @@ not wait for VaM's frames; 3x and 4x therefore take the deep pipeline.
 `SetMaximumFrameLatency(1)`) on its own HIGH queue, so DLSS-G, the copies into the swap chain and the waits of `Present` never sit on Unity's queue.
 
 - **One real frame** (`Group`): wait for Unity's ready fence; copy the frame into a private image ("shown"); record DLSS-G from the frame and the guides
-  published by the compositor (`OFXR_PublishD3D11GuidesV4`); submit and release the inputs so Unity's queue only waits, on the GPU, until the copy is taken
-  and Unity renders the next frame while this one is shown; then show the generated frames followed by the real one.
+  published by the compositor (`OFXR_PublishD3D11GuidesV4`); submit, so that Unity renders the next frame while this one is shown; then show the generated
+  frames followed by the real one.
+- **Unity's frames go through a ring of three inputs** (frame, depth, motion and their description). Unity writes an input that is neither taken by the
+  presenter nor still being read by its queue, which it checks on the CPU (`Claim`); the presenter has at most one input in flight, so one is always free.
+  Neither queue waits on the GPU for the other. Up to v2 there was one input, and Unity's queue waited on the GPU for the presenter's copy of the last
+  frame. That copy sits on the presenter's queue behind the copies into the swap chain's buffers, and the GPU holds a write to a swap-chain buffer until the
+  presentation engine has let go of it (Microsoft's flip-model guidance: the first GPU write to the back buffer is where the GPU waits for it). So a stall
+  anywhere in presentation stopped Unity's queue, then Unity's render thread inside 11on12 (which waits for that queue to recycle its memory), then the main
+  thread. The one report of a desktop hang (another machine, RTX 5090 with driver 621.14; never seen here on an RTX 5090 D with 616.56) ended in exactly
+  that state: GPU nearly idle, the presenter in a fence wait, Unity's thread in 11on12. Whether presentation stalled there, and why, is not known.
+- **Waits are bounded or logged.** Unity's thread still waits until the presenter has taken its last frame (the pacing), but for at most a second
+  (`kTakeMs`); then it writes over the frame not yet taken and stops waiting until the presenter takes one again, so the window keeps taking messages.
+  Every CPU wait on a fence goes through an event; one that lasts more than 2 s is logged in `dlssg.log` (`desktop wait: ...`) with the fence, the value
+  waited for, how far it got and the presenter's current step, and so are latency-object timeouts (`desktop presenter: the swap chain's latency object
+  stayed unsignaled ...`), a `Present` of 250 ms or more, and a frame not taken for a second. Those lines say which side stopped.
 - **Even pacing.** The real-frame period is estimated from frames the presenter had to wait for (a smoothed 0.75 / 0.25 average; shrinks when the
   presenter is the slower side so it never holds Unity back); each picture is shown `period / frames` apart, never closer than one refresh, never further than 50 ms;
   there are no repeat frames. The first version ran everything on Unity's queue, drained it after each step and inserted repeats, which

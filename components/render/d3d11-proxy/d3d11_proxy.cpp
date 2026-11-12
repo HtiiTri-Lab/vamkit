@@ -133,7 +133,15 @@ static HRESULT CreateOn12(IDXGIAdapter *adapter, UINT flags, const D3D_FEATURE_L
     if (FAILED(hr)) { Log("on12: CreateCommandQueue 0x%08lx", (unsigned long)hr); d12->Release(); return hr; }
     q->SetName(L"D3DInterop 11on12 queue (Unity)");
     // D3D11_CREATE_DEVICE_DEBUG would need the D3D12 debug layer; 11on12 takes the other flags as they are
-    const UINT on12Flags = flags & ~(UINT)D3D11_CREATE_DEVICE_DEBUG;
+    UINT on12Flags = flags & ~(UINT)D3D11_CREATE_DEVICE_DEBUG;
+    // D3DINTEROP_ON12_WORKER=0, a diagnostic: 11on12 records Unity's calls and translates and submits them on a worker
+    // thread of its own (one thread in d3d11on12.dll). With this flag it does that on the calling thread, Unity's,
+    // so every D3D12 call 11on12 makes happens inside a D3D11 call of Unity's. Costs the render thread that worker's time.
+    wchar_t worker[8] = L"";
+    if (GetEnvironmentVariableW(L"D3DINTEROP_ON12_WORKER", worker, 8) && worker[0] == L'0') {
+        on12Flags |= D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS;
+        Log("on12: D3DINTEROP_ON12_WORKER=0: no 11on12 worker thread (translation on Unity's thread)");
+    }
     static const D3D_FEATURE_LEVEL kDefault[] = {D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0};
     IUnknown *queues[] = {q};
     ID3D11Device *dev = nullptr;
