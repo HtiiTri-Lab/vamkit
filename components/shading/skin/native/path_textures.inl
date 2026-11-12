@@ -195,6 +195,15 @@ bool PathCopy(ID3D12GraphicsCommandList *list,PathTexture &t) {
     return true;
 }
 
+// The queue to name to UnwrapUnderlyingResource: 11on12's own (g.queue) once the proxy's probe has shown that this
+// d3d11on12.dll does not stop on it (D3DInterop_UnwrapOnOwnQueue, components/render/d3d11-proxy/unwrap_probe.cpp),
+// otherwise g.unwrapQueue, which runs no work. On Windows 10 and older Windows 11, naming g.queue stops it for good.
+ID3D12CommandQueue *PathUnwrapQueue() {
+    using Ask=int(WINAPI*)();
+    static const Ask ask=[]{HMODULE p=ProxyModule();return p?reinterpret_cast<Ask>(GetProcAddress(p,"D3DInterop_UnwrapOnOwnQueue")):nullptr;}();
+    return ask&&ask()?g.queue.Get():g.unwrapQueue.Get();
+}
+
 // The resource the PT binds for t this frame: its up-to-date copy, or the original, borrowed until
 // ST_FinishPathTraceV1. Null after PathFail.
 ID3D12Resource *PathTextureFor(ID3D12GraphicsCommandList *list,PathTexture &t) {
@@ -208,7 +217,7 @@ ID3D12Resource *PathTextureFor(ID3D12GraphicsCommandList *list,PathTexture &t) {
     }
     if(!t.taken) {
         ComPtr<ID3D12Resource> resource;
-        HRESULT hr=g.pathOn12->UnwrapUnderlyingResource(t.source.Get(),g.queue.Get(),IID_PPV_ARGS(&resource));
+        HRESULT hr=g.pathOn12->UnwrapUnderlyingResource(t.source.Get(),PathUnwrapQueue(),IID_PPV_ARGS(&resource));
         if(FAILED(hr)){PathFail("PT texture unwrap",hr);return nullptr;}
         t.underlying=resource;t.taken=true;
     }

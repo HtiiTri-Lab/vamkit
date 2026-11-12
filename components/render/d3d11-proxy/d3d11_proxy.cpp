@@ -85,6 +85,103 @@ static void Log(const char *fmt, ...) {
     ReleaseSRWLockExclusive(&gLock);
 }
 
+// Which d3d11on12.dll and Windows build the run has, for reports. Before Microsoft's fix (microsoft/D3D11On12 #51:
+// Windows 10, and Windows 11 until an update brings it) naming 11on12's own queue to UnwrapUnderlyingResource stops
+// that queue for good; our code names a queue of its own until the probe below has cleared this d3d11on12.dll, and
+// this line says which d3d11on12.dll a report comes from. The probe's verdict repeats the version.
+static char gOn12Version[48] = "?";
+
+static void LogOn12Build() {
+    wchar_t path[MAX_PATH] = L"?";
+    char *const version = gOn12Version;
+    if (HMODULE m = GetModuleHandleW(L"d3d11on12.dll")) {
+        GetModuleFileNameW(m, path, MAX_PATH);
+        if (HRSRC r = FindResourceW(m, MAKEINTRESOURCEW(1), MAKEINTRESOURCEW(16)))   // 16: RT_VERSION
+            if (HGLOBAL h = LoadResource(m, r)) {
+                const BYTE *p = static_cast<const BYTE *>(LockResource(h));
+                const DWORD n = SizeofResource(m, r);
+                for (DWORD i = 0; p && i + sizeof(VS_FIXEDFILEINFO) <= n; i += 4) {
+                    const auto *fi = reinterpret_cast<const VS_FIXEDFILEINFO *>(p + i);
+                    if (fi->dwSignature != 0xFEEF04BD) continue;
+                    std::snprintf(version, sizeof gOn12Version, "%u.%u.%u.%u", HIWORD(fi->dwFileVersionMS), LOWORD(fi->dwFileVersionMS),
+                                  HIWORD(fi->dwFileVersionLS), LOWORD(fi->dwFileVersionLS));
+                    break;
+                }
+            }
+    }
+    RTL_OSVERSIONINFOW os{};
+    os.dwOSVersionInfoSize = sizeof os;
+    using GetVersionFn = LONG(WINAPI *)(RTL_OSVERSIONINFOW *);
+    if (auto get = reinterpret_cast<GetVersionFn>(GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetVersion"))) get(&os);
+    DWORD ubr = 0, size = sizeof ubr;
+    RegGetValueW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", L"UBR", RRF_RT_REG_DWORD, nullptr, &ubr, &size);
+    Log("on12: %ls %s; Windows %lu.%lu.%lu.%lu (%s)", path, version, os.dwMajorVersion, os.dwMinorVersion, os.dwBuildNumber, ubr,
+        os.dwBuildNumber >= 22000 ? "Windows 11" : "Windows 10");
+}
+
+// Whether UnwrapUnderlyingResource may name 11on12's own queue: 1 once vamkit/bin/unwrap_probe.exe has come back from
+// unwrapping onto 11on12's own queue with the d3d11on12.dll VaM loaded (unwrap_probe.cpp says why), 0 until then and
+// when it stops or cannot run. With 0 the compositor and the skin path tracer name a queue of their own, which works
+// with every d3d11on12.dll but costs about 5 % in VR without path tracing; with 1 they name 11on12's queue as they did
+// before. The probe runs in a process of its own, so a d3d11on12.dll that stops its queue stops only the probe, which
+// is ended. D3DINTEROP_UNWRAP_QUEUE=own / separate decides without the probe (measurements, a probe that misjudges).
+static volatile LONG gUnwrapOwn = 0;
+
+extern "C" __declspec(dllexport) int WINAPI D3DInterop_UnwrapOnOwnQueue() { return InterlockedCompareExchange(&gUnwrapOwn, 0, 0) ? 1 : 0; }
+
+static DWORD WINAPI UnwrapProbe(void *) {
+    HMODULE self = nullptr;
+    GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&UnwrapProbe, &self);
+    wchar_t buf[MAX_PATH] = L"", dll[MAX_PATH] = L"";
+    GetModuleFileNameW(self, buf, MAX_PATH);
+    std::wstring dir(buf);
+    dir = dir.substr(0, dir.find_last_of(L'\\'));
+    if (HMODULE m = GetModuleHandleW(L"d3d11on12.dll")) GetModuleFileNameW(m, dll, MAX_PATH);
+    std::wstring probe;
+    for (const wchar_t *place : {L"\\vamkit\\bin\\unwrap_probe.exe", L"\\unwrap_probe.exe"})
+        if (GetFileAttributesW((dir + place).c_str()) != INVALID_FILE_ATTRIBUTES) { probe = dir + place; break; }
+    if (probe.empty() || !dll[0]) {
+        Log("on12: d3d11on12.dll %s: unwrap probe %s; unwraps name a queue of their own", gOn12Version, probe.empty() ? "not found beside the proxy or in vamkit\\bin" : "has no d3d11on12.dll to test");
+        return 0;
+    }
+    std::wstring command = L"\"" + probe + L"\" own rounds 3 dll \"" + dll + L"\"";
+    STARTUPINFOW si{sizeof si};
+    PROCESS_INFORMATION pi{};
+    const double begin = NowMs();
+    if (!CreateProcessW(probe.c_str(), command.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, nullptr, &si, &pi)) {
+        Log("on12: d3d11on12.dll %s: unwrap probe did not start (%lu); unwraps name a queue of their own", gOn12Version, GetLastError());
+        return 0;
+    }
+    DWORD code = 4;
+    if (WaitForSingleObject(pi.hProcess, 20000) == WAIT_TIMEOUT) TerminateProcess(pi.hProcess, 4);
+    else GetExitCodeProcess(pi.hProcess, &code);
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    if (code == 0) InterlockedExchange(&gUnwrapOwn, 1);
+    Log("on12: d3d11on12.dll %s (%ls), unwrap probe: %s (exit %lu) after %.0f ms; unwraps name %s", gOn12Version, dll,
+        code == 0 ? "11on12's queue kept running" : code == 2 ? "11on12's queue stopped (a d3d11on12.dll from before Microsoft's fix)"
+        : code == 4 ? "no answer in 20 s" : "failed before the test",
+        code, NowMs() - begin, code == 0 ? "11on12's own queue (the original path)" : "a queue of their own");
+    return 0;
+}
+
+static void StartUnwrapProbe() {
+    static volatile LONG started = 0;
+    if (InterlockedExchange(&started, 1)) return;
+    wchar_t mode[16] = L"";
+    GetEnvironmentVariableW(L"D3DINTEROP_UNWRAP_QUEUE", mode, 16);
+    if (!_wcsicmp(mode, L"own")) {
+        InterlockedExchange(&gUnwrapOwn, 1);
+        Log("on12: d3d11on12.dll %s, D3DINTEROP_UNWRAP_QUEUE=own: unwraps name 11on12's own queue, no probe (stops for good with a d3d11on12.dll from before Microsoft's fix)", gOn12Version);
+        return;
+    }
+    if (!_wcsicmp(mode, L"separate")) {
+        Log("on12: d3d11on12.dll %s, D3DINTEROP_UNWRAP_QUEUE=separate: unwraps name a queue of their own, no probe", gOn12Version);
+        return;
+    }
+    if (HANDLE t = CreateThread(nullptr, 0, UnwrapProbe, nullptr, 0, nullptr)) CloseHandle(t);
+}
+
 static std::string ModuleName(const void *address) {
     HMODULE m = nullptr;
     char path[MAX_PATH] = "?";
@@ -164,6 +261,8 @@ static HRESULT CreateOn12(IDXGIAdapter *adapter, UINT flags, const D3D_FEATURE_L
     VamDesktopInstall(dev, gD12, gQueue);
     Log("on12: device %p context %p on D3D12 device %p queue %p, feature level 0x%x, flags 0x%x", (void *)dev, (void *)ctx, (void *)d12,
         (void *)q, fl, dev ? dev->GetCreationFlags() : 0);
+    LogOn12Build();
+    StartUnwrapProbe();
     return S_OK;
 }
 

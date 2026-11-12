@@ -20,4 +20,8 @@ cl /nologo /O2 /MT /std:c++20 /EHsc /W3 /LD /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_
    /Fo"%OUT%\obj\\" /I"%OFXR%\include" /I"%NGX%\include" /I"%FSR%" /Fe"%OUT%\d3d11.dll" ^
    "%HERE%d3d11_proxy.cpp" "%HERE%desktop_presenter.cpp" "%OFXR%\src\d3d12\d3d12_dlssg.cpp" "%OFXR%\src\d3d12\d3d12_fsrfg.cpp" "%OUT%\obj\d3d11_thunks.obj" ^
    /link /DEF:"%HERE%d3d11.def" d3d12.lib dxgi.lib user32.lib advapi32.lib "%NGX%\lib\Windows_x86_64\x64\nvsdk_ngx_s.lib" || exit /b 1
-echo built %OUT%\d3d11.dll
+rem unwrap_probe.exe: run by the proxy at start-up in a process of its own (unwrap_probe.cpp)
+cl /nologo /O2 /MT /std:c++20 /EHsc /W3 /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_CRT_SECURE_NO_WARNINGS ^
+   /Fo"%OUT%\obj\\" /Fe"%OUT%\unwrap_probe.exe" "%HERE%unwrap_probe.cpp" ^
+   /link d3d12.lib dxgi.lib version.lib || exit /b 1
+echo built %OUT%\d3d11.dll %OUT%\unwrap_probe.exe

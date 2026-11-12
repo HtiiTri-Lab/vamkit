@@ -233,6 +233,11 @@ struct Host {
     std::unordered_map<ID3D11Buffer*,std::vector<PathRasterDraw>> pathRasterBuffers;
     ComPtr<ID3D12Device5> d12;
     ComPtr<ID3D12CommandQueue> queue;
+    // Named to UnwrapUnderlyingResource instead of `queue` until the proxy's probe has shown that this d3d11on12.dll
+    // does not stop on its own queue (PathUnwrapQueue): on Windows 10 and older Windows 11 an unwrap onto 11on12's own
+    // queue puts a Wait ahead of its Signal there and that queue stops for good (microsoft/D3D11On12 #51; the
+    // compositor's VamOn12UnwrapQueue says more). It runs no work; the PT still runs on `queue`.
+    ComPtr<ID3D12CommandQueue> unwrapQueue;
     ComPtr<ID3D12Fence> fence;
     HANDLE event = nullptr;
     UINT64 fenceValue = 0;  // = RtCore's frame of the last Record
@@ -535,10 +540,12 @@ bool RtInit(ID3D11Device *device) {
     // (ST_SetPathTracingV1, [RayTracing] Renderer). Selecting RR never selects a renderer.
     g.pathRequested=true;
     if(g.pathRequested) {
+        D3D12_COMMAND_QUEUE_DESC uq{};uq.Type=D3D12_COMMAND_LIST_TYPE_DIRECT;
         if(FAILED(device->QueryInterface(IID_PPV_ARGS(&g.pathOn12))) ||
-           FAILED(g.d12->CreateFence(0,D3D12_FENCE_FLAG_NONE,IID_PPV_ARGS(&g.pathFence)))) {
+           FAILED(g.d12->CreateFence(0,D3D12_FENCE_FLAG_NONE,IID_PPV_ARGS(&g.pathFence))) ||
+           FAILED(g.d12->CreateCommandQueue(&uq,IID_PPV_ARGS(&g.unwrapQueue)))) {
             g.pathRequested=false;gPathSelected=false; // existing RT/RR remains available
-        }
+        } else g.unwrapQueue->SetName(L"VaM skin PT unwrap queue (runs no work)");
     }
     g.d11 = device;
     gClothPath=(ClothPathFn)GetProcAddress(GetModuleHandleW(L"VaMClothShadingNative.bin"),"CS_GetPathMaterialV1");
@@ -582,7 +589,7 @@ bool RtMaybe() { return g.ok || !g.tried; }  // two bools written once on the re
 
 #include "path_textures.inl"
 
-// No fences: the PT ran on the 11on12 queue itself (unwrapped with g.queue), already executed, so D3D11's later
+// No fences: the PT ran on the 11on12 queue itself (unwrapped naming PathUnwrapQueue()), already executed, so D3D11's later
 // use of these textures is ordered after it. A fence here makes 11on12 put a queue wait before that use.
 static bool ReturnPathTextures() {
     gPathFinishDeferred=false;

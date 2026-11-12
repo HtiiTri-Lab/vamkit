@@ -4,9 +4,11 @@
 // executed on that queue after a Flush of the D3D11 context runs in order with VaM's frame: no fence, no second
 // queue, no round trip (measured: each D3D11<->D3D12 round trip cost ~0.3-0.45 ms of GPU).
 //
-// D3D11 textures reach D3D12 with UnwrapUnderlyingResource (COMMON state, on that queue), then a Flush (the unwrap
-// submits nothing: D3D11 work recorded before it must be flushed for D3D12 to see it), and go back with
-// ReturnUnderlyingResource (no fences: the same queue orders it). Buffers cannot be unwrapped.
+// D3D11 textures reach D3D12 with UnwrapUnderlyingResource (COMMON state), then a Flush (the unwrap submits nothing:
+// D3D11 work recorded before it must be flushed for D3D12 to see it), and go back with ReturnUnderlyingResource (no
+// fences: the same queue orders it). Buffers cannot be unwrapped. The queue named to the unwrap is 11on12's own only
+// where the proxy's probe showed that is safe (VamOn12UnwrapTarget): on Windows 10 and older Windows 11 it stops
+// 11on12's queue for good.
 // Each unwrap and return still queues a run of syncs on the queue (~12-15 us of GPU idle a texture with HAGS,
 // docs/knowledge/d3d11on12.md): textures handed over every frame are made in D3D12 and wrapped for D3D11 instead
 // (CreateWrappedResource, COMMON in and out, kept acquired), and go over with ReleaseWrappedResources (a barrier at
@@ -17,6 +19,7 @@
 #include <wrl/client.h>
 #include <array>
 #include <cstring>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 
@@ -36,8 +39,36 @@ struct VamOn12 {
     Microsoft::WRL::ComPtr<ID3D11On12Device2> on12;
     Microsoft::WRL::ComPtr<ID3D12Device> device;
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> queue;
+    Microsoft::WRL::ComPtr<ID3D12CommandQueue> unwrapQueue;   // VamOn12UnwrapQueue: for UnwrapUnderlyingResource only
     explicit operator bool() const { return queue != nullptr; }
 };
+
+// The queue named to UnwrapUnderlyingResource: one of our own that runs no work, never 11on12's queue. The unwrap puts
+// 11on12's residency signal on the queue it is given and, for D3D11 work on the texture not yet submitted, a Wait for
+// the command list that holds it. Given 11on12's own queue, that Wait sits ahead of the list's Signal and the queue
+// stops for good: Unity's frame, the presenter and everything after them wait on it, the GPU idles
+// (microsoft/D3D11On12 issue #51, fixed there 2025-09-25: the Wait is skipped for its own queue). Windows 10 keeps the
+// old d3d11on12.dll, and so does Windows 11 until an update brings the fix (24H2's first build 26100.1 stops,
+// 26100.9549 does not; reproduced with each, 2026-11-12). On this queue the Wait is harmless: our D3D12 work still runs
+// on 11on12's queue after the Flush, in order with the frame. One per process, made on first use. Named only until the
+// proxy's probe has cleared 11on12's own queue (VamOn12UnwrapTarget).
+inline Microsoft::WRL::ComPtr<ID3D12CommandQueue> VamOn12UnwrapQueue(ID3D12Device* device) {
+    static std::mutex mutex;
+    static Microsoft::WRL::ComPtr<ID3D12Device> madeFor;
+    static Microsoft::WRL::ComPtr<ID3D12CommandQueue> queue;
+    std::lock_guard<std::mutex> lock(mutex);
+    if (!device) return nullptr;
+    if (madeFor.Get() != device) {
+        D3D12_COMMAND_QUEUE_DESC d{};
+        d.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        Microsoft::WRL::ComPtr<ID3D12CommandQueue> made;
+        if (FAILED(device->CreateCommandQueue(&d, IID_PPV_ARGS(&made)))) return nullptr;
+        made->SetName(L"VaM 11on12 unwrap queue (runs no work)");
+        madeFor = device;
+        queue = made;
+    }
+    return queue;
+}
 
 // The proxy module: the one exporting D3DInterop_GetOn12ForDevice. Not found by name: it renames itself
 // d3d11_proxy.dll in the loader's list, but the loader's name hash still files it as d3d11.dll, so
@@ -62,7 +93,23 @@ inline VamOn12 VamOn12For(ID3D11Device* device11) {
     using GetForDevice = HRESULT(WINAPI*)(ID3D11Device*, ID3D12Device**, ID3D12CommandQueue**);
     auto get = proxy ? reinterpret_cast<GetForDevice>(GetProcAddress(proxy, "D3DInterop_GetOn12ForDevice")) : nullptr;
     if (!get || FAILED(get(device11, &r.device, &r.queue))) return {};
+    r.unwrapQueue = VamOn12UnwrapQueue(r.device.Get());
     return r;
+}
+
+// The queue to name to UnwrapUnderlyingResource: 11on12's own once the proxy's probe has shown that the d3d11on12.dll
+// in this process does not stop on it (D3DInterop_UnwrapOnOwnQueue; components/render/d3d11-proxy/unwrap_probe.cpp),
+// otherwise VamOn12UnwrapQueue. Naming our own queue works with every d3d11on12.dll but costs about 5 % in VR without
+// path tracing (11on12's queue then waits on that queue at the texture's next use); it is kept for the old DLLs and
+// the first seconds, until the probe has answered. Asked at every unwrap (an atomic read in the proxy).
+inline ID3D12CommandQueue* VamOn12UnwrapTarget(const VamOn12& on12) {
+    using Ask = int(WINAPI*)();
+    static const Ask ask = [] {
+        HMODULE proxy = VamOn12Proxy();
+        return proxy ? reinterpret_cast<Ask>(GetProcAddress(proxy, "D3DInterop_UnwrapOnOwnQueue")) : nullptr;
+    }();
+    if (ask && ask()) return on12.queue.Get();
+    return on12.unwrapQueue.Get();
 }
 
 // The D3D12 device under Unity's 11on12 device, or null (no proxy, or Unity's device is a real D3D11 one).
@@ -184,7 +231,13 @@ public:
                 continue;
             }
             Microsoft::WRL::ComPtr<ID3D12Resource> u;
-            const HRESULT hr = on12.on12->UnwrapUnderlyingResource(r, on12.queue.Get(), IID_PPV_ARGS(&u));
+            // 11on12's own queue only where the probe showed it is safe (VamOn12UnwrapTarget).
+            ID3D12CommandQueue* const target = VamOn12UnwrapTarget(on12);
+            if (!target) {
+                ReturnAll();
+                throw std::runtime_error("UnwrapUnderlyingResource: no queue of our own to name (VamOn12UnwrapQueue)");
+            }
+            const HRESULT hr = on12.on12->UnwrapUnderlyingResource(r, target, IID_PPV_ARGS(&u));
             if (FAILED(hr)) {
                 ReturnAll();
                 char text[96];

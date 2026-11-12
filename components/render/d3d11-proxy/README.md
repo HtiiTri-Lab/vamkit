@@ -13,7 +13,8 @@ of AMD's FSR API (`fsr-sdk`; its DLLs are loaded at run time, nothing is linked)
 
 | File | Holds |
 |---|---|
-| `d3d11_proxy.cpp` | `Proxy_D3D11CreateDevice` (`D3DINTEROP_MODE`), the 11on12 device and queue singletons, `D3DInterop_GetOn12` / `D3DInterop_GetOn12ForDevice`, the log and VRAM sampling |
+| `d3d11_proxy.cpp` | `Proxy_D3D11CreateDevice` (`D3DINTEROP_MODE`), the 11on12 device and queue singletons, `D3DInterop_GetOn12` / `D3DInterop_GetOn12ForDevice`, the unwrap probe's run and `D3DInterop_UnwrapOnOwnQueue`, the log and VRAM sampling |
+| `unwrap_probe.cpp` | `unwrap_probe.exe` (installed in `vamkit/bin`): whether a `d3d11on12.dll` stops its own queue when an unwrap names it; run by the proxy at start-up, or by hand |
 | `d3d11_thunks.asm`, `d3d11_thunks.inc`, `d3d11.def` | Generated: `jmp [p_<name>]` thunks for every export of the real `d3d11.dll` the proxy does not implement, the name list, and the export table with the real ordinals |
 | `gen_thunks.py` | Regenerates those three from the real `System32\d3d11.dll`: `python -I -B gen_thunks.py <real d3d11.dll> <out dir>` |
 | `desktop_presenter.cpp`, `desktop_presenter.h` | Desktop presenter: wraps Unity's swap chain, own HIGH-priority D3D12 queue, a guided frame generator (DLSS-G 2 to 4 times, or FSR 2 times, chosen by `[Performance] FrameGenModel` and followed live), even frame pacing, keep-alive for the window; `VamDesktopInstall()` is called from the proxy after the device is made |
@@ -38,6 +39,7 @@ No cfg file. Environment variables (the launcher sets them for the mod; the DLL 
 | `D3DINTEROP_MODE` | `on12`: Unity's `D3D11CreateDevice` (hardware, from `UnityPlayer.dll`) returns a D3D11On12 device. Unset or `pass`: every call goes to the real function, VaM as without this DLL |
 | `D3DINTEROP_LOG` | Directory for `d3d11_proxy.log`; when set, VRAM is also sampled each second into `d3d11_proxy_vram.csv`. Default in on12 mode: the exe's folder |
 | `D3DINTEROP_ON12_WORKER` | Diagnostic. `0`: 11on12 runs without its own worker thread (`D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS`); its translation and submissions happen on Unity's render thread. Logged in `d3d11_proxy.log`. The launcher passes it through |
+| `D3DINTEROP_UNWRAP_QUEUE` | Diagnostic. `own`: unwraps name 11on12's queue without the probe (stops for good with a `d3d11on12.dll` from before Microsoft's fix); `separate`: they always name a queue of their own. Unset: the probe decides |
 | `VAM_DESKTOP_CONFIG` | Desktop only: an ini with `[ofxr] frame_multiplier` (2 to 4) and `[overlay] position` |
 | `VAM_PERFORMANCE_CONFIG` | The run's `performance.ini`: `[Performance] FrameGeneration`, `FrameGenModel` (`DLSS` / `FSR`), `DLSSGLite` are read for the desktop presenter |
 | `VAM_FSR_RUNTIME_PATH` | The folder with AMD's FSR API DLLs (`vamkit/bin/fsr`); without it FSR frame generation is not offered |
@@ -54,11 +56,20 @@ No cfg file. Environment variables (the launcher sets them for the mod; the DLL 
 - The D3D12 device is a per-adapter singleton shared with OFXR's DLSS-G, the NR pre-pass and NGX D3D12. Only calls from `UnityPlayer.dll` get the
   11on12 device; later callers (OpenComposite, the XR runtime, OFXR) get the real one.
 - Constant buffers written every frame must be DYNAMIC with `Map(WRITE_DISCARD)` on 11on12 (see `VamWriteConstants` in `vam_on12.h`).
-- Writes `d3d11_proxy.log`, and `dlssg.log` / `ofxr-bridge-flight-desktop.log` for the presenter.
+- Writes `d3d11_proxy.log`, and `dlssg.log` / `ofxr-bridge-flight-desktop.log` for the presenter. The `on12:` lines name
+  the `d3d11on12.dll` loaded, the Windows build and the unwrap probe's verdict. The verdict line repeats the
+  `d3d11on12.dll` version and says which queue unwraps name: 11on12's own (the original path) or a queue of their own.
+- The unwrap probe (`unwrap_probe.cpp`, installed as `vamkit/bin/unwrap_probe.exe`): before Microsoft's fix (Windows 10,
+  older Windows 11), an `UnwrapUnderlyingResource` that names 11on12's queue stops that queue for good. At device
+  creation the proxy runs the probe in a process of its own on the `d3d11on12.dll` VaM loaded. `D3DInterop_UnwrapOnOwnQueue`
+  then says whether unwraps may name 11on12's queue (cheaper in VR) or must name a queue of their own
+  (`docs/knowledge/d3d11on12.md`, "Unwrap / return"). Run by hand: `unwrap_probe.exe own` (exit 0: safe, 2: stops),
+  `other`, `dll <path>` for another `d3d11on12.dll`.
 
 ## Tests
 
-None offline in this repository (the development tree had an 11on12 probe; it was not moved here). Only the game shows it: the log
+None offline in this repository. `unwrap_probe.exe` needs a graphics card: `unwrap_probe.exe own` exits 0 on a fixed
+`d3d11on12.dll` and 2 on one from before the fix (`dll <path>` tests another one). Otherwise only the game shows it: the log
 lines "on12: device ... on D3D12 device ... queue ..." and, for the desktop, `dlssg.log` (foreground changes, every `ResizeBuffers`, window
 "not responding" verdicts, and lines starting `desktop wait:` / `desktop presenter:` when a fence wait lasts more than 2 s, the swap chain's
 latency object times out, a `Present` takes 250 ms or more, or the presenter has not taken a frame for a second; each names what the presenter is

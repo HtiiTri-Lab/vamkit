@@ -28,7 +28,7 @@ summary = "D3D11On12 proxy beside VaM.exe (Unity's device on a D3D12 queue) and 
 license = "LGPL-3.0-or-later"
 needs = ["ngx-sdk", "fsr-sdk"]
 native = "components/render/d3d11-proxy/build.cmd"
-installs = [["out/d3d11-proxy/d3d11.dll", "vamkit/bin/d3d11.dll"]]
+installs = [["out/d3d11-proxy/d3d11.dll", "vamkit/bin/d3d11.dll"], ["out/d3d11-proxy/unwrap_probe.exe", "vamkit/bin/unwrap_probe.exe"]]
 
 [[component]]
 id = "opencomposite"
