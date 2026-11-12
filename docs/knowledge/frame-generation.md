@@ -193,11 +193,11 @@ not wait for VaM's frames; 3x and 4x therefore take the deep pipeline.
   frame. That copy sits on the presenter's queue behind the copies into the swap chain's buffers, and the GPU holds a write to a swap-chain buffer until the
   presentation engine has let go of it (Microsoft's flip-model guidance: the first GPU write to the back buffer is where the GPU waits for it). So a stall
   anywhere in presentation stopped Unity's queue, then Unity's render thread inside 11on12 (which waits for that queue to recycle its memory), then the main
-  thread. The one report of a desktop hang (another machine, RTX 5090 with driver 621.14, Windows 10 22H2) ended in that state: GPU nearly idle, the
-  presenter in a fence wait, Unity's thread in 11on12. With v3 the window kept answering and its logs named the stop: Unity's own queue, not
-  presentation. Unity's ready fence never advanced past the first frame the compositor handed to DLSS SR, and the presenter's queue was empty. The cause
-  was the compositor naming 11on12's own queue to `UnwrapUnderlyingResource`. On that machine's older `d3d11on12.dll` this puts a `Wait` ahead of its own
-  `Signal` on that queue ([d3d11on12.md](d3d11on12.md), "Unwrap / return"; reproduced here with Windows 11's first 24H2 build of the DLL beside `VaM.exe`).
+  thread: GPU nearly idle, the presenter in a fence wait, Unity's thread in 11on12. With v3 the window keeps answering and the logs name the stop.
+  The same picture has a cause outside presentation: on a `d3d11on12.dll` from before Microsoft's fix, Unity's own queue stops at the first frame the
+  compositor hands to DLSS SR (its ready fence never advances, the presenter's queue is empty), because the compositor named 11on12's own queue to
+  `UnwrapUnderlyingResource` and that DLL puts a `Wait` ahead of its own `Signal` there ([d3d11on12.md](d3d11on12.md), "Unwrap / return"; reproduced
+  here with Windows 11's first 24H2 build of the DLL beside `VaM.exe`).
   The compositor and the path tracer now name 11on12's queue only after the proxy's probe has shown that the DLL does
   not stop on it, and a queue that runs no work otherwise.
 - **Waits are bounded or logged.** Unity's thread still waits until the presenter has taken its last frame (the pacing), but for at most a second

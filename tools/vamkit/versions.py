@@ -32,9 +32,9 @@ SYSTEM_FILES = ("d3d11.dll", "d3d11on12.dll", "d3d12.dll", "D3D12Core.dll", "dxg
 # What a difference in a line has meant so far, or what it touches, and where to read. A line without a note has not
 # mattered yet as far as anyone knows, which is not the same as not mattering.
 NOTES = {
-    ("Windows", "release"): "The kit was made on Windows 11 only. Windows 10 22H2 is the first other release reported "
-                            "(2026-11-12): its d3d11on12.dll stopped the GPU at the first upscaled frame. Expect differences in "
-                            "D3D11On12, DXGI presentation and the driver model; docs/agent/reference-machine.md",
+    ("Windows", "release"): "The kit was made on Windows 11 only. Another release brings its own D3D11On12, DXGI "
+                            "presentation and driver model; a d3d11on12.dll from before Microsoft's fix stops the GPU at the "
+                            "first upscaled frame (the d3d11on12.dll line). docs/agent/reference-machine.md",
     ("Windows", "d3d11on12.dll"): "Before Microsoft's fix an unwrap that names 11on12's own queue stops it for good; the proxy "
                                   "tests this DLL at every start (d3d11_proxy.log, line 'on12: d3d11on12.dll ...'). By hand: "
                                   "<VaM>/vamkit/bin/unwrap_probe.exe own. docs/knowledge/d3d11on12.md, 'Unwrap / return'",

@@ -20,8 +20,8 @@
 //   (0.2-0.4 s) and showed the desktop behind it.
 // - Foreground changes and every ResizeBuffers go to dlssg.log.
 //
-// v3 (2026-11-12, a report of a desktop hang 20-90 frames after start on another machine: VaM "not responding",
-// GPU nearly idle, Unity's thread inside 11on12, the presenter in a fence wait):
+// v3 (2026-11-12): a stall in presentation no longer stops VaM. With v2 it could leave VaM "not responding", the GPU
+// nearly idle, Unity's thread inside 11on12 and the presenter in a fence wait:
 // - Unity's queue no longer waits on the GPU for the presenter's queue. In v2 it waited for the presenter's copy of
 //   the last frame, and that copy sits on the presenter's queue behind the copies into the swap chain's buffers, which
 //   the GPU holds until the presentation engine frees those buffers. So any stall in presentation stopped Unity's

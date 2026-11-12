@@ -33,9 +33,8 @@ less: each loss is listed with its reason and remedy, and is yours to mend) or 1
 `versions` lists what this machine has of everything the kit depends on (Windows and its graphics DLLs, the card and
 its driver, the OpenXR runtime, VaM's Unity and BepInEx, the run-time files, the build tools) and marks each line that
 differs from the one PC the kit was made on. Every such line is ground nobody has covered: go and look at it before the
-user runs into it (`docs/agent/reference-machine.md`). The first report from another machine was a Windows 10 that
-froze at the first upscaled frame, and the cause was one of those lines, a `d3d11on12.dll` from before a fix in
-Windows.
+user runs into it (`docs/agent/reference-machine.md`). One such line, a `d3d11on12.dll` from before a fix in Windows,
+is enough to freeze the picture at the first upscaled frame.
 
 Then make it right for this machine: the card, the headset and its runtime, the VaM build. Measure with
 `tools/lab/bench/bench.py` before and after a change (`docs/benchmarks/README.md`), find causes with

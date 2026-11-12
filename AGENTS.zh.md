@@ -43,8 +43,8 @@ python tools/lab/session/first_run.py --vam "<VaM>"           # 原版、mod 桌
 - 每一步的细节、什么时候该问用户什么：[docs/agent/install.md](docs/agent/install.md)。
 - `versions` 列出这台机器上这套东西依赖的每一样的版本（Windows 和它的图形 DLL、显卡和驱动、OpenXR 运行时、VaM 的 Unity
   和 BepInEx、运行时文件、构建工具），和开发它的那一台逐行对比。不一样的每一行都是还没人走过的地方：在用户碰上之前就去看
-  （[docs/agent/reference-machine.md](docs/agent/reference-machine.md)）。第一份来自别的机器的报告是 Windows 10 在第一帧
-  超分时画面卡死，原因正是其中一行：一个 Windows 修复之前的 `d3d11on12.dll`。
+  （[docs/agent/reference-machine.md](docs/agent/reference-machine.md)）。只差一行就可能出事：一个 Windows 修复之前的
+  `d3d11on12.dll` 就足以让画面在第一帧超分时卡死。
 
 装完之后，把它在这台机器上调对：显卡、头显和它的运行时、VaM 的版本。改动前后用 `tools/lab/bench/bench.py` 量
 （[docs/benchmarks/README.md](docs/benchmarks/README.md)），原因按 [docs/agent/troubleshoot.md](docs/agent/troubleshoot.md) 去找，

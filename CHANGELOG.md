@@ -11,32 +11,28 @@
 - The NRD denoiser path is removed (path tracing always goes through RR).
 - Desktop presenter v3: Unity's queue no longer waits on the GPU for the presenter's queue (its frames go through a ring
   of three inputs), Unity's thread waits for the presenter for at most a second, and long fence waits, latency-object
-  timeouts and slow `Present` calls are logged in `dlssg.log`. In answer to a desktop hang on another machine (GPU
-  nearly idle, Unity's thread in 11on12, the presenter in a fence wait), where a stall in presentation could stop all of
-  VaM through that wait. `D3DINTEROP_ON12_WORKER=0` runs 11on12 without its own worker thread, as a diagnostic.
+  timeouts and slow `Present` calls are logged in `dlssg.log`. Before, a stall in presentation could stop all of VaM
+  through that wait (GPU nearly idle, Unity's thread in 11on12, the presenter in a fence wait). `D3DINTEROP_ON12_WORKER=0` runs 11on12 without its own worker thread, as a diagnostic.
   Run on the desktop in a trial copy (DLSS-G 4x on 160 Hz, frame generation off and on while playing, two window
-  resizes, also with `D3DINTEROP_ON12_WORKER=0`): 40 real fps with generation as before, no long wait logged. The hang
-  was never seen on the development machine, so only the reporting machine can show whether this ends it.
+  resizes, also with `D3DINTEROP_ON12_WORKER=0`): 40 real fps with generation as before, no long wait logged.
 - Windows 10, and Windows 11 builds without Microsoft's fix: the picture no longer freezes at the first upscaled or
-  path-traced frame. With v3 the reporting machine kept answering, and its logs showed Unity's own queue stopped
-  while the presenter sat idle. The compositor (DLSS SR, XeSS, FSR, RR) and the skin path tracer named 11on12's own
+  path-traced frame. The compositor (DLSS SR, XeSS, FSR, RR) and the skin path tracer named 11on12's own
   queue to `UnwrapUnderlyingResource`. The `d3d11on12.dll` of those systems then puts a `Wait` ahead of its own `Signal`
-  on that queue, and the queue never runs again (microsoft/D3D11On12 issue #51, fixed there on 2025-09-25; that machine
-  runs Windows 10 22H2). At start-up the proxy now runs `vamkit/bin/unwrap_probe.exe` in a process of its own on the
+  on that queue, and the queue never runs again (microsoft/D3D11On12 issue #51, fixed there on 2025-09-25). At start-up the proxy now runs `vamkit/bin/unwrap_probe.exe` in a process of its own on the
   `d3d11on12.dll` VaM loaded. Unwraps name 11on12's queue only once the probe has come back; until then, and on a DLL
   where the probe stops, they name a queue of their own that runs no work. That queue works everywhere but cost about 5 % in
   VR without path tracing, so it is kept for the old DLLs. `d3d11_proxy.log` names the `d3d11on12.dll`, the Windows
   build and the probe's verdict with the DLL's version and the queue unwraps name; `D3DINTEROP_UNWRAP_QUEUE=own` /
   `separate` decides without the probe. Reproduced here
   with the `d3d11on12.dll` Windows 11 24H2 first shipped with (10.0.26100.1, kept in `WinSxS`), copied beside `VaM.exe`
-  in a trial copy. The previous build stopped at the first DLSS frame and logged the same lines as the reporting
-  machine (Unity's queue at 1225 of 1226, the presenter's at 2450 of 2450). This build runs there: desktop, DLSS SR,
+  in a trial copy. The previous build stopped at the first DLSS frame (Unity's queue at 1225 of 1226, the
+  presenter's at 2450 of 2450, the GPU idle). This build runs there: desktop, DLSS SR,
   DLSS-G 4x, 40 real fps on 160 Hz, path tracing on for 40 s and off again.
 - `vamkit versions`: what the machine has of everything the kit depends on (Windows and its graphics DLLs, hardware GPU
   scheduling, the card, driver and NGX core, the OpenXR runtime, VaM's Unity, Mono and BepInEx, the run-time files, the
   build tools), each line marked where it differs from the machine the kit was made on, with what that line has meant
   so far and where to read. The reference is `docs/agent/reference-machine.json`; `docs/agent/reference-machine.md`
-  says what to do with a difference and keeps the machines reported so far. `doctor` ends with the count. Versions
+  says what to do with a difference. `doctor` ends with the count. Versions
   and model names only: no paths, user or machine names.
 - Skin: screen-space subsurface scattering for the path tracer and light through thin parts on both routes
   (`[Subsurface] Strength`, `[General] Strength`, both in the menu); the old overall translucency layer is gone.
