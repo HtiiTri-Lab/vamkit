@@ -26,6 +26,7 @@
 ```
 git clone <本仓库> && cd vamkit
 python tools/vamkit doctor --vam "<用户的 VaM 文件夹>"         # 看现状、缺什么；不改任何东西
+python tools/vamkit versions --vam "<VaM>"                    # 这台机器和开发这套东西的那台机器哪里不一样
 python tools/vamkit fetch --accept-licenses                   # 用户同意各厂商许可条款之后再跑
 python tools/vamkit bepinex --vam "<VaM>"                     # VaM 里没有 BepInEx 5 时装它：先看计划，再加 --yes
 python tools/vamkit build
@@ -40,6 +41,10 @@ python tools/lab/session/first_run.py --vam "<VaM>"           # 原版、mod 桌
 - 首次运行检查不需要头显，也不需要人守在电脑前：它在后台启动 VaM，核对每个部分是否按要求在跑，退出码 0 = 全部照常，
   2 = 能用但打了折扣（逐条列出少了什么、原因、补法，这些该由你去补），1 = 有检查失败。
 - 每一步的细节、什么时候该问用户什么：[docs/agent/install.md](docs/agent/install.md)。
+- `versions` 列出这台机器上这套东西依赖的每一样的版本（Windows 和它的图形 DLL、显卡和驱动、OpenXR 运行时、VaM 的 Unity
+  和 BepInEx、运行时文件、构建工具），和开发它的那一台逐行对比。不一样的每一行都是还没人走过的地方：在用户碰上之前就去看
+  （[docs/agent/reference-machine.md](docs/agent/reference-machine.md)）。第一份来自别的机器的报告是 Windows 10 在第一帧
+  超分时画面卡死，原因正是其中一行：一个 Windows 修复之前的 `d3d11on12.dll`。
 
 装完之后，把它在这台机器上调对：显卡、头显和它的运行时、VaM 的版本。改动前后用 `tools/lab/bench/bench.py` 量
 （[docs/benchmarks/README.md](docs/benchmarks/README.md)），原因按 [docs/agent/troubleshoot.md](docs/agent/troubleshoot.md) 去找，
@@ -67,6 +72,7 @@ python tools/lab/session/first_run.py --vam "<VaM>"           # 原版、mod 桌
 | 做本项目没有的东西 | `docs/agent/modify.md` 的 “Building what is not here” |
 | 找问题的原因 | `docs/agent/troubleshoot.md` |
 | 跑在别的 VaM 版本上 | `docs/agent/adapt-vam-version.md` |
+| 这台机器和开发它的那台哪里不同、不同之处怎么办 | `docs/agent/reference-machine.md`（`python tools/vamkit versions`） |
 | 这台机器上留给你定的事 | `docs/agent/open-items.md` |
 | 怎么测试、怎么量 | `docs/protocol/testing.md`、`docs/protocol/performance.md`、`tools/lab/README.md` |
 | 动用户的 VaM 文件夹 | `docs/protocol/changes.md` |

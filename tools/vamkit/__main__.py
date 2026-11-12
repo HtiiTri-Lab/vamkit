@@ -12,6 +12,8 @@
   python tools/vamkit rollback  [--yes]              takes the last install back
   python tools/vamkit uninstall [--yes] [--purge]    the VaM folder as it was before the first install
   python tools/vamkit status                         which installed files are present in the VaM folder
+  python tools/vamkit versions [--json] [--against FILE]
+                                                     every version the kit depends on, against the machine it was made on
 
 The VaM folder comes from --vam, else VAMKIT_VAM, else local/vam.txt (one line, git-ignored). The build tools are found
 by themselves; VAMKIT_VCVARS, VAMKIT_FXC, VAMKIT_DXC and VAMKIT_CSC override what is found.
@@ -208,7 +210,23 @@ def doctor(vam):
         else:
             detail = f"MISSING. You do not get: {r['without']}. To add it: {r['how']}"
         check(f"run-time file {r['name']}", r["present"], detail, need=False)
+    diff = versions_module().differences(collect_versions(vam), versions_module().reference() or {})
+    check("versions against the machine the kit was made on", not diff,
+          f"{len(diff)} differ ({', '.join(k for _, k, *_ in diff[:5])}{', ...' if len(diff) > 5 else ''}): "
+          "where to look first when something behaves differently; python tools/vamkit versions" if diff else "the same", need=False)
     return checks
+
+
+def versions_module():
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import versions
+    return versions
+
+
+def collect_versions(vam):
+    from types import SimpleNamespace
+    kit = SimpleNamespace(file_version=file_version, run=run, tools=tools, runtimes=runtimes, repo=REPO)
+    return versions_module().collect(kit, vam if vam is not None and (vam / "VaM.exe").is_file() else None)
 
 
 def status(vam):
@@ -588,8 +606,9 @@ def test(args, vam):
     env = build_environment(vam)
     failed = 0
     if not args.ids or "vamkit" in args.ids:   # the tool's own test: install, verify, uninstall, rollback on a made-up VaM folder
-        script = REPO / "tools" / "vamkit" / "tests" / "install_test.py"
-        failed += not step(f"{'vamkit':<16} test     {script.name}", [sys.executable, "-I", script], env, OUT / "logs" / "vamkit.test0.log")
+        for n, name in enumerate(("install_test.py", "versions_test.py")):   # versions: the comparison and the reference file
+            script = REPO / "tools" / "vamkit" / "tests" / name
+            failed += not step(f"{'vamkit':<16} test     {script.name}", [sys.executable, "-I", script], env, OUT / "logs" / f"vamkit.test{n}.log")
     ids = [i for i in args.ids if i != "vamkit"]
     for c in selected(ids) if ids or not args.ids else []:
         if c.get("tests") and not needs_fetched(c):
@@ -612,7 +631,7 @@ def main():
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(errors="replace")
     ap = argparse.ArgumentParser(prog="vamkit", description=__doc__.split("\n")[0])
-    ap.add_argument("command", choices=("doctor", "status", "fetch", "bepinex", "build", "test", "install", "verify", "uninstall", "rollback"))
+    ap.add_argument("command", choices=("doctor", "status", "fetch", "bepinex", "build", "test", "install", "verify", "uninstall", "rollback", "versions"))
     ap.add_argument("ids", nargs="*", help="component ids (build, test) or third-party ids (fetch); all when omitted")
     ap.add_argument("--vam")
     ap.add_argument("--json", action="store_true")
@@ -626,6 +645,7 @@ def main():
     ap.add_argument("--replace", action="store_true", help="install: also over files of the same names that vamkit did not install (they are kept)")
     ap.add_argument("--purge", action="store_true", help="uninstall: also remove the runs' logs, the launch presets, the plugins' settings and a BepInEx that `vamkit bepinex` put in")
     ap.add_argument("--remove", action="store_true", help="bepinex: take out the BepInEx that `vamkit bepinex` put in")
+    ap.add_argument("--against", metavar="FILE", help="versions: another machine's `versions --json` instead of docs/agent/reference-machine.json")
     args = ap.parse_args()
     vam = vam_folder(args.vam)
     if args.command in ("bepinex", "install", "verify", "uninstall", "rollback"):
@@ -657,6 +677,14 @@ def main():
                 mark = "ok  " if c["ok"] else ("FAIL" if c["required"] else "note")
                 print(f"{mark}  {c['name']}: {c['detail']}")
         return 0 if all(c["ok"] or not c["required"] for c in checks) else 1
+    if args.command == "versions":
+        found = collect_versions(vam)
+        if args.json:
+            print(json.dumps(found, indent=2))
+            return 0
+        v = versions_module()
+        v.print_report(found, v.reference(args.against), args.against or "the reference machine (docs/agent/reference-machine.json)")
+        return 0
     if args.command == "fetch":
         return fetch(args)
     if args.command == "build":

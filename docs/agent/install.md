@@ -35,7 +35,10 @@ the user asks for it, and after backing up what they cannot replace.
 - The Windows feature ".NET Framework 3.5": its `csc.exe` compiles the plugins as C# 3, which is what VaM's Mono runs.
 - For VR: a headset reached through an OpenXR runtime. The development setup is a Quest 3 through Virtual Desktop.
 
-`python tools/vamkit doctor` checks all of this and says what is missing. It changes nothing.
+`python tools/vamkit doctor` checks all of this and says what is missing. It changes nothing. `python tools/vamkit
+versions` then lists how this machine differs from the one the kit was made on: each difference is a place nobody has
+run the kit, to be looked at during the first run rather than after the user meets it
+([reference-machine.md](reference-machine.md)).
 
 ## The flow
 
@@ -44,7 +47,7 @@ in `local/vam.txt` (git-ignored).
 
 | Step | Command | What it does |
 |---|---|---|
-| 1 Check | `python tools/vamkit doctor` | VaM, BepInEx, GPU, build tools, what is already fetched |
+| 1 Check | `python tools/vamkit doctor`, `python tools/vamkit versions` | VaM, BepInEx, GPU, build tools, what is already fetched; what differs from the machine the kit was made on |
 | 2 Fetch | `python tools/vamkit fetch --accept-licenses` | third-party SDKs and the DLSS runtimes into `third_party/` |
 | 2b BepInEx | `python tools/vamkit bepinex`, then again with `--yes` | only when the VaM folder has no BepInEx (a clean VaM has none): puts BepInEx 5.4.23.6 from its own release page in, recorded so that `bepinex --remove` or `uninstall --purge` takes it out. A BepInEx that is there is never touched. Before `build`: the plugins are compiled against it |
 | 3 Build | `python tools/vamkit build` | generators, native libraries and plugins of every component into `out/` |

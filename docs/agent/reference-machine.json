@@ -1,0 +1,65 @@
+{
+  "Windows": {
+    "release": "Windows 11 26H2",
+    "build": "10.0.26300.9974",
+    "d3d11.dll": "10.0.26100.9818",
+    "d3d11on12.dll": "10.0.26100.9818",
+    "d3d12.dll": "10.0.26100.9818",
+    "D3D12Core.dll": "10.0.26100.9818",
+    "dxgi.dll": "10.0.26100.9818",
+    "dxcore.dll": "10.0.26100.9818",
+    "d3dcompiler_47.dll": "10.0.26100.9974",
+    "nvapi64.dll": "32.0.16.1656",
+    "vcruntime140.dll": "14.51.36247.0",
+    "msvcp140.dll": "14.51.36247.0",
+    "hardware GPU scheduling": "on",
+    "DirectX user settings": "AutoHDREnable=0",
+    ".NET Framework 3.5": "present",
+    "VC++ redistributable": "v14.51.36247.00"
+  },
+  "Graphics": {
+    "GPU": "NVIDIA GeForce RTX 5090 D",
+    "other display adapters": "5 (virtual or basic)",
+    "NVIDIA GPU": "NVIDIA GeForce RTX 5090 D, 616.56, 32607 MiB",
+    "driver": "NVIDIA GeForce RTX 5090 D: 32.0.16.1656",
+    "NGX core": "32.0.16.1656",
+    "displays": "3840x2160 at 160 Hz"
+  },
+  "VR": {
+    "OpenXR runtime": "VirtualDesktopXR (Bundled) 1.1.0.0"
+  },
+  "Hardware": {
+    "CPU": "AMD Ryzen 9 9950X3D2 16-Core Processor",
+    "cores": "16 cores, 32 logical processors",
+    "memory": "126 GB"
+  },
+  "VaM": {
+    "Unity": "2018.1.9.52265",
+    "mono.dll": "1.0.0.1",
+    "BepInEx": "5.4.23.6",
+    "Harmony": "2.9.0.0",
+    "UnityDoorstop": "4.6.0.0"
+  },
+  "Kit run-time files": {
+    "nvngx_dlss.dll": "310.9.16",
+    "nvngx_dlssd.dll": "310.9.16",
+    "nvngx_dlssnr.dll": "310.9.16",
+    "nvngx_dlssg.dll": "310.9.16",
+    "libxess.dll": "3.0.2",
+    "amd_fidelityfx_loader_dx12.dll": "2.4.0",
+    "amd_fidelityfx_upscaler_dx12.dll": "2.4.0",
+    "amd_fidelityfx_framegeneration_dx12.dll": "2.4.0"
+  },
+  "Build tools": {
+    "MSVC": "14.44.35207",
+    "Windows SDK": "10.0.26100.0",
+    "CMake": "3.31.6-msvc6",
+    "C# compiler": "3.5.30729.9151",
+    "Python": "3.11.7",
+    "git": "2.53.0.windows.1"
+  },
+  "Kit": {
+    "commit": "8cc6fc8",
+    "captured": "2026-11-12"
+  }
+}

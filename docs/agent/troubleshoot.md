@@ -7,6 +7,9 @@ by reading code, not by capturing more.
 
 ## First moves, always
 
+0. **What is different here?** `python tools/vamkit versions --vam <VaM>` marks every line where this machine differs
+   from the one the kit was made on, with what that line has meant so far. A problem nobody has seen before most
+   likely lives in one of them ([reference-machine.md](reference-machine.md)).
 1. **Which run?** Find the run's folder under `<VaM>/vamkit/logs/` and read what that session actually loaded: plugin
    versions, which switches were on, the lines that say a feature went live. Do not reason about a session from memory.
 2. **Is the pipeline alive?** In that run's logs: did every DLSS feature get created (no create failure), did the path

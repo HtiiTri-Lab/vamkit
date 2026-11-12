@@ -122,6 +122,8 @@ python tools/vamkit install                    # 先打印计划；加 --yes 才
 | 测量用的头显 | 模拟头显，每眼 3072×3264，144 Hz（[tools/lab](tools/lab/README.md)） |
 | 开发时用的头显 | Quest 3，经 Virtual Desktop |
 
+它上面这套东西所依赖的每一样的版本，以及你的机器和它不一样时该怎么办，见
+[docs/agent/reference-machine.md](docs/agent/reference-machine.md)；`python tools/vamkit versions` 会拿你的机器和它对比。
 别的硬件都没试过：没有 RTX 40 / 30，没有 AMD 或 Intel 显卡，没有别的头显。显卡小一些，得到的就少一些，路径追踪差得最多；
 渲染比例、路径追踪的反弹次数和背景减负就是给这种情况调的，XeSS、FSR 和 FSR 插帧是给没有 DLSS 的显卡准备的。某个部分在
 你的机器上跑不了时，启动器和日志会明说，不会悄悄降级。

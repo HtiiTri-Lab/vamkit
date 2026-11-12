@@ -138,7 +138,9 @@ it will do on yours.
 | Headset in the measurements | a simulated one, 3072x3264 per eye at 144 Hz ([tools/lab](tools/lab/README.md)) |
 | Headset used while developing | Quest 3 through Virtual Desktop |
 
-Nothing else has been tried: no RTX 40 or 30 card, no AMD or Intel card, no other headset. A smaller card gets less,
+Every version it has of what the kit depends on, and what to do where yours differ, is in
+[docs/agent/reference-machine.md](docs/agent/reference-machine.md); `python tools/vamkit versions` compares your machine
+with it. Nothing else has been tried: no RTX 40 or 30 card, no AMD or Intel card, no other headset. A smaller card gets less,
 path tracing most of all; the render scales, the path tracer's bounces and its background savings are there to be
 set for it, and XeSS, FSR and FSR frame generation are there for cards without DLSS. What a part does when the
 machine cannot run it is said in the launcher and in the logs, not hidden.

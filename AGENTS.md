@@ -14,6 +14,7 @@ only when the user says so; before that, back up what they cannot replace.
 ```
 git clone <this repository> && cd vamkit
 python tools/vamkit doctor --vam "<the user's VaM folder>"    # what is there and what is missing; changes nothing
+python tools/vamkit versions --vam "<VaM>"                    # what differs from the machine the kit was made on
 python tools/vamkit fetch --accept-licenses                   # after the user agreed to the vendors' licence terms
 python tools/vamkit bepinex --vam "<VaM>"                     # BepInEx 5 for a VaM folder without one: the plan, then --yes
 python tools/vamkit build
@@ -28,6 +29,13 @@ python tools/lab/session/first_run.py --vam "<VaM>"           # vanilla, the mod
 starts VaM in the background, checks that every part runs as asked, and ends with 0 (all as asked), 2 (works with
 less: each loss is listed with its reason and remedy, and is yours to mend) or 1 (a check failed).
 `docs/agent/install.md` goes through each step, what to ask the user and when.
+
+`versions` lists what this machine has of everything the kit depends on (Windows and its graphics DLLs, the card and
+its driver, the OpenXR runtime, VaM's Unity and BepInEx, the run-time files, the build tools) and marks each line that
+differs from the one PC the kit was made on. Every such line is ground nobody has covered: go and look at it before the
+user runs into it (`docs/agent/reference-machine.md`). The first report from another machine was a Windows 10 that
+froze at the first upscaled frame, and the cause was one of those lines, a `d3d11on12.dll` from before a fix in
+Windows.
 
 Then make it right for this machine: the card, the headset and its runtime, the VaM build. Measure with
 `tools/lab/bench/bench.py` before and after a change (`docs/benchmarks/README.md`), find causes with
@@ -85,6 +93,7 @@ Three limits are real, and they are the only ones:
 | Build something this project does not have | `docs/agent/modify.md`, "Building what is not here" |
 | Find the cause of a problem | `docs/agent/troubleshoot.md` |
 | Run on another VaM build | `docs/agent/adapt-vam-version.md` |
+| Know how this machine differs from the one the kit was made on, and what to do about it | `docs/agent/reference-machine.md` (`python tools/vamkit versions`) |
 | Know what was left for you to decide on this machine | `docs/agent/open-items.md` |
 | Decide how to test or measure | `docs/protocol/testing.md`, `docs/protocol/performance.md`, `tools/lab/README.md` |
 | Touch the user's VaM folder | `docs/protocol/changes.md` |
@@ -103,6 +112,7 @@ python tools/vamkit verify                      the install's record against the
 python tools/vamkit rollback [--yes]            takes the last install back
 python tools/vamkit uninstall [--yes] [--purge] the VaM folder as it was before the first install
 python tools/vamkit status                      which installed files are present in the VaM folder
+python tools/vamkit versions [--json]           every version the kit depends on, against the machine it was made on
 python tools/check_manifest.py [--built]        the manifest against the tree (and, after a build, its outputs)
 python tools/check_docs.py                      every path and link the documents name exists
 python tools/check_lang.py [--new <code>]       the menus' language tables against the texts in the code

@@ -32,6 +32,12 @@
   in a trial copy. The previous build stopped at the first DLSS frame and logged the same lines as the reporting
   machine (Unity's queue at 1225 of 1226, the presenter's at 2450 of 2450). This build runs there: desktop, DLSS SR,
   DLSS-G 4x, 40 real fps on 160 Hz, path tracing on for 40 s and off again.
+- `vamkit versions`: what the machine has of everything the kit depends on (Windows and its graphics DLLs, hardware GPU
+  scheduling, the card, driver and NGX core, the OpenXR runtime, VaM's Unity, Mono and BepInEx, the run-time files, the
+  build tools), each line marked where it differs from the machine the kit was made on, with what that line has meant
+  so far and where to read. The reference is `docs/agent/reference-machine.json`; `docs/agent/reference-machine.md`
+  says what to do with a difference and keeps the machines reported so far. `doctor` ends with the count. Versions
+  and model names only: no paths, user or machine names.
 - Skin: screen-space subsurface scattering for the path tracer and light through thin parts on both routes
   (`[Subsurface] Strength`, `[General] Strength`, both in the menu); the old overall translucency layer is gone.
 - Runtime components added: cpu-boost, gc-tuning, hair-solver, hair-budget, cloth-physics, wrap-batch. Worker thread
